@@ -1,0 +1,721 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.core.configuration &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.core.configuration</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Tools for keeping track of system settings.</span>
+
+<span class="sd">The `configuration` module provides a system for managing the general, </span>
+<span class="sd">reusable settings for the software---both a collection of default settings and </span>
+<span class="sd">some user-specific settings---including default file locations, graph colors, </span>
+<span class="sd">graph update delays, and so on. It keeps track of these data in memory and saves</span>
+<span class="sd">them to (and initially reads them from) a file on the disk.</span>
+
+<span class="sd">The module defines some classes for the above-mentioned purposes, and it creates</span>
+<span class="sd">an actual instance of the ``Configuration`` class, so that other modules can</span>
+<span class="sd">access the configuration without having to create a new instance and, therefore</span>
+<span class="sd">without having to re-read the file from the hard drive.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">TemporaryFile</span>
+
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">config_parser</span> <span class="k">as</span> <span class="n">cp</span>
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">path_tools</span> <span class="k">as</span> <span class="n">pt</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;transport&#39;</span><span class="p">)</span>
+
+<span class="n">CONFIG_FOLDER</span> <span class="o">=</span> <span class="s">&#39;etc&#39;</span>
+<span class="n">MAIN_PATH</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">([</span><span class="n">CONFIG_FOLDER</span><span class="p">,</span> <span class="s">&#39;general.conf&#39;</span><span class="p">])</span>
+<span class="n">EDITORS_PATH</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">([</span><span class="n">CONFIG_FOLDER</span><span class="p">,</span> <span class="s">&#39;editors.conf&#39;</span><span class="p">])</span>
+<span class="n">DEFAULT_FOLDER</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&#39;~&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Configuration"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration">[docs]</a><span class="k">class</span> <span class="nc">Configuration</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The `Configuration` class is a container for system-wide settings</span>
+<span class="sd">    concerning appearance of certain components, default file locations, and </span>
+<span class="sd">    helpful ways for letting users know that an experiment is finished or that</span>
+<span class="sd">    serious system errors (e.g. magnet quenches) have occurred.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a new Configuration object.</span>
+<span class="sd">        </span>
+<span class="sd">        Set default values for the various saved settings. Then attempt to read</span>
+<span class="sd">        the data from the configuration file. If it works (i.e. the file exists</span>
+<span class="sd">        and has the desired information), read the data from the file. If it</span>
+<span class="sd">        does not, save the default data to the file. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">defaults</span> <span class="o">=</span> <span class="p">{(</span><span class="s">&#39;experiment_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;experiment_folder&#39;</span><span class="p">):</span> 
+                                                            <span class="n">DEFAULT_FOLDER</span><span class="p">,</span>
+                    <span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;data_folder&#39;</span><span class="p">):</span> <span class="n">DEFAULT_FOLDER</span><span class="p">,</span>
+                    <span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;data_file&#39;</span><span class="p">):</span> <span class="s">&#39;data.dat&#39;</span><span class="p">,</span>
+                    <span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;prepend_scan&#39;</span><span class="p">):</span> <span class="bp">True</span><span class="p">,</span>
+                    <span class="p">(</span><span class="s">&#39;graph_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;graph_colors&#39;</span><span class="p">):</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)],</span>
+                    <span class="p">(</span><span class="s">&#39;graph_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;graph_delay&#39;</span><span class="p">):</span> <span class="mf">2.0</span><span class="p">,</span>
+                    <span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="s">&#39;user_names&#39;</span><span class="p">):</span> <span class="p">[],</span>
+                    <span class="p">(</span><span class="s">&#39;miscellaneous_data&#39;</span><span class="p">,</span> <span class="s">&#39;phone_carriers&#39;</span><span class="p">):</span>
+                        <span class="p">[(</span><span class="s">&#39;AT&amp;T&#39;</span><span class="p">,</span> <span class="s">&#39;txt.att.net&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;Verizon&#39;</span><span class="p">,</span> <span class="s">&#39;vtext.com&#39;</span><span class="p">)]}</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">MAIN_PATH</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">FORMAT_AUTO</span><span class="p">,</span>
+                                             <span class="n">defaultValues</span><span class="o">=</span><span class="n">defaults</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_experimentFolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;experiment_defaults&#39;</span><span class="p">,</span>
+                                                        <span class="s">&#39;experiment_folder&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataFolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span> 
+                                                  <span class="s">&#39;data_folder&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span>
+                                                <span class="s">&#39;data_file&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prependScan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span>
+                                                          <span class="s">&#39;prepend_scan&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_graphColors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;graph_defaults&#39;</span><span class="p">,</span> 
+                                                          <span class="s">&#39;graph_colors&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_graphDelay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;graph_defaults&#39;</span><span class="p">,</span>
+                                                       <span class="s">&#39;graph_delay&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_carriers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;miscellaneous_data&#39;</span><span class="p">,</span>
+                                                       <span class="s">&#39;phone_carriers&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_userNames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="s">&#39;user_names&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_users</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">userName</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_userNames</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_users</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">User</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">userName</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span> <span class="o">=</span> <span class="bp">None</span>
+    
+    <span class="k">def</span> <span class="nf">_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the value associated with a specified key.</span>
+<span class="sd">        </span>
+<span class="sd">        This method is simply a shorthand for self._configParser.set</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        section : str</span>
+<span class="sd">            The section in which the key is located.</span>
+<span class="sd">        option : str</span>
+<span class="sd">            The key whose value is to be set.</span>
+<span class="sd">        value : variable</span>
+<span class="sd">            The new value to associate with the given key.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        variable</span>
+<span class="sd">            The unchanged value of `value`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="Configuration.getExperimentFolder"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.getExperimentFolder">[docs]</a>    <span class="k">def</span> <span class="nf">getExperimentFolder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the experiment folder.</span>
+<span class="sd">        </span>
+<span class="sd">        If a user is active and not overridden, return the user&#39;s default</span>
+<span class="sd">        experiment folder. Otherwise, return the system default experiment</span>
+<span class="sd">        folder.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_experimentFolder</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">getExperimentFolder</span><span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="Configuration.setExperimentFolder"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.setExperimentFolder">[docs]</a>    <span class="k">def</span> <span class="nf">setExperimentFolder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the default experiment file folder.</span>
+<span class="sd">        </span>
+<span class="sd">        If a user is active and not overridden, set the user&#39;s experiment file</span>
+<span class="sd">        folder. Otherwise, set the system default experiment folder, which will </span>
+<span class="sd">        be used whenever no user is active and will be the default for new </span>
+<span class="sd">        users.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_experimentFolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="s">&#39;experiment_defaults&#39;</span><span class="p">,</span>
+                                               <span class="s">&#39;experiment_folder&#39;</span><span class="p">,</span>
+                                               <span class="n">newValue</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">setExperimentFolder</span><span class="p">(</span><span class="n">newValue</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="Configuration.getDataFolder"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.getDataFolder">[docs]</a>    <span class="k">def</span> <span class="nf">getDataFolder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the data folder.</span>
+<span class="sd">        </span>
+<span class="sd">        If a user is active and not overridden, return the user&#39;s default</span>
+<span class="sd">        data folder. Otherwise, return the system default data folder.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataFolder</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">getDataFolder</span><span class="p">()</span></div>
+<div class="viewcode-block" id="Configuration.setDataFolder"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.setDataFolder">[docs]</a>    <span class="k">def</span> <span class="nf">setDataFolder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the default data folder.</span>
+<span class="sd">        </span>
+<span class="sd">        If a user is active and not overridden, set the user&#39;s default data </span>
+<span class="sd">        folder. Otherwise, set the system default data folder, which will be </span>
+<span class="sd">        used whenever no user is active and will be the default for new users.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dataFolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;data_folder&#39;</span><span class="p">,</span>
+                                         <span class="n">newValue</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">setDataFolder</span><span class="p">(</span><span class="n">newValue</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="Configuration.getDataFile"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.getDataFile">[docs]</a>    <span class="k">def</span> <span class="nf">getDataFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the default filename.</span>
+<span class="sd">        </span>
+<span class="sd">        If a user is active and not overridden, return the user&#39;s default</span>
+<span class="sd">        file name. Otherwise, return the system default data file name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataFile</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">getDataFile</span><span class="p">()</span></div>
+<div class="viewcode-block" id="Configuration.setDataFile"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.setDataFile">[docs]</a>    <span class="k">def</span> <span class="nf">setDataFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the default filename.</span>
+<span class="sd">        </span>
+<span class="sd">        If a user is active and not overridden, set the user&#39;s default filename.</span>
+<span class="sd">        Otherwise, set the system default filename, which will be used whenever</span>
+<span class="sd">        no user is active and will be the default for new users. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dataFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;data_file&#39;</span><span class="p">,</span>
+                                       <span class="n">newValue</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">setDataFile</span><span class="p">(</span><span class="n">newValue</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="Configuration.getPrependScan"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.getPrependScan">[docs]</a>    <span class="k">def</span> <span class="nf">getPrependScan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether to prepend filenames with a scan number by default.</span>
+<span class="sd">        </span>
+<span class="sd">        If a user is active and not overridden, return whether the user wants</span>
+<span class="sd">        to prepend a scan number by default. Otherwise, return whether the </span>
+<span class="sd">        system default is to prepend a scan number.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prependScan</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">getPrependScan</span><span class="p">()</span></div>
+<div class="viewcode-block" id="Configuration.setPrependScan"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.setPrependScan">[docs]</a>    <span class="k">def</span> <span class="nf">setPrependScan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set whether to prepend filenames with a scan number by default.</span>
+<span class="sd">        </span>
+<span class="sd">        If a user is active and not overridden, set whether the user wants</span>
+<span class="sd">        to prepend a scan number by default. Otherwise, return whether the </span>
+<span class="sd">        system default is to prepend a scan number.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_prependScan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;prepend_scan&#39;</span><span class="p">,</span>
+                                          <span class="n">newValue</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">setPrependScan</span><span class="p">(</span><span class="n">newValue</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="Configuration.getGraphColors"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.getGraphColors">[docs]</a>    <span class="k">def</span> <span class="nf">getGraphColors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the list of graph colors (a list of RGB tuples).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_graphColors</span><span class="p">)</span></div>
+<div class="viewcode-block" id="Configuration.setGraphColors"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.setGraphColors">[docs]</a>    <span class="k">def</span> <span class="nf">setGraphColors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the colors (a list of RGB tuples) to use for plots.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_graphColors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="s">&#39;graph_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;graph_colors&#39;</span><span class="p">,</span>
+                                      <span class="n">deepcopy</span><span class="p">(</span><span class="n">newValue</span><span class="p">))</span>
+        </div>
+<div class="viewcode-block" id="Configuration.getGraphDelay"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.getGraphDelay">[docs]</a>    <span class="k">def</span> <span class="nf">getGraphDelay</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the time between successive updates of plots.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_graphDelay</span></div>
+<div class="viewcode-block" id="Configuration.setGraphDelay"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.setGraphDelay">[docs]</a>    <span class="k">def</span> <span class="nf">setGraphDelay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the time between successive updates of plots.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_graphDelay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="s">&#39;graph_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;graph_delay&#39;</span><span class="p">,</span>
+                                     <span class="n">deepcopy</span><span class="p">(</span><span class="n">newValue</span><span class="p">))</span>
+        </div>
+<div class="viewcode-block" id="Configuration.getCarrierStrings"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.getCarrierStrings">[docs]</a>    <span class="k">def</span> <span class="nf">getCarrierStrings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a list of strings representing mobile carrier names.&quot;&quot;&quot;</span>
+        <span class="n">carrierStrings</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">carrier</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_carriers</span><span class="p">:</span>
+            <span class="n">carrierStrings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">carrier</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">carrierStrings</span>
+    </div>
+<div class="viewcode-block" id="Configuration.loadUser"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.loadUser">[docs]</a>    <span class="k">def</span> <span class="nf">loadUser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Change the active user.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        username : str</span>
+<span class="sd">            The username of the user whose data should be loaded. If &#39;None&#39;</span>
+<span class="sd">            or `None` is supplied, or if the specified user does not exist,</span>
+<span class="sd">            the default settings will be loaded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">username</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_userNames</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Loading user &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">username</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_users</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_userNames</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">username</span><span class="p">)]</span>
+        <span class="k">elif</span> <span class="n">username</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span> <span class="ow">or</span> <span class="n">username</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Loading default user.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;User [</span><span class="si">%s</span><span class="s">] does not exist. Loading default.&#39;</span><span class="p">,</span> <span class="n">username</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span> <span class="o">=</span> <span class="bp">None</span>
+        </div>
+<div class="viewcode-block" id="Configuration.getUserName"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.getUserName">[docs]</a>    <span class="k">def</span> <span class="nf">getUserName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the name of the active user.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The name of the active user, or &#39;None&#39; if no user has been loaded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">getUserName</span><span class="p">()</span>
+        <span class="k">return</span> <span class="s">&#39;None&#39;</span>
+    </div>
+<div class="viewcode-block" id="Configuration.setUserName"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.setUserName">[docs]</a>    <span class="k">def</span> <span class="nf">setUserName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Rename the active user.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newValue : str</span>
+<span class="sd">            The new value for the name of the current user, if one has been</span>
+<span class="sd">            loaded. If no user is active, nothing will happen.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">setUserName</span><span class="p">(</span><span class="n">newValue</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Configuration.getPhone"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.getPhone">[docs]</a>    <span class="k">def</span> <span class="nf">getPhone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the phone number of the active user.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The phone number of the active user, or an empty string if there</span>
+<span class="sd">            is no active user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">getPhone</span><span class="p">()</span>
+        <span class="k">return</span> <span class="s">&#39;&#39;</span>
+    </div>
+<div class="viewcode-block" id="Configuration.setPhone"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.setPhone">[docs]</a>    <span class="k">def</span> <span class="nf">setPhone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the phone number of the active user.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newValue : str</span>
+<span class="sd">            The new phone number for the active user. If there is no active</span>
+<span class="sd">            user, nothing will happen.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">setPhone</span><span class="p">(</span><span class="n">newValue</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Configuration.getCarrier"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.getCarrier">[docs]</a>    <span class="k">def</span> <span class="nf">getCarrier</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the carrier of the active user.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The carrier of the active user, or an empty string if there is no</span>
+<span class="sd">            active user or no carrier associated with the active user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">getCarrier</span><span class="p">()</span>
+        <span class="k">return</span> <span class="s">&#39;&#39;</span>
+    </div>
+<div class="viewcode-block" id="Configuration.setCarrier"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.setCarrier">[docs]</a>    <span class="k">def</span> <span class="nf">setCarrier</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the carrier of the active user, or do nothing if none.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">setCarrier</span><span class="p">(</span><span class="n">newValue</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="Configuration.getSmsFinished"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.getSmsFinished">[docs]</a>    <span class="k">def</span> <span class="nf">getSmsFinished</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether to text the active user on experiment completion.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">getSmsFinished</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">False</span></div>
+<div class="viewcode-block" id="Configuration.setSmsFinished"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.setSmsFinished">[docs]</a>    <span class="k">def</span> <span class="nf">setSmsFinished</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set whether to text the active user on experiment completion.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">setSmsFinished</span><span class="p">(</span><span class="n">newValue</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="Configuration.getSmsError"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.getSmsError">[docs]</a>    <span class="k">def</span> <span class="nf">getSmsError</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether to text the active user on a system error.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">getSmsError</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">False</span></div>
+<div class="viewcode-block" id="Configuration.setSmsError"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.setSmsError">[docs]</a>    <span class="k">def</span> <span class="nf">setSmsError</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set whether to text the active user on a system error.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span><span class="o">.</span><span class="n">setSmsError</span><span class="p">(</span><span class="n">newValue</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="Configuration.getUserNames"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.getUserNames">[docs]</a>    <span class="k">def</span> <span class="nf">getUserNames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a list of usernames as strings.&quot;&quot;&quot;</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_users</span><span class="p">:</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">getUserName</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">names</span>
+        </div>
+<div class="viewcode-block" id="Configuration.addUser"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.addUser">[docs]</a>    <span class="k">def</span> <span class="nf">addUser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new user.&quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Attempting to create user [</span><span class="si">%s</span><span class="s">].&#39;</span><span class="p">,</span> <span class="n">username</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_users</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">User</span><span class="p">(</span><span class="n">username</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_userNames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="s">&#39;user_names&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_userNames</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Adding user &#39;</span> <span class="o">+</span> <span class="n">username</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="Configuration.removeUser"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.Configuration.removeUser">[docs]</a>    <span class="k">def</span> <span class="nf">removeUser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete a user.&quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Attempting to delete user [</span><span class="si">%s</span><span class="s">].&#39;</span><span class="p">,</span> <span class="n">username</span><span class="p">)</span>
+        <span class="n">toDelete</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">user</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_users</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">getUserName</span><span class="p">()</span> <span class="o">==</span> <span class="n">username</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span> <span class="ow">is</span> <span class="n">user</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_activeUser</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="n">toDelete</span> <span class="o">=</span> <span class="n">index</span>
+        <span class="k">if</span> <span class="n">toDelete</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Deleting user &#39;</span> <span class="o">+</span> <span class="n">username</span><span class="p">)</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_users</span><span class="p">[</span><span class="n">toDelete</span><span class="p">]</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_userNames</span><span class="p">[</span><span class="n">toDelete</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="s">&#39;user_names&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_userNames</span><span class="p">)</span>
+            <span class="n">userfile</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="n">CONFIG_FOLDER</span><span class="p">,</span> <span class="n">_getUserFile</span><span class="p">(</span><span class="n">username</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">userfile</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">userfile</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;Cannot remove user [</span><span class="si">%s</span><span class="s">] because he does not exist.&#39;</span><span class="p">,</span> 
+                     <span class="n">username</span><span class="p">)</span>
+
+    
+    
+        </div></div>
+<div class="viewcode-block" id="User"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User">[docs]</a><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A class to assist Configuration by storing per-user settings&quot;&quot;&quot;</span>
+    
+    <span class="n">defaults</span> <span class="o">=</span> <span class="p">{(</span><span class="s">&#39;experiment_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;experiment_folder&#39;</span><span class="p">):</span> 
+                                                        <span class="n">DEFAULT_FOLDER</span><span class="p">,</span>
+                <span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;data_folder&#39;</span><span class="p">):</span> <span class="n">DEFAULT_FOLDER</span><span class="p">,</span>
+                <span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;data_file&#39;</span><span class="p">):</span> <span class="s">&#39;data.dat&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;prepend_scan&#39;</span><span class="p">):</span> <span class="bp">True</span><span class="p">,</span>
+                <span class="p">(</span><span class="s">&#39;personal_settings&#39;</span><span class="p">,</span> <span class="s">&#39;phone&#39;</span><span class="p">):</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="s">&#39;personal_settings&#39;</span><span class="p">,</span> <span class="s">&#39;carrier&#39;</span><span class="p">):</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="s">&#39;personal_settings&#39;</span><span class="p">,</span> <span class="s">&#39;sms_finished&#39;</span><span class="p">):</span> <span class="bp">False</span><span class="p">,</span>
+                <span class="p">(</span><span class="s">&#39;personal_settings&#39;</span><span class="p">,</span> <span class="s">&#39;sms_error&#39;</span><span class="p">):</span> <span class="bp">False</span><span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a new user.</span>
+<span class="sd">        </span>
+<span class="sd">        Create a new user object with the given ``name``. If the proper file </span>
+<span class="sd">        exists for the given user, the settings will be loaded from that. </span>
+<span class="sd">        Otherwise, a new user will be created using the default settings, and</span>
+<span class="sd">        the correct file will be created.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">userFile</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="n">CONFIG_FOLDER</span><span class="p">,</span> <span class="n">_getUserFile</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">userFile</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">FORMAT_AUTO</span><span class="p">,</span> 
+                                             <span class="n">defaultValues</span><span class="o">=</span><span class="n">User</span><span class="o">.</span><span class="n">defaults</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_experimentFolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;experiment_defaults&#39;</span><span class="p">,</span>
+                                                        <span class="s">&#39;experiment_folder&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataFolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span> 
+                                                  <span class="s">&#39;data_folder&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span>
+                                                <span class="s">&#39;data_file&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prependScan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span>
+                                                          <span class="s">&#39;prepend_scan&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phone</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;personal_settings&#39;</span><span class="p">,</span> <span class="s">&#39;phone&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_carrier</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;personal_settings&#39;</span><span class="p">,</span> <span class="s">&#39;carrier&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_smsFinished</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;personal_settings&#39;</span><span class="p">,</span> 
+                                                          <span class="s">&#39;sms_finished&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_smsError</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;personal_settings&#39;</span><span class="p">,</span> 
+                                                       <span class="s">&#39;sms_error&#39;</span><span class="p">)</span>
+            
+        
+    <span class="k">def</span> <span class="nf">_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the value associated with a specified key.</span>
+<span class="sd">        </span>
+<span class="sd">        This method is simply a shorthand for self._configParser.set</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        section : str</span>
+<span class="sd">            The section in which the key is located.</span>
+<span class="sd">        option : str</span>
+<span class="sd">            The key whose value is to be set.</span>
+<span class="sd">        value : variable</span>
+<span class="sd">            The new value to associate with the given key.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        variable</span>
+<span class="sd">            The unchanged value of `value`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="User.getUserName"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.getUserName">[docs]</a>    <span class="k">def</span> <span class="nf">getUserName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the user&#39;s name.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+     </div>
+<div class="viewcode-block" id="User.setUserName"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.setUserName">[docs]</a>    <span class="k">def</span> <span class="nf">setUserName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the user&#39;s name, changing the configuration file accordingly.&quot;&quot;&quot;</span>
+        <span class="n">oldFilename</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="n">CONFIG_FOLDER</span><span class="p">,</span> <span class="n">_getUserFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">))</span>
+        <span class="n">newFilename</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="n">CONFIG_FOLDER</span><span class="p">,</span> <span class="n">_getUserFile</span><span class="p">(</span><span class="n">newValue</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="n">oldFilename</span> <span class="o">==</span> <span class="n">newFilename</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Changing an existing username from [</span><span class="si">%s</span><span class="s">] to [</span><span class="si">%s</span><span class="s">].&#39;</span><span class="p">,</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="n">newValue</span><span class="p">)</span>
+        
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">oldFilename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">oldFile</span><span class="p">:</span>
+            <span class="n">fileData</span> <span class="o">=</span> <span class="n">oldFile</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">oldFilename</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">newFilename</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">newFile</span><span class="p">:</span>
+            <span class="n">newFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fileData</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_configParser</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">newFilename</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">FORMAT_AUTO</span><span class="p">,</span>
+                                             <span class="n">defaultValues</span><span class="o">=</span><span class="n">User</span><span class="o">.</span><span class="n">defaults</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">newValue</span>
+                </div>
+<div class="viewcode-block" id="User.getPhone"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.getPhone">[docs]</a>    <span class="k">def</span> <span class="nf">getPhone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the user&#39;s telephone number as a string.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phone</span>
+    </div>
+<div class="viewcode-block" id="User.setPhone"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.setPhone">[docs]</a>    <span class="k">def</span> <span class="nf">setPhone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the user&#39;s telephone number.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phone</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="s">&#39;personal_settings&#39;</span><span class="p">,</span> <span class="s">&#39;phone&#39;</span><span class="p">,</span> <span class="n">newValue</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="User.getCarrier"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.getCarrier">[docs]</a>    <span class="k">def</span> <span class="nf">getCarrier</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the user&#39;s phone carrier.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_carrier</span>
+    </div>
+<div class="viewcode-block" id="User.setCarrier"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.setCarrier">[docs]</a>    <span class="k">def</span> <span class="nf">setCarrier</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the user&#39;s phone carrier.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_carrier</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="s">&#39;personal_settings&#39;</span><span class="p">,</span> <span class="s">&#39;carrier&#39;</span><span class="p">,</span> <span class="n">newValue</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="User.getSmsFinished"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.getSmsFinished">[docs]</a>    <span class="k">def</span> <span class="nf">getSmsFinished</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether to text the user on experiment completion.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_smsFinished</span>
+    </div>
+<div class="viewcode-block" id="User.setSmsFinished"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.setSmsFinished">[docs]</a>    <span class="k">def</span> <span class="nf">setSmsFinished</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set whether to text the user on experiment completion.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_smsFinished</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="s">&#39;personal_settings&#39;</span><span class="p">,</span> <span class="s">&#39;sms_finished&#39;</span><span class="p">,</span> 
+                                      <span class="n">newValue</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="User.getSmsError"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.getSmsError">[docs]</a>    <span class="k">def</span> <span class="nf">getSmsError</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether to text the user on critical system errors.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_smsError</span>
+    </div>
+<div class="viewcode-block" id="User.setSmsError"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.setSmsError">[docs]</a>    <span class="k">def</span> <span class="nf">setSmsError</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set whether to text the user on critical system errors.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_smsError</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="s">&#39;personal_settings&#39;</span><span class="p">,</span> <span class="s">&#39;sms_error&#39;</span><span class="p">,</span> 
+                                   <span class="n">newValue</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="User.getExperimentFolder"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.getExperimentFolder">[docs]</a>    <span class="k">def</span> <span class="nf">getExperimentFolder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the user&#39;s default experiment file folder.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_experimentFolder</span>
+    </div>
+<div class="viewcode-block" id="User.setExperimentFolder"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.setExperimentFolder">[docs]</a>    <span class="k">def</span> <span class="nf">setExperimentFolder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the user&#39;s default experiment file folder.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_experimentFolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="s">&#39;experiment_defaults&#39;</span><span class="p">,</span>
+                                           <span class="s">&#39;experiment_folder&#39;</span><span class="p">,</span>
+                                           <span class="n">newValue</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="User.getDataFolder"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.getDataFolder">[docs]</a>    <span class="k">def</span> <span class="nf">getDataFolder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the user&#39;s default data folder.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataFolder</span>
+    </div>
+<div class="viewcode-block" id="User.setDataFolder"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.setDataFolder">[docs]</a>    <span class="k">def</span> <span class="nf">setDataFolder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the user&#39;s default data folder.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataFolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;data_folder&#39;</span><span class="p">,</span> <span class="n">newValue</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="User.getDataFile"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.getDataFile">[docs]</a>    <span class="k">def</span> <span class="nf">getDataFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the default filename for the user&#39;s data.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataFile</span>
+    </div>
+<div class="viewcode-block" id="User.setDataFile"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.setDataFile">[docs]</a>    <span class="k">def</span> <span class="nf">setDataFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the default filename for the user&#39;s data.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;data_file&#39;</span><span class="p">,</span> <span class="n">newValue</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="User.getPrependScan"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.getPrependScan">[docs]</a>    <span class="k">def</span> <span class="nf">getPrependScan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether the user wants to prepend scan numbers by default.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prependScan</span>
+    </div>
+<div class="viewcode-block" id="User.setPrependScan"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.User.setPrependScan">[docs]</a>    <span class="k">def</span> <span class="nf">setPrependScan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newValue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set whether the user wants to prepend scan numbers by default.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prependScan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">(</span><span class="s">&#39;file_defaults&#39;</span><span class="p">,</span> <span class="s">&#39;prepend_scan&#39;</span><span class="p">,</span> <span class="n">newValue</span><span class="p">)</span>
+
+                </div></div>
+<span class="k">def</span> <span class="nf">_getUserFile</span><span class="p">(</span><span class="n">username</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get the appropriate filename for a specified user name.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    username : str</span>
+<span class="sd">        The name of the user whose configuration filename should be returned.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        The filename for the appropriate user&#39;s configuration file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s">&#39;user_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">username</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;.conf&#39;</span>
+        
+<div class="viewcode-block" id="which"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.which">[docs]</a><span class="k">def</span> <span class="nf">which</span><span class="p">(</span><span class="n">program</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the path to a specified program, or None if the path doesn&#39;t work.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    program : str</span>
+<span class="sd">        The path for a program.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">        The input path `program` if it refers to a file which exists and can</span>
+<span class="sd">        be accessed by the Python interpreter. Otherwise, `None`.</span>
+<span class="sd">        </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    If `program` does not refer to an absolute path, it will be appended to</span>
+<span class="sd">    the elements in the system path, and if any of those work, the absolute</span>
+<span class="sd">    path formed thereby will be returned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">isExecutable</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether the path exists and can be accessed.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">X_OK</span><span class="p">)</span>
+
+    <span class="n">fpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">program</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">fpath</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">isExecutable</span><span class="p">(</span><span class="n">program</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">program</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&quot;PATH&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">pathsep</span><span class="p">):</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;&quot;&#39;</span><span class="p">)</span>
+            <span class="n">exeFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">program</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">isExecutable</span><span class="p">(</span><span class="n">exeFile</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">exeFile</span>
+
+    <span class="k">return</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="getEditors"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.getEditors">[docs]</a><span class="k">def</span> <span class="nf">getEditors</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return a list of text file editors.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of str</span>
+<span class="sd">        A list of text editors which exist in the filesystem and can be accessed</span>
+<span class="sd">        by this software.</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="n">editorConfig</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">EDITORS_PATH</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">FORMAT_AUTO</span><span class="p">)</span>
+    
+    <span class="n">goodEditors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">editorConfig</span><span class="o">.</span><span class="n">getOptions</span><span class="p">(</span><span class="s">&#39;editors&#39;</span><span class="p">):</span>
+        <span class="n">editor</span> <span class="o">=</span> <span class="n">editorConfig</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;editors&#39;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">editor</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">editor</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="n">editor</span><span class="p">)</span>
+                
+        <span class="k">if</span> <span class="n">which</span><span class="p">(</span><span class="n">editor</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">goodEditors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">editor</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Good editors: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">goodEditors</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">goodEditors</span>
+
+</div>
+<div class="viewcode-block" id="openEditor"><a class="viewcode-back" href="../../../api_core_configuration.html#src.core.configuration.openEditor">[docs]</a><span class="k">def</span> <span class="nf">openEditor</span><span class="p">(</span><span class="n">defaultText</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Open a temporary file in a text editor.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">TemporaryFile</span><span class="p">()</span> <span class="k">as</span> <span class="n">tempFile</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">tempFile</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.py&#39;</span>
+    
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tempFile</span><span class="p">:</span>
+        <span class="n">tempFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">defaultText</span><span class="p">)</span>
+    
+    <span class="n">editors</span> <span class="o">=</span> <span class="n">getEditors</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">editor</span> <span class="ow">in</span> <span class="n">editors</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="n">editor</span><span class="p">,</span> <span class="n">name</span><span class="p">],</span> <span class="n">shell</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="k">break</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span>
+</div>
+<span class="n">c</span> <span class="o">=</span> <span class="n">Configuration</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

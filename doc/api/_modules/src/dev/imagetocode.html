@@ -1,0 +1,165 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.dev.imagetocode &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.dev.imagetocode</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;A script to convert icons in png format to code.</span>
+
+<span class="sd">Icons in code format can be loaded faster and more easily shipped with compiled</span>
+<span class="sd">code. The script here takes png images and converts them to code which can be</span>
+<span class="sd">imported and used in various graphical interface modules.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">wx.tools.img2py</span> <span class="kn">as</span> <span class="nn">itp</span>
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">path_tools</span> <span class="k">as</span> <span class="n">pt</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+
+<div class="viewcode-block" id="generateAdditional"><a class="viewcode-back" href="../../../api_dev_imagetocode.html#src.dev.imagetocode.generateAdditional">[docs]</a><span class="k">def</span> <span class="nf">generateAdditional</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a code string for defining the helper methods.&quot;&quot;&quot;</span>
+    <span class="n">subs</span> <span class="o">=</span> <span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s">&#39;get</span><span class="si">%s</span><span class="s">Bitmap = </span><span class="si">%s</span><span class="s">.GetBitmap</span><span class="se">\n</span><span class="s">get</span><span class="si">%s</span><span class="s">Icon = </span><span class="si">%s</span><span class="s">.GetIcon</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">subs</span>
+</div>
+<div class="viewcode-block" id="run"><a class="viewcode-back" href="../../../api_dev_imagetocode.html#src.dev.imagetocode.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Convert icon image files to wxPython-recognizable code.&quot;&quot;&quot;</span>
+    <span class="n">inDir</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;img&#39;</span><span class="p">,</span> <span class="s">&#39;png&#39;</span><span class="p">)</span>
+    <span class="n">outFile</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;gui&#39;</span><span class="p">,</span> <span class="s">&#39;images.py&#39;</span><span class="p">)</span>
+
+    <span class="n">imgData</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;80experiment_new.png&#39;</span><span class="p">,</span> <span class="s">&#39;ExperimentNew&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;80experiment_open.png&#39;</span><span class="p">,</span> <span class="s">&#39;ExperimentOpen&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;80experiment_premade.png&#39;</span><span class="p">,</span> <span class="s">&#39;ExperimentPremade&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;banner_combined.png&#39;</span><span class="p">,</span> <span class="s">&#39;Banner&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;20ok.png&#39;</span><span class="p">,</span> <span class="s">&#39;Ok&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;scan_16_up.png&#39;</span><span class="p">,</span> <span class="s">&#39;ScanUp&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;scan_16_down.png&#39;</span><span class="p">,</span> <span class="s">&#39;ScanDown&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;scan_16_add.png&#39;</span><span class="p">,</span> <span class="s">&#39;ScanAdd&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;scan_16_insert.png&#39;</span><span class="p">,</span> <span class="s">&#39;ScanInsert&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;scan_16_remove.png&#39;</span><span class="p">,</span> <span class="s">&#39;ScanRemove&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;24experiment.png&#39;</span><span class="p">,</span> <span class="s">&#39;ExperimentButton&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;24constants.png&#39;</span><span class="p">,</span> <span class="s">&#39;ConstantsButton&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;24instruments.png&#39;</span><span class="p">,</span> <span class="s">&#39;InstrumentsButton&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;24graphs.png&#39;</span><span class="p">,</span> <span class="s">&#39;GraphsButton&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;24run.png&#39;</span><span class="p">,</span> <span class="s">&#39;RunButton&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;24pause.png&#39;</span><span class="p">,</span> <span class="s">&#39;PauseButton&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;24stop.png&#39;</span><span class="p">,</span> <span class="s">&#39;StopButton&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;24home.png&#39;</span><span class="p">,</span> <span class="s">&#39;HomeButton&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;16experiment.png&#39;</span><span class="p">,</span> <span class="s">&#39;ExperimentIcon&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;16constants.png&#39;</span><span class="p">,</span> <span class="s">&#39;ConstantsIcon&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;16instruments.png&#39;</span><span class="p">,</span> <span class="s">&#39;InstrumentsIcon&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;16graphs.png&#39;</span><span class="p">,</span> <span class="s">&#39;GraphsIcon&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;16graph_zoom.png&#39;</span><span class="p">,</span> <span class="s">&#39;GraphZoom&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;16graph_fit.png&#39;</span><span class="p">,</span> <span class="s">&#39;GraphFit&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;16graph_move.png&#39;</span><span class="p">,</span> <span class="s">&#39;GraphMove&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;16graph_lock.png&#39;</span><span class="p">,</span> <span class="s">&#39;GraphLock&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;16graph_unlock.png&#39;</span><span class="p">,</span> <span class="s">&#39;GraphUnlock&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s">&#39;24interrupt.png&#39;</span><span class="p">,</span> <span class="s">&#39;Interrupt&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)]</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">imgData</span><span class="p">):</span>
+        <span class="n">inFile</span><span class="p">,</span> <span class="n">imageName</span><span class="p">,</span> <span class="n">genIcon</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="n">inFile</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inDir</span><span class="p">,</span> <span class="n">inFile</span><span class="p">)</span>
+        <span class="n">itp</span><span class="o">.</span><span class="n">img2py</span><span class="p">(</span><span class="n">inFile</span><span class="p">,</span> <span class="n">outFile</span><span class="p">,</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">imgName</span><span class="o">=</span><span class="n">imageName</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="n">genIcon</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">outFile</span><span class="p">,</span> <span class="s">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fileObject</span><span class="p">:</span>
+            <span class="n">fileObject</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">generateAdditional</span><span class="p">(</span><span class="n">imageName</span><span class="p">))</span>
+
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;#pylint: skip-file</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">outFile</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fileObject</span><span class="p">:</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">fileObject</span><span class="o">.</span><span class="n">readlines</span><span class="p">())</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">outFile</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fileObject</span><span class="p">:</span>
+        <span class="n">fileObject</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">run</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

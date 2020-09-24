@@ -1,0 +1,827 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.gui.sys_config &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.gui.sys_config</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Dialogs and panels for managing the system configuration.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">wx.html</span>
+
+<span class="kn">from</span> <span class="nn">src</span> <span class="kn">import</span> <span class="n">about</span>
+<span class="kn">from</span> <span class="nn">src.core.configuration</span> <span class="kn">import</span> <span class="n">c</span>
+<span class="kn">from</span> <span class="nn">src.gui</span> <span class="kn">import</span> <span class="n">gui_helpers</span> <span class="k">as</span> <span class="n">gh</span>
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">path_tools</span> <span class="k">as</span> <span class="n">pt</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;transport&#39;</span><span class="p">)</span>
+
+<span class="n">_USERNAME_ERROR_MESSAGE</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Usernames may not contain special characters &#39;</span>
+                           <span class="s">&#39;except for underscores (spaces count as special &#39;</span>
+                           <span class="s">&#39;characters)&#39;</span><span class="p">)</span>
+<span class="n">_NAME</span> <span class="o">=</span> <span class="n">about</span><span class="o">.</span><span class="n">APP_NAME</span>
+<span class="n">_COPYRIGHT</span> <span class="o">=</span> <span class="s">&#39;(C) 2013-2014 Thomas C. Flanagan&#39;</span>
+<span class="n">_ABOUT</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Transport Experiment is a program for running electrical transport &#39;</span>
+          <span class="s">&#39;measurements. It features a functional interface for defining &#39;</span>
+          <span class="s">&#39;sequences of steps for controlling and reading information from &#39;</span>
+          <span class="s">&#39;various instruments. The interface for implementing instruments in &#39;</span>
+          <span class="s">&#39;most cases is quite straightforward, making the software easily &#39;</span>
+          <span class="s">&#39;extensible.</span><span class="se">\n\n</span><span class="s">&#39;</span>
+          <span class="s">&#39;Other features of the software include graphing, real-time &#39;</span>
+          <span class="s">&#39;information on the state of the experiment, user-customizable &#39;</span>
+          <span class="s">&#39;settings for the saving of data, and a handful of pre-made &#39;</span>
+          <span class="s">&#39;experiments to prevent the user from having to &quot;re-invent the &#39;</span>
+          <span class="s">&#39;wheel&quot; every time.&#39;</span><span class="p">)</span>
+
+
+<span class="c"># Help and Versioning Dialogs and Frames ---------------------------------------</span>
+
+<div class="viewcode-block" id="showAboutWindow"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.showAboutWindow">[docs]</a><span class="k">def</span> <span class="nf">showAboutWindow</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Display an &quot;About&quot; dialog.&quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">_NAME</span>
+    <span class="n">copyrightInfo</span> <span class="o">=</span> <span class="n">_COPYRIGHT</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="n">_ABOUT</span>
+
+    <span class="n">info</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">AboutDialogInfo</span><span class="p">()</span>
+
+    <span class="n">info</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">info</span><span class="o">.</span><span class="n">SetVersion</span><span class="p">(</span><span class="n">about</span><span class="o">.</span><span class="n">getVersion</span><span class="p">())</span>
+    <span class="n">info</span><span class="o">.</span><span class="n">SetDescription</span><span class="p">(</span><span class="n">description</span><span class="p">)</span>
+    <span class="n">info</span><span class="o">.</span><span class="n">SetCopyright</span><span class="p">(</span><span class="n">copyrightInfo</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;About window called from </span><span class="si">%s</span><span class="s">.&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">parent</span><span class="p">))</span>
+    <span class="n">wx</span><span class="o">.</span><span class="n">AboutBox</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="getHelpWindow"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.getHelpWindow">[docs]</a><span class="k">def</span> <span class="nf">getHelpWindow</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Create a help window.</span>
+<span class="sd">    </span>
+<span class="sd">    Load the HTML Help Workshop documentation from the `doc` folder and embed</span>
+<span class="sd">    it in a wxPython HtmlHelpController window, and return that window.</span>
+<span class="sd">    </span>
+<span class="sd">    .. note:: This function does not actually *show* the window---it just </span>
+<span class="sd">       creates it. The window must be displayed by whatever calls the function.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    wxHtmlHelpController</span>
+<span class="sd">        A window containing software documentation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">helpwindow</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">HtmlHelpController</span><span class="p">()</span>
+    <span class="n">helpPath</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;doc&#39;</span><span class="p">,</span> <span class="s">&#39;htmlhelp&#39;</span><span class="p">,</span> <span class="s">&#39;TransportExperimentdoc.hhp&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">helpwindow</span><span class="o">.</span><span class="n">AddBook</span><span class="p">(</span><span class="n">helpPath</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">&#39;error loading &#39;</span> <span class="o">+</span> <span class="n">helpPath</span>
+    <span class="k">return</span> <span class="n">helpwindow</span>
+</div>
+<div class="viewcode-block" id="getChangeLogDialog"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.getChangeLogDialog">[docs]</a><span class="k">def</span> <span class="nf">getChangeLogDialog</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a change log dialog.</span>
+<span class="sd">    </span>
+<span class="sd">    Create and return a window displaying the change log. If the system can</span>
+<span class="sd">    access the SVN server, the change log is read from that. Otherwise, it is</span>
+<span class="sd">    read from a file whenever the system was last able to access the server.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxFrame</span>
+<span class="sd">        The wxFrame of which the returned dialog is a child. (This is useful</span>
+<span class="sd">        for things like centering and making sure that this window is closed</span>
+<span class="sd">        if the application is closed.)</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ChangeLogDialog</span>
+<span class="sd">        A simple dialog containing information about all known changes to the</span>
+<span class="sd">        software.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ChangeLogDialog</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ChangeLogDialog"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.ChangeLogDialog">[docs]</a><span class="k">class</span> <span class="nc">ChangeLogDialog</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Dialog</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A dialog for displaying the software change log.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxFrame</span>
+<span class="sd">        The wxFrame which should serve as the parent of this dialog.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ChangeLogDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;Change Log&#39;</span><span class="p">)</span>
+
+        <span class="n">sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">textbox</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">style</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TE_MULTILINE</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textbox</span><span class="o">.</span><span class="n">SetEditable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textbox</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">about</span><span class="o">.</span><span class="n">getChangelog</span><span class="p">())</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textbox</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">okbutton</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;OK&#39;</span><span class="p">)</span>
+        <span class="n">btns</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StdDialogButtonSizer</span><span class="p">()</span>
+        <span class="n">btns</span><span class="o">.</span><span class="n">AddButton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">okbutton</span><span class="p">)</span>
+        <span class="n">btns</span><span class="o">.</span><span class="n">Realize</span><span class="p">()</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">btns</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">sizer</span><span class="p">)</span>
+
+
+<span class="c"># Dialogs for Configuring System Settings --------------------------------------</span>
+</div>
+<div class="viewcode-block" id="SettingsDialog"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.SettingsDialog">[docs]</a><span class="k">class</span> <span class="nc">SettingsDialog</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Dialog</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A dialog for configuring the system-wide settings.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The frame or panel which spawns the dialog.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SettingsDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetTitle</span><span class="p">(</span><span class="s">&#39;Settings&#39;</span><span class="p">)</span>
+
+        <span class="n">genpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">gensizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">genpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">gensizer</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">genFiles</span> <span class="o">=</span> <span class="n">FilesPanel</span><span class="p">(</span><span class="n">genpanel</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">genGraph</span> <span class="o">=</span> <span class="n">GraphsPanel</span><span class="p">(</span><span class="n">genpanel</span><span class="p">)</span>
+
+        <span class="n">gensizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genFiles</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">gensizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genGraph</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">buttonok</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">)</span>
+        <span class="n">buttoncancel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_CANCEL</span><span class="p">)</span>
+        <span class="n">btnsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StdDialogButtonSizer</span><span class="p">()</span>
+        <span class="n">btnsizer</span><span class="o">.</span><span class="n">AddButton</span><span class="p">(</span><span class="n">buttoncancel</span><span class="p">)</span>
+        <span class="n">btnsizer</span><span class="o">.</span><span class="n">AddButton</span><span class="p">(</span><span class="n">buttonok</span><span class="p">)</span>
+        <span class="n">btnsizer</span><span class="o">.</span><span class="n">Realize</span><span class="p">()</span>
+
+        <span class="n">sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">genpanel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">btnsizer</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="c"># self.SetAutoLayout(True)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizerAndFit</span><span class="p">(</span><span class="n">sizer</span><span class="p">)</span>
+        <span class="c"># self.Layout()</span>
+
+<div class="viewcode-block" id="SettingsDialog.saveSettings"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.SettingsDialog.saveSettings">[docs]</a>    <span class="k">def</span> <span class="nf">saveSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save the new settings to the configuration manager.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">genFiles</span><span class="o">.</span><span class="n">applyData</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">genGraph</span><span class="o">.</span><span class="n">applyData</span><span class="p">()</span>
+</div></div>
+<div class="viewcode-block" id="UserSettingsDialog"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.UserSettingsDialog">[docs]</a><span class="k">class</span> <span class="nc">UserSettingsDialog</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Dialog</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A dialog for configuring user-specific settings.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The panel or frame which spawns this dialog.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">UserSettingsDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetTitle</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">getUserName</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">s Settings&#39;</span><span class="p">)</span>
+
+        <span class="n">userpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">usersizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">userpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">usersizer</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">userFiles</span> <span class="o">=</span> <span class="n">FilesPanel</span><span class="p">(</span><span class="n">userpanel</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">userPersonal</span> <span class="o">=</span> <span class="n">PersonalPanel</span><span class="p">(</span><span class="n">userpanel</span><span class="p">)</span>
+
+        <span class="n">usersizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">userPersonal</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">usersizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">userFiles</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">buttonok</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">)</span>
+        <span class="n">buttoncancel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_CANCEL</span><span class="p">)</span>
+        <span class="n">btnsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StdDialogButtonSizer</span><span class="p">()</span>
+        <span class="n">btnsizer</span><span class="o">.</span><span class="n">AddButton</span><span class="p">(</span><span class="n">buttoncancel</span><span class="p">)</span>
+        <span class="n">btnsizer</span><span class="o">.</span><span class="n">AddButton</span><span class="p">(</span><span class="n">buttonok</span><span class="p">)</span>
+        <span class="n">btnsizer</span><span class="o">.</span><span class="n">Realize</span><span class="p">()</span>
+
+        <span class="n">sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">userpanel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">btnsizer</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizerAndFit</span><span class="p">(</span><span class="n">sizer</span><span class="p">)</span>
+
+<div class="viewcode-block" id="UserSettingsDialog.saveSettings"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.UserSettingsDialog.saveSettings">[docs]</a>    <span class="k">def</span> <span class="nf">saveSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save the new user settings to the configuration manager.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">userFiles</span><span class="o">.</span><span class="n">applyData</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">userPersonal</span><span class="o">.</span><span class="n">applyData</span><span class="p">()</span>
+</div></div>
+<div class="viewcode-block" id="UsersDialog"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.UsersDialog">[docs]</a><span class="k">class</span> <span class="nc">UsersDialog</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Dialog</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A dialog for creating and deleting users.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The panel or frame which spawns this dialog.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">UsersDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetTitle</span><span class="p">(</span><span class="s">&#39;Users&#39;</span><span class="p">)</span>
+
+        <span class="n">userpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">usersizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">userpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">usersizer</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">userList</span> <span class="o">=</span> <span class="n">UsersPanel</span><span class="p">(</span><span class="n">userpanel</span><span class="p">)</span>
+
+        <span class="n">usersizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">userList</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">buttonok</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">)</span>
+        <span class="n">btnsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StdDialogButtonSizer</span><span class="p">()</span>
+        <span class="n">btnsizer</span><span class="o">.</span><span class="n">AddButton</span><span class="p">(</span><span class="n">buttonok</span><span class="p">)</span>
+        <span class="n">btnsizer</span><span class="o">.</span><span class="n">Realize</span><span class="p">()</span>
+
+        <span class="n">sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">userpanel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">btnsizer</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetAutoLayout</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizerAndFit</span><span class="p">(</span><span class="n">sizer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+
+
+<span class="c"># Panels for Configuring System Settings ---------------------------------------</span>
+</div>
+<div class="viewcode-block" id="FilesPanel"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.FilesPanel">[docs]</a><span class="k">class</span> <span class="nc">FilesPanel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A panel for configuring user defaults.</span>
+<span class="sd">    </span>
+<span class="sd">    This panel allows the user to set and get the settings related to where</span>
+<span class="sd">    data and experiment files are saved by default, as well as whether the user</span>
+<span class="sd">    wants to have scan numbers automatically included.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The frame or panel which contains this panel.</span>
+<span class="sd">    user : bool</span>
+<span class="sd">        Whether this panel represents the settings of a particular user. If</span>
+<span class="sd">        `False`, the panel will represent the global system settings.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">user</span> <span class="o">=</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FilesPanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_user</span> <span class="o">=</span> <span class="n">user</span>
+
+        <span class="n">outerpanel</span> <span class="o">=</span> <span class="n">gh</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;vertical&#39;</span><span class="p">,</span> <span class="s">&#39;Files&#39;</span><span class="p">)</span>
+
+        <span class="n">mainpanel</span> <span class="o">=</span> <span class="n">gh</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">outerpanel</span><span class="p">,</span> <span class="s">&#39;flex_grid&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">TOP</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">BOTTOM</span>
+
+        <span class="n">exptpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="n">exptsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">exptpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">exptsizer</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">textexpt</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">exptpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textexpt</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btnexpt</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">exptpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;...&#39;</span><span class="p">)</span>
+        <span class="n">txtheight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">textexpt</span><span class="o">.</span><span class="n">GetSizeTuple</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btnexpt</span><span class="o">.</span><span class="n">SetMinSize</span><span class="p">((</span><span class="mi">30</span><span class="p">,</span> <span class="n">txtheight</span><span class="p">))</span>
+        <span class="n">exptsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textexpt</span><span class="p">,</span> <span class="n">proportion</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">flag</span> <span class="o">=</span> <span class="n">flags</span><span class="p">)</span>
+        <span class="n">exptsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">btnexpt</span><span class="p">,</span> <span class="n">proportion</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">flag</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btnexpt</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onFolder</span><span class="p">)</span>
+
+        <span class="n">foldpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="n">foldsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">foldpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">foldsizer</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">textfold</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">foldpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textfold</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">btnfold</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">foldpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;...&#39;</span><span class="p">)</span>
+        <span class="n">foldheight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">textfold</span><span class="o">.</span><span class="n">GetSizeTuple</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btnfold</span><span class="o">.</span><span class="n">SetMinSize</span><span class="p">((</span><span class="mi">30</span><span class="p">,</span> <span class="n">foldheight</span><span class="p">))</span>
+        <span class="n">foldsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textfold</span><span class="p">,</span> <span class="n">proportion</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">flag</span> <span class="o">=</span> <span class="n">flags</span><span class="p">)</span>
+        <span class="n">foldsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">btnfold</span><span class="p">,</span> <span class="n">proportion</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">flag</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btnfold</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onFolder</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">textfile</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textfile</span><span class="o">.</span><span class="n">SetMinSize</span><span class="p">((</span><span class="mi">245</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">mainpanel</span><span class="o">.</span><span class="n">addLabel</span><span class="p">(</span><span class="s">&#39;Experiment folder:&#39;</span><span class="p">)</span>
+        <span class="n">mainpanel</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">exptpanel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+        <span class="n">mainpanel</span><span class="o">.</span><span class="n">addLabel</span><span class="p">(</span><span class="s">&#39;Data folder:&#39;</span><span class="p">)</span>
+        <span class="n">mainpanel</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">foldpanel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+        <span class="n">mainpanel</span><span class="o">.</span><span class="n">addLabel</span><span class="p">(</span><span class="s">&#39;Default filename:&#39;</span><span class="p">)</span>
+        <span class="n">mainpanel</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textfile</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+        <span class="n">mainpanel</span><span class="o">.</span><span class="n">addGrowableColumn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">prependscan</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">CheckBox</span><span class="p">(</span><span class="n">outerpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;Prepend scan&#39;</span><span class="p">)</span>
+
+        <span class="n">outerpanel</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">outerpanel</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prependscan</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+                       <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">outerpanel</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fillData</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetAutoLayout</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">sizer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_onFolder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Browse for a directory.&quot;&quot;&quot;</span>
+        <span class="n">eventId</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">GetId</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">eventId</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">btnexpt</span><span class="o">.</span><span class="n">GetId</span><span class="p">():</span>
+            <span class="n">defaultDirectory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">textexpt</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">defaultDirectory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">textfold</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">DirDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;Choose a directory&#39;</span><span class="p">,</span> <span class="n">defaultDirectory</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dialog</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span> <span class="o">==</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">eventId</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">btnexpt</span><span class="o">.</span><span class="n">GetId</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">textexpt</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">dialog</span><span class="o">.</span><span class="n">GetPath</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">textfold</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">dialog</span><span class="o">.</span><span class="n">GetPath</span><span class="p">())</span>
+
+<div class="viewcode-block" id="FilesPanel.fillData"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.FilesPanel.fillData">[docs]</a>    <span class="k">def</span> <span class="nf">fillData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fill controls with data from the system configuration.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textexpt</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">getExperimentFolder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_user</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textfold</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">getDataFolder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_user</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textfile</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">getDataFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_user</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prependscan</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">getPrependScan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_user</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="FilesPanel.applyData"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.FilesPanel.applyData">[docs]</a>    <span class="k">def</span> <span class="nf">applyData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the system configuration with data from the controls.&quot;&quot;&quot;</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">setExperimentFolder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textexpt</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user</span><span class="p">)</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">setDataFolder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textfold</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user</span><span class="p">)</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">setDataFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textfile</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user</span><span class="p">)</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">setPrependScan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prependscan</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user</span><span class="p">)</span>
+</div></div>
+<div class="viewcode-block" id="PersonalPanel"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.PersonalPanel">[docs]</a><span class="k">class</span> <span class="nc">PersonalPanel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A panel for configuring a user&#39;s personal settings.</span>
+<span class="sd">    </span>
+<span class="sd">    This panel allows a certain user to control settings related to whether</span>
+<span class="sd">    to send text messages on certain events automatically and to set the numbers</span>
+<span class="sd">    to which such messages should be sent.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The panel or frame which should be used as the parent for this panel.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PersonalPanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">carriers</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">getCarrierStrings</span><span class="p">()</span>
+
+        <span class="n">staticbox</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;Personal&#39;</span><span class="p">)</span>
+        <span class="n">staticsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBoxSizer</span><span class="p">(</span><span class="n">staticbox</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+
+        <span class="n">innerpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="n">innersizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">innerpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">innersizer</span><span class="p">)</span>
+
+        <span class="n">subpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">innerpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="n">subsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">FlexGridSizer</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">subpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">subsizer</span><span class="p">)</span>
+
+        <span class="n">labelname</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">subpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;Name:&#39;</span><span class="p">)</span>
+        <span class="n">labelphon</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">subpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;Phone Number:&#39;</span><span class="p">)</span>
+        <span class="n">labelcarr</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">subpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;Carrier:&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">textname</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">subpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textphon</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">subpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textcarr</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ComboBox</span><span class="p">(</span><span class="n">subpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">style</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">CB_READONLY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textcarr</span><span class="o">.</span><span class="n">SetItems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">carriers</span><span class="p">)</span>
+
+        <span class="n">flags</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">TOP</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">BOTTOM</span>
+
+        <span class="n">subsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">labelname</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="p">)</span>
+        <span class="n">subsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textname</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">subsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">labelphon</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="p">)</span>
+        <span class="n">subsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textphon</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">subsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">labelcarr</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="p">)</span>
+        <span class="n">subsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textcarr</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">subsizer</span><span class="o">.</span><span class="n">AddGrowableCol</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">checkpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">innerpanel</span><span class="p">)</span>
+        <span class="n">checksizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">GridSizer</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">checkpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">checksizer</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">smserr</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">CheckBox</span><span class="p">(</span><span class="n">checkpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span>
+                                  <span class="s">&#39;Text on system error&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smsfin</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">CheckBox</span><span class="p">(</span><span class="n">checkpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span>
+                                  <span class="s">&#39;Text on experiment completion&#39;</span><span class="p">)</span>
+
+        <span class="n">checksizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smserr</span><span class="p">)</span>
+        <span class="n">checksizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smsfin</span><span class="p">)</span>
+
+        <span class="n">innersizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">subpanel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">innersizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">checkpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">staticsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">innerpanel</span><span class="p">,</span> <span class="n">proportion</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">flag</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fillData</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetAutoLayout</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">staticsizer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+
+<div class="viewcode-block" id="PersonalPanel.fillData"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.PersonalPanel.fillData">[docs]</a>    <span class="k">def</span> <span class="nf">fillData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fill the controls with data from the system configuration.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textname</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">getUserName</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textphon</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">getPhone</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textcarr</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">getCarrier</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smsfin</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">getSmsFinished</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smserr</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">getSmsError</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="PersonalPanel.applyData"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.PersonalPanel.applyData">[docs]</a>    <span class="k">def</span> <span class="nf">applyData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the system configuration with data from the controls.&quot;&quot;&quot;</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">setUserName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textname</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">setPhone</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textphon</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">setCarrier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textcarr</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">setSmsFinished</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smsfin</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">setSmsError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smserr</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+</div></div>
+<div class="viewcode-block" id="GraphsPanel"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.GraphsPanel">[docs]</a><span class="k">class</span> <span class="nc">GraphsPanel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A panel for configuring global graph settings.</span>
+<span class="sd">    </span>
+<span class="sd">    In its current implementation, this panel presents a way of changing</span>
+<span class="sd">    the following graphing settings:</span>
+<span class="sd">        - The list of colors used for successive plots within a graph, and</span>
+<span class="sd">        - The rate at which the graph updates (expressed as a delay time in</span>
+<span class="sd">          seconds).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GraphsPanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">graphColors</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="n">staticbox</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;Graph Settings&#39;</span><span class="p">)</span>
+        <span class="n">staticsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBoxSizer</span><span class="p">(</span><span class="n">staticbox</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+
+        <span class="n">colorpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">colorsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">colorpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">colorsizer</span><span class="p">)</span>
+
+        <span class="n">buttonpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">colorpanel</span><span class="p">)</span>
+        <span class="n">buttonsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">buttonpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">buttonsizer</span><span class="p">)</span>
+
+        <span class="n">colorlabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;Plot color sequence:&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonadd</span> <span class="o">=</span> <span class="n">gh</span><span class="o">.</span><span class="n">createButton</span><span class="p">(</span><span class="n">buttonpanel</span><span class="p">,</span> <span class="n">buttonsizer</span><span class="p">,</span>
+                                         <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Add&#39;</span><span class="p">,</span> <span class="n">handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onAdd</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonedit</span> <span class="o">=</span> <span class="n">gh</span><span class="o">.</span><span class="n">createButton</span><span class="p">(</span><span class="n">buttonpanel</span><span class="p">,</span> <span class="n">buttonsizer</span><span class="p">,</span>
+                                          <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Edit&#39;</span><span class="p">,</span> <span class="n">handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onEdit</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonremove</span> <span class="o">=</span> <span class="n">gh</span><span class="o">.</span><span class="n">createButton</span><span class="p">(</span><span class="n">buttonpanel</span><span class="p">,</span> <span class="n">buttonsizer</span><span class="p">,</span>
+                                    <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Remove&#39;</span><span class="p">,</span> <span class="n">handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onRemove</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonup</span> <span class="o">=</span> <span class="n">gh</span><span class="o">.</span><span class="n">createButton</span><span class="p">(</span><span class="n">buttonpanel</span><span class="p">,</span> <span class="n">buttonsizer</span><span class="p">,</span>
+                                    <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Up&#39;</span><span class="p">,</span> <span class="n">handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onMoveUp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttondown</span> <span class="o">=</span> <span class="n">gh</span><span class="o">.</span><span class="n">createButton</span><span class="p">(</span><span class="n">buttonpanel</span><span class="p">,</span> <span class="n">buttonsizer</span><span class="p">,</span>
+                                    <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Down&#39;</span><span class="p">,</span> <span class="n">handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onMoveDown</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorlist</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ListBox</span><span class="p">(</span><span class="n">colorpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorlist</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_LISTBOX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_updateButtons</span><span class="p">)</span>
+        <span class="n">colorsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">buttonpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">colorsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">colorlist</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">delaypanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">delaysizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">delaypanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">delaysizer</span><span class="p">)</span>
+
+        <span class="n">delaylabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">delaypanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;Graph update delay:&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delayvalue</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">delaypanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+
+        <span class="n">delaysizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">delaylabel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">delaysizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delayvalue</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">staticsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">colorlabel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="p">)</span>
+        <span class="n">staticsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">colorpanel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">TOP</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">BOTTOM</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">staticsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticLine</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">)</span>
+        <span class="n">staticsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">delaypanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fillData</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetAutoLayout</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">staticsizer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_onAdd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a new color to the end of the list.&quot;&quot;&quot;</span>
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ColourDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dialog</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span> <span class="o">==</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">:</span>
+            <span class="n">tup</span> <span class="o">=</span> <span class="n">_colorDataToTuple</span><span class="p">(</span><span class="n">dialog</span><span class="o">.</span><span class="n">GetColourData</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">graphColors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tupleListToStrings</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updateButtons</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_onEdit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Open a dialog to change the selected color.&quot;&quot;&quot;</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colorlist</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span>
+        <span class="n">icol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indexTupleToColor</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">icd</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ColourData</span><span class="p">()</span>
+        <span class="n">icd</span><span class="o">.</span><span class="n">SetColour</span><span class="p">(</span><span class="n">icol</span><span class="p">)</span>
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ColourDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">icd</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dialog</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span> <span class="o">==</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">:</span>
+            <span class="n">tup</span> <span class="o">=</span> <span class="n">_colorDataToTuple</span><span class="p">(</span><span class="n">dialog</span><span class="o">.</span><span class="n">GetColourData</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">graphColors</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">tup</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tupleListToStrings</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updateButtons</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_onRemove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove the selected color from the list.&quot;&quot;&quot;</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colorlist</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphColors</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tupleListToStrings</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graphColors</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">colorlist</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updateButtons</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_onMoveUp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Move the selected color up.&quot;&quot;&quot;</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colorlist</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graphColors</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphColors</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tupleListToStrings</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorlist</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updateButtons</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_onMoveDown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Move the selected color down.&quot;&quot;&quot;</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colorlist</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graphColors</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphColors</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tupleListToStrings</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorlist</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updateButtons</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_indexTupleToColor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert a color tuple to a color object.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The position of the color tuple in the list of graph colors.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        wxColor</span>
+<span class="sd">            A wxColor object representing the color at `index`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">coltuple</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphColors</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Colour</span><span class="p">()</span>
+        <span class="n">color</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="n">coltuple</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">255</span><span class="p">,</span> <span class="n">coltuple</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mi">255</span><span class="p">,</span> <span class="n">coltuple</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">color</span>
+
+
+    <span class="k">def</span> <span class="nf">_tupleListToStrings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert the graph colors to a list of strings.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of str</span>
+<span class="sd">            A list of string representations of the colors in the graph color</span>
+<span class="sd">            list. Each string contains three elements (RGB data)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">graphColorStrings</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">previousSelection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colorlist</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphColors</span><span class="p">:</span>
+            <span class="n">col1</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">float</span><span class="p">(</span><span class="n">col</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">col2</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">float</span><span class="p">(</span><span class="n">col</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">col3</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">float</span><span class="p">(</span><span class="n">col</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">graphColorStrings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">col1</span><span class="p">,</span> <span class="n">col2</span><span class="p">,</span> <span class="n">col3</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorlist</span><span class="o">.</span><span class="n">SetItems</span><span class="p">(</span><span class="n">graphColorStrings</span><span class="p">)</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">previousSelection</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">graphColorStrings</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">colorlist</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="n">previousSelection</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">graphColorStrings</span>
+
+<div class="viewcode-block" id="GraphsPanel.fillData"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.GraphsPanel.fillData">[docs]</a>    <span class="k">def</span> <span class="nf">fillData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fill the controls with data from the software configuration.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graphColors</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">getGraphColors</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tupleListToStrings</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorlist</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delayvalue</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">getGraphDelay</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updateButtons</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="GraphsPanel.applyData"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.GraphsPanel.applyData">[docs]</a>    <span class="k">def</span> <span class="nf">applyData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the software configuration with the data from the controls.&quot;&quot;&quot;</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">setGraphColors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graphColors</span><span class="p">)</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">setGraphDelay</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delayvalue</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()))</span>
+</div>
+    <span class="k">def</span> <span class="nf">_updateButtons</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update buttons according to selected items.&quot;&quot;&quot;</span>
+        <span class="n">selectedIndex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colorlist</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span>
+        <span class="n">number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colorlist</span><span class="o">.</span><span class="n">GetCount</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">selectedIndex</span> <span class="o">&lt;</span> <span class="n">number</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buttondown</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buttonup</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buttonremove</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buttonedit</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">selectedIndex</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buttondown</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buttonup</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buttonremove</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buttonedit</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">selectedIndex</span> <span class="o">==</span> <span class="n">number</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buttondown</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buttonup</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buttonremove</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buttonedit</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buttondown</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buttonup</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buttonremove</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buttonedit</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">wx</span><span class="o">.</span><span class="n">PyDeadObjectError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="UsersPanel"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.UsersPanel">[docs]</a><span class="k">class</span> <span class="nc">UsersPanel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This panel allows for the creation and deletion of users.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">UsersPanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">mainsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+
+        <span class="n">buttonpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">buttonsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">buttonpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">buttonsizer</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonadd</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">buttonpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;Add&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonremove</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">buttonpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;Remove&#39;</span><span class="p">)</span>
+        <span class="n">buttonsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buttonadd</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">buttonsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buttonremove</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonadd</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onAdd</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonremove</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onRemove</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">userlist</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ListBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">userlist</span><span class="o">.</span><span class="n">SetMinSize</span><span class="p">((</span><span class="mi">300</span><span class="p">,</span> <span class="mi">250</span><span class="p">))</span>
+
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">userlist</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">buttonpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">BOTTOM</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">users</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fillData</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetAutoLayout</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">mainsizer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+
+<div class="viewcode-block" id="UsersPanel.fillData"><a class="viewcode-back" href="../../../api_gui_sys_config.html#src.gui.sys_config.UsersPanel.fillData">[docs]</a>    <span class="k">def</span> <span class="nf">fillData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the controls to reflect those from the software configuration.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">users</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">getUserNames</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">userlist</span><span class="o">.</span><span class="n">SetItems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">users</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">_onAdd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a new user.&quot;&quot;&quot;</span>
+        <span class="n">finished</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;[^a-zA-Z0-9_]&#39;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">finished</span><span class="p">:</span>
+            <span class="n">dialog</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextEntryDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;New user name.&#39;</span><span class="p">,</span> <span class="s">&#39;Username&#39;</span><span class="p">,</span>
+                                        <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">style</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">OK</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">CANCEL</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dialog</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span> <span class="o">==</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">:</span>
+                <span class="n">newusername</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">newusername</span><span class="p">):</span>
+                    <span class="n">message</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">MessageDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_USERNAME_ERROR_MESSAGE</span><span class="p">,</span>
+                                               <span class="s">&#39;Error&#39;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">OK</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ICON_ERROR</span><span class="p">)</span>
+                    <span class="n">message</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span>
+                <span class="k">elif</span> <span class="n">newusername</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">users</span><span class="p">:</span>
+                    <span class="n">message</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">MessageDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                               <span class="s">&#39;That user already exists.&#39;</span><span class="p">,</span>
+                                               <span class="s">&#39;Error&#39;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">OK</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ICON_ERROR</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">c</span><span class="o">.</span><span class="n">addUser</span><span class="p">(</span><span class="n">newusername</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newusername</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">userlist</span><span class="o">.</span><span class="n">SetItems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">users</span><span class="p">)</span>
+                    <span class="n">finished</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">finished</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">def</span> <span class="nf">_onRemove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete the selected user.&quot;&quot;&quot;</span>
+        <span class="n">sel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">userlist</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">sel</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">removeUser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">userlist</span><span class="o">.</span><span class="n">GetString</span><span class="p">(</span><span class="n">sel</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">userlist</span><span class="o">.</span><span class="n">Delete</span><span class="p">(</span><span class="n">sel</span><span class="p">)</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">users</span><span class="p">[</span><span class="n">sel</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">users</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">userlist</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">userlist</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="c"># Helper Functions -------------------------------------------------------------</span>
+</div>
+<span class="k">def</span> <span class="nf">_colorDataToTuple</span><span class="p">(</span><span class="n">colorData</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert a color object to a color tuple.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    colorData : wxColourData</span>
+<span class="sd">        A wxColourData object to convert to a tuple.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple of float</span>
+<span class="sd">        A 3-tuple of floats (the maximum value is 1.0) specifying the RGB</span>
+<span class="sd">        values for the input color.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">col</span> <span class="o">=</span> <span class="n">colorData</span><span class="o">.</span><span class="n">GetColour</span><span class="p">()</span><span class="o">.</span><span class="n">Get</span><span class="p">()</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">col</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="n">col</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="n">col</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="mf">255.0</span>
+    <span class="k">return</span> <span class="n">result</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

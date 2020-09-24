@@ -1,0 +1,438 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The common_panels module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The instruments package" href="api_gui_instruments.html" />
+    <link rel="next" title="The cryomag_panels module" href="api_gui_instruments_cryomag_panels.html" />
+    <link rel="prev" title="The vecmag_frame module" href="api_gui_instruments_vecmag_frame.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_instruments_cryomag_panels.html" title="The cryomag_panels module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_instruments_vecmag_frame.html" title="The vecmag_frame module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li>
+          <li><a href="api_gui_instruments.html" accesskey="U">The <cite>instruments</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.gui.instruments.common_panels">
+<span id="the-common-panels-module"></span><h1>The <cite>common_panels</cite> module<a class="headerlink" href="#module-src.gui.instruments.common_panels" title="Permalink to this headline">¶</a></h1>
+<p>Panels for use in various custom experiments.</p>
+<div class="section" id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Permalink to this headline">¶</a></h2>
+<p>src.gui.panels.scanpanel</p>
+</div>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="visapanel">
+<h3>VisaPanel<a class="headerlink" href="#visapanel" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.instruments.common_panels.VisaPanel">
+<em class="property">class </em><tt class="descclassname">src.gui.instruments.common_panels.</tt><tt class="descname">VisaPanel</tt><big>(</big><em>parent</em>, <em>label</em><big>)</big><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#VisaPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.VisaPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>A panel to gather a VISA address for an instrument.</p>
+<p class="rubric">Methods</p>
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.VisaPanel.address">
+<tt class="descname">address</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#VisaPanel.address"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.VisaPanel.address" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the VISA resource address.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.VisaPanel.label">
+<tt class="descname">label</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#VisaPanel.label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.VisaPanel.label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the panel&#8217;s label.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="lockinpanel">
+<h3>LockinPanel<a class="headerlink" href="#lockinpanel" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.instruments.common_panels.LockinPanel">
+<em class="property">class </em><tt class="descclassname">src.gui.instruments.common_panels.</tt><tt class="descname">LockinPanel</tt><big>(</big><em>parent</em>, <em>label</em><big>)</big><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>A panel for configuring an SRS 830 lock-in amplifier.</p>
+<p class="rubric">Methods</p>
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanel.address">
+<tt class="descname">address</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanel.address"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanel.address" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the VISA resource address.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanel.averages">
+<tt class="descname">averages</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanel.averages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanel.averages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of averages.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanel.ballastResistance">
+<tt class="descname">ballastResistance</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanel.ballastResistance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanel.ballastResistance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the ballast resistance in ohms.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanel.intertime">
+<tt class="descname">intertime</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanel.intertime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanel.intertime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the time between averages.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanel.label">
+<tt class="descname">label</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanel.label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanel.label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the panel&#8217;s label.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanel.offsetVoltage">
+<tt class="descname">offsetVoltage</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanel.offsetVoltage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanel.offsetVoltage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the offset voltage in volts.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanel.outputAction">
+<tt class="descname">outputAction</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanel.outputAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanel.outputAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the output voltage action.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanel.outputVoltage">
+<tt class="descname">outputVoltage</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanel.outputVoltage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanel.outputVoltage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the output voltage.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanel.pretime">
+<tt class="descname">pretime</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanel.pretime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanel.pretime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the time before averaging begins in seconds.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="basevisapanel">
+<h3>BaseVisaPanel<a class="headerlink" href="#basevisapanel" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.instruments.common_panels.BaseVisaPanel">
+<em class="property">class </em><tt class="descclassname">src.gui.instruments.common_panels.</tt><tt class="descname">BaseVisaPanel</tt><big>(</big><em>parent</em>, <em>wxId=-1</em>, <em>controlWxId=-1</em><big>)</big><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#BaseVisaPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.BaseVisaPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>A simple VISA panel (without a border).</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.instruments.common_panels.BaseVisaPanel.updateValues">
+<tt class="descname">updateValues</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#BaseVisaPanel.updateValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.BaseVisaPanel.updateValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the available resource addresses.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.BaseVisaPanel.value">
+<tt class="descname">value</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#BaseVisaPanel.value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.BaseVisaPanel.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the selected value of the VISA control.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>The selected VISA resource address.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="dcvoltmeterpanel">
+<h3>DcVoltmeterPanel<a class="headerlink" href="#dcvoltmeterpanel" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.instruments.common_panels.DcVoltmeterPanel">
+<em class="property">class </em><tt class="descclassname">src.gui.instruments.common_panels.</tt><tt class="descname">DcVoltmeterPanel</tt><big>(</big><em>parent</em>, <em>label</em><big>)</big><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#DcVoltmeterPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.DcVoltmeterPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>A panel for configuring DC Voltmeter.</p>
+<p class="rubric">Methods</p>
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.DcVoltmeterPanel.address">
+<tt class="descname">address</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#DcVoltmeterPanel.address"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.DcVoltmeterPanel.address" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the VISA resource address.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.DcVoltmeterPanel.averages">
+<tt class="descname">averages</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#DcVoltmeterPanel.averages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.DcVoltmeterPanel.averages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of averages.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.DcVoltmeterPanel.intertime">
+<tt class="descname">intertime</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#DcVoltmeterPanel.intertime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.DcVoltmeterPanel.intertime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the time between averages.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.DcVoltmeterPanel.label">
+<tt class="descname">label</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#DcVoltmeterPanel.label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.DcVoltmeterPanel.label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the panel&#8217;s label.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.DcVoltmeterPanel.pretime">
+<tt class="descname">pretime</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#DcVoltmeterPanel.pretime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.DcVoltmeterPanel.pretime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the time before averaging begins in seconds.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="lockinpanelmaster">
+<h3>LockinPanelMaster<a class="headerlink" href="#lockinpanelmaster" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.instruments.common_panels.LockinPanelMaster">
+<em class="property">class </em><tt class="descclassname">src.gui.instruments.common_panels.</tt><tt class="descname">LockinPanelMaster</tt><big>(</big><em>parent</em>, <em>label</em><big>)</big><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanelMaster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanelMaster" title="Permalink to this definition">¶</a></dt>
+<dd><p>A panel for configuring an SRS 830 lock-in as a current source.</p>
+<p>This class differs from the plain <cite>LockinPanel</cite> in that averaging
+information is left out, since if the <cite>LockinPanelMaster</cite> is used, there
+is probably another lock-in involved, in which case both would typically
+use the same averaging parameters, so it does not make sense to have the
+user enter it all twice.</p>
+<p class="rubric">Methods</p>
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanelMaster.address">
+<tt class="descname">address</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanelMaster.address"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanelMaster.address" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the VISA resource address.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanelMaster.ballastResistance">
+<tt class="descname">ballastResistance</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanelMaster.ballastResistance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanelMaster.ballastResistance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the ballast resistance in ohms.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanelMaster.label">
+<tt class="descname">label</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanelMaster.label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanelMaster.label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the panel&#8217;s label.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanelMaster.offsetVoltage">
+<tt class="descname">offsetVoltage</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanelMaster.offsetVoltage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanelMaster.offsetVoltage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the offset voltage in volts.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanelMaster.outputAction">
+<tt class="descname">outputAction</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanelMaster.outputAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanelMaster.outputAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the output voltage action.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanelMaster.outputVoltage">
+<tt class="descname">outputVoltage</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanelMaster.outputVoltage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanelMaster.outputVoltage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the output voltage.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="lockinpanelslave">
+<h3>LockinPanelSlave<a class="headerlink" href="#lockinpanelslave" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.instruments.common_panels.LockinPanelSlave">
+<em class="property">class </em><tt class="descclassname">src.gui.instruments.common_panels.</tt><tt class="descname">LockinPanelSlave</tt><big>(</big><em>parent</em>, <em>label</em><big>)</big><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanelSlave"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanelSlave" title="Permalink to this definition">¶</a></dt>
+<dd><p>A panel for configuring an SRS 830 lock-in amplifier as a slave.</p>
+<p>The <cite>LockinPanelSlave</cite> panel differs from the full <cite>LockinPanel</cite> in the
+following ways.</p>
+<ol class="arabic simple">
+<li>Since the voltage and current are sourced by a &#8220;master&#8221; lock-in, the
+reference voltage, the voltage mode, and the ballast resistance are
+unnecessary.</li>
+<li>Since there is another lock-in, which will typically use the same
+averaging parameters, including averaging here is unnecessary.</li>
+</ol>
+<p>This leaves only the resource address and the offset voltage.</p>
+<p class="rubric">Methods</p>
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanelSlave.address">
+<tt class="descname">address</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanelSlave.address"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanelSlave.address" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the VISA resource address.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanelSlave.label">
+<tt class="descname">label</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanelSlave.label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanelSlave.label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the panel&#8217;s label.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.LockinPanelSlave.offsetVoltage">
+<tt class="descname">offsetVoltage</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#LockinPanelSlave.offsetVoltage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.LockinPanelSlave.offsetVoltage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the offset voltage in volts.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="averagingpanel">
+<h3>AveragingPanel<a class="headerlink" href="#averagingpanel" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.instruments.common_panels.AveragingPanel">
+<em class="property">class </em><tt class="descclassname">src.gui.instruments.common_panels.</tt><tt class="descname">AveragingPanel</tt><big>(</big><em>parent</em>, <em>label='Averaging'</em><big>)</big><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#AveragingPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.AveragingPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>A panel for configuring the averaging parameters for some instrument.</p>
+<p class="rubric">Methods</p>
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.AveragingPanel.averages">
+<tt class="descname">averages</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#AveragingPanel.averages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.AveragingPanel.averages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of averages.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.AveragingPanel.intertime">
+<tt class="descname">intertime</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#AveragingPanel.intertime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.AveragingPanel.intertime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the time between averages.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.AveragingPanel.label">
+<tt class="descname">label</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#AveragingPanel.label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.AveragingPanel.label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the panel&#8217;s label.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.instruments.common_panels.AveragingPanel.pretime">
+<tt class="descname">pretime</tt><a class="reference internal" href="_modules/src/gui/instruments/common_panels.html#AveragingPanel.pretime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.common_panels.AveragingPanel.pretime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the time before averaging begins in seconds.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>common_panels</cite> module</a><ul>
+<li><a class="reference internal" href="#see-also">See Also</a></li>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#visapanel">VisaPanel</a></li>
+<li><a class="reference internal" href="#lockinpanel">LockinPanel</a></li>
+<li><a class="reference internal" href="#basevisapanel">BaseVisaPanel</a></li>
+<li><a class="reference internal" href="#dcvoltmeterpanel">DcVoltmeterPanel</a></li>
+<li><a class="reference internal" href="#lockinpanelmaster">LockinPanelMaster</a></li>
+<li><a class="reference internal" href="#lockinpanelslave">LockinPanelSlave</a></li>
+<li><a class="reference internal" href="#averagingpanel">AveragingPanel</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_gui_instruments_vecmag_frame.html"
+                        title="previous chapter">The <cite>vecmag_frame</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_gui_instruments_cryomag_panels.html"
+                        title="next chapter">The <cite>cryomag_panels</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_gui_instruments_common_panels.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_instruments_cryomag_panels.html" title="The cryomag_panels module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_instruments_vecmag_frame.html" title="The vecmag_frame module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li>
+          <li><a href="api_gui_instruments.html" >The <cite>instruments</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

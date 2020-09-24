@@ -1,0 +1,685 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.instruments.srs830 &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.instruments.srs830</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;DSP Lock-In Amplifier</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+<span class="kn">from</span> <span class="nn">src.core</span> <span class="kn">import</span> <span class="n">instrument</span> <span class="k">as</span> <span class="n">inst</span>
+<span class="kn">from</span> <span class="nn">src.core.instrument</span> <span class="kn">import</span> <span class="n">visa</span>
+<span class="kn">from</span> <span class="nn">src.core.action</span> <span class="kn">import</span> <span class="n">Action</span><span class="p">,</span> <span class="n">ActionScan</span>
+<span class="kn">from</span> <span class="nn">src.core.action</span> <span class="kn">import</span> <span class="n">ActionSpec</span><span class="p">,</span> <span class="n">ParameterSpec</span>
+<span class="kn">from</span> <span class="nn">src.tools.general</span> <span class="kn">import</span> <span class="n">splitAtComma</span>
+
+
+<span class="n">REFERENCE_SOURCES</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;External&#39;</span><span class="p">,</span> <span class="s">&#39;Internal&#39;</span><span class="p">]</span>
+<span class="n">REFERENCE_TRIGGERS</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Sine zero crossing&#39;</span><span class="p">,</span> <span class="s">&#39;TTL rising edge&#39;</span><span class="p">,</span> 
+                      <span class="s">&#39;TTL falling edge&#39;</span><span class="p">]</span>
+
+<span class="n">INPUT_CONFIGS</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="s">&#39;A-B&#39;</span><span class="p">,</span> <span class="s">&#39;I (1 MOhm)&#39;</span><span class="p">,</span> <span class="s">&#39;I (100 MOhm)&#39;</span><span class="p">]</span>
+<span class="n">INPUT_GROUNDS</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Float&#39;</span><span class="p">,</span> <span class="s">&#39;Ground&#39;</span><span class="p">]</span>
+<span class="n">INPUT_COUPLINGS</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;AC&#39;</span><span class="p">,</span> <span class="s">&#39;DC&#39;</span><span class="p">]</span>
+<span class="n">INPUT_NOTCHES</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Out or none&#39;</span><span class="p">,</span> <span class="s">&#39;Line notch in&#39;</span><span class="p">,</span> <span class="s">&#39;2x line notch in&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;Both notches in&#39;</span><span class="p">]</span>
+
+<span class="n">SENSITIVITIES</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;2nV&#39;</span><span class="p">,</span> <span class="s">&#39;5nV&#39;</span><span class="p">,</span> <span class="s">&#39;10nV&#39;</span><span class="p">,</span> <span class="s">&#39;20nV&#39;</span><span class="p">,</span> <span class="s">&#39;50nV&#39;</span><span class="p">,</span> 
+                 <span class="s">&#39;100nV&#39;</span><span class="p">,</span> <span class="s">&#39;200nV&#39;</span><span class="p">,</span> <span class="s">&#39;500nV&#39;</span><span class="p">,</span> 
+                 <span class="s">&#39;1uV&#39;</span><span class="p">,</span> <span class="s">&#39;2uV&#39;</span><span class="p">,</span> <span class="s">&#39;5uV&#39;</span><span class="p">,</span> <span class="s">&#39;10uV&#39;</span><span class="p">,</span> <span class="s">&#39;20uV&#39;</span><span class="p">,</span> <span class="s">&#39;50uV&#39;</span><span class="p">,</span> 
+                 <span class="s">&#39;100uV&#39;</span><span class="p">,</span> <span class="s">&#39;200uV&#39;</span><span class="p">,</span> <span class="s">&#39;500uV&#39;</span><span class="p">,</span> 
+                 <span class="s">&#39;1mV&#39;</span><span class="p">,</span> <span class="s">&#39;2mV&#39;</span><span class="p">,</span> <span class="s">&#39;5mV&#39;</span><span class="p">,</span> <span class="s">&#39;10mV&#39;</span><span class="p">,</span> <span class="s">&#39;20mV&#39;</span><span class="p">,</span> <span class="s">&#39;50mV&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;100mV&#39;</span><span class="p">,</span> <span class="s">&#39;200mV&#39;</span><span class="p">,</span> <span class="s">&#39;500mV&#39;</span><span class="p">,</span> <span class="s">&#39;1V&#39;</span><span class="p">]</span>
+<span class="n">RESERVE_MODES</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;High reserve&#39;</span><span class="p">,</span> <span class="s">&#39;Normal&#39;</span><span class="p">,</span> <span class="s">&#39;Low noise (minimum)&#39;</span><span class="p">]</span>
+<span class="n">TIME_CONSTANTS</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;10us&#39;</span><span class="p">,</span> <span class="s">&#39;30us&#39;</span><span class="p">,</span> <span class="s">&#39;100us&#39;</span><span class="p">,</span> <span class="s">&#39;300us&#39;</span><span class="p">,</span> 
+                  <span class="s">&#39;1ms&#39;</span><span class="p">,</span> <span class="s">&#39;3ms&#39;</span><span class="p">,</span> <span class="s">&#39;10ms&#39;</span><span class="p">,</span> <span class="s">&#39;30ms&#39;</span><span class="p">,</span> <span class="s">&#39;100ms&#39;</span><span class="p">,</span> <span class="s">&#39;300ms&#39;</span><span class="p">,</span> 
+                  <span class="s">&#39;1s&#39;</span><span class="p">,</span> <span class="s">&#39;3s&#39;</span><span class="p">,</span> <span class="s">&#39;10s&#39;</span><span class="p">,</span> <span class="s">&#39;30s&#39;</span><span class="p">,</span> <span class="s">&#39;100s&#39;</span><span class="p">,</span> <span class="s">&#39;300s&#39;</span><span class="p">,</span> 
+                  <span class="s">&#39;1ks&#39;</span><span class="p">,</span> <span class="s">&#39;3ks&#39;</span><span class="p">,</span> <span class="s">&#39;10ks&#39;</span><span class="p">,</span> <span class="s">&#39;30ks&#39;</span><span class="p">]</span>
+<span class="n">FILTER_SLOPES</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;6 dB/oct&#39;</span><span class="p">,</span> <span class="s">&#39;12 dB/oct&#39;</span><span class="p">,</span> <span class="s">&#39;18 dB/oct&#39;</span><span class="p">,</span> <span class="s">&#39;24 dB/oct&#39;</span><span class="p">]</span>
+<span class="n">SYNC_FILTERS</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Off&#39;</span><span class="p">,</span> <span class="s">&#39;Below 200 Hz&#39;</span><span class="p">]</span>          
+
+<div class="viewcode-block" id="SRS830"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830">[docs]</a><span class="k">class</span> <span class="nc">SRS830</span><span class="p">(</span><span class="n">inst</span><span class="o">.</span><span class="n">Instrument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Driver for an SRS830 lock-in amplifier.&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;SRS830: Lock-in amplifier&#39;</span><span class="p">,</span> 
+                  <span class="n">spec</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SRS830</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">=</span> <span class="s">&#39;Name: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">+=</span> <span class="s">&#39;Model: SRS830 Lock-in amplifier&#39;</span>
+    
+<div class="viewcode-block" id="SRS830.initialize"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span> <span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Open the communication channel.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span> <span class="o">=</span> <span class="n">visa</span><span class="o">.</span><span class="n">instrument</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getSpecification</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;*IDN?&#39;</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SRS830.finalize"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close the communication channel.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="SRS830.getAddress"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getAddress">[docs]</a>    <span class="k">def</span> <span class="nf">getAddress</span> <span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the instrument&#39;s VISA resource address.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSpecification</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+    
+    
+    <span class="c">#---------------------------------------------------- Data transfer commands</span>
+    </div>
+<div class="viewcode-block" id="SRS830.readSingleVoltageXY"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.readSingleVoltageXY">[docs]</a>    <span class="k">def</span> <span class="nf">readSingleVoltageXY</span> <span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Take a single in- and out-of-phase voltage measurement.&quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">splitAtComma</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;SNAP? 1,2&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    </div>
+<div class="viewcode-block" id="SRS830.readAverageVoltageXY"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.readAverageVoltageXY">[docs]</a>    <span class="k">def</span> <span class="nf">readAverageVoltageXY</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pretime</span><span class="p">,</span> <span class="n">numavg</span><span class="p">,</span> <span class="n">intertime</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Take an average in- and out-of-phase voltage measurement.&quot;&quot;&quot;</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span>
+        <span class="n">strings</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">numavg</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="n">pretime</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numavg</span><span class="p">):</span>
+            <span class="n">strings</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">action</span><span class="p">(</span><span class="s">&#39;SNAP? 1,2&#39;</span><span class="p">)</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="n">intertime</span><span class="p">)</span>
+        <span class="n">voltagesX</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">numavg</span><span class="p">)</span>
+        <span class="n">voltagesY</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">numavg</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">strings</span><span class="p">):</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">splitAtComma</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="n">voltagesX</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">voltagesY</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">voltagesX</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">voltagesX</span><span class="p">),</span> <span class="nb">sum</span><span class="p">(</span><span class="n">voltagesY</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">voltagesY</span><span class="p">))</span>
+    
+    
+    <span class="c">#---------------------------------------------- Reference and phase commands</span>
+    </div>
+<div class="viewcode-block" id="SRS830.setReferencePhase"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.setReferencePhase">[docs]</a>    <span class="k">def</span> <span class="nf">setReferencePhase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the lock-in&#39;s reference phase.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;PHAS </span><span class="si">%.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">phase</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="SRS830.getReferencePhase"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getReferencePhase">[docs]</a>    <span class="k">def</span> <span class="nf">getReferencePhase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the lock-in&#39;s reference phase.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;PHAS?&#39;</span><span class="p">)),</span> <span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SRS830.setReferenceSource"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.setReferenceSource">[docs]</a>    <span class="k">def</span> <span class="nf">setReferenceSource</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the lock-in&#39;s reference source.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;FMOD </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">REFERENCE_SOURCES</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">source</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">()</span>
+        </div>
+<div class="viewcode-block" id="SRS830.getReferenceSource"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getReferenceSource">[docs]</a>    <span class="k">def</span> <span class="nf">getReferenceSource</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the lock-in&#39;s reference source.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">REFERENCE_SOURCES</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;FMOD?&#39;</span><span class="p">))],</span> <span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SRS830.setReferenceFrequency"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.setReferenceFrequency">[docs]</a>    <span class="k">def</span> <span class="nf">setReferenceFrequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the lock-in&#39;s reference frequency.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;FREQ </span><span class="si">%.5f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">freq</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="SRS830.getReferenceFrequency"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getReferenceFrequency">[docs]</a>    <span class="k">def</span> <span class="nf">getReferenceFrequency</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the lock-in&#39;s reference frequency.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;FREQ?&#39;</span><span class="p">)),</span> <span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SRS830.setReferenceTrigger"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.setReferenceTrigger">[docs]</a>    <span class="k">def</span> <span class="nf">setReferenceTrigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trig</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the lock-in&#39;s reference trigger for external reference mode.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;RSLP </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">REFERENCE_TRIGGERS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">trig</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="SRS830.getReferenceTrigger"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getReferenceTrigger">[docs]</a>    <span class="k">def</span> <span class="nf">getReferenceTrigger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the lock-in&#39;s reference trigger for external reference mode.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">REFERENCE_TRIGGERS</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;RSLP?&#39;</span><span class="p">))],</span> <span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SRS830.setDetectionHarmonic"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.setDetectionHarmonic">[docs]</a>    <span class="k">def</span> <span class="nf">setDetectionHarmonic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">harm</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the lock-in&#39;s detection harmonic.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;HARM </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">harm</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="SRS830.getDetectionHarmonic"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getDetectionHarmonic">[docs]</a>    <span class="k">def</span> <span class="nf">getDetectionHarmonic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the lock-in&#39;s detection harmonic.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;HARM?&#39;</span><span class="p">)),</span> <span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="SRS830.setReferenceVoltage"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.setReferenceVoltage">[docs]</a>    <span class="k">def</span> <span class="nf">setReferenceVoltage</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vref</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the lock-in&#39;s reference voltage.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;SLVL </span><span class="si">%.4f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">vref</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="SRS830.getReferenceVoltage"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getReferenceVoltage">[docs]</a>    <span class="k">def</span> <span class="nf">getReferenceVoltage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the lock-in&#39;s reference voltage.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;SLVL?&#39;</span><span class="p">)),</span> <span class="p">)</span>
+    
+    
+    <span class="c">#------------------------------------------------- Input and filter commands</span>
+    </div>
+<div class="viewcode-block" id="SRS830.setInputConfiguration"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.setInputConfiguration">[docs]</a>    <span class="k">def</span> <span class="nf">setInputConfiguration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the lock-in&#39;s input configuration.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;ISRC </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">INPUT_CONFIGS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">config</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="SRS830.getInputConfiguration"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getInputConfiguration">[docs]</a>    <span class="k">def</span> <span class="nf">getInputConfiguration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the lock-in&#39;s input configuration.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">INPUT_CONFIGS</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;ISRC?&#39;</span><span class="p">)),</span> <span class="p">])</span>
+    </div>
+<div class="viewcode-block" id="SRS830.setInputGrounding"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.setInputGrounding">[docs]</a>    <span class="k">def</span> <span class="nf">setInputGrounding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ground</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the lock-in&#39;s input shield grounding configuration.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;IGND </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">INPUT_GROUNDS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">ground</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="SRS830.getInputGrounding"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getInputGrounding">[docs]</a>    <span class="k">def</span> <span class="nf">getInputGrounding</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the lock-in&#39;s input shield grounding configuration.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">INPUT_GROUNDS</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;IGND?&#39;</span><span class="p">))],</span> <span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SRS830.setInputCoupling"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.setInputCoupling">[docs]</a>    <span class="k">def</span> <span class="nf">setInputCoupling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpl</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the lock-in&#39;s input coupling configuration.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;ICPL </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">INPUT_COUPLINGS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">cpl</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="SRS830.getInputCoupling"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getInputCoupling">[docs]</a>    <span class="k">def</span> <span class="nf">getInputCoupling</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the lock-in&#39;s input coupling configuration.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">INPUT_COUPLINGS</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;ICPL?&#39;</span><span class="p">))],</span> <span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SRS830.setInputNotch"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.setInputNotch">[docs]</a>    <span class="k">def</span> <span class="nf">setInputNotch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">notch</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the input line notch filter status.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;ILIN </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">INPUT_NOTCHES</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">notch</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="SRS830.getInputNotch"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getInputNotch">[docs]</a>    <span class="k">def</span> <span class="nf">getInputNotch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the input line notch filter status.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">INPUT_NOTCHES</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;ILIN?&#39;</span><span class="p">))],</span> <span class="p">)</span>
+    
+    
+    <span class="c">#------------------------------------------- Gain and time constant commands</span>
+    </div>
+<div class="viewcode-block" id="SRS830.setSensitivity"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.setSensitivity">[docs]</a>    <span class="k">def</span> <span class="nf">setSensitivity</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sens</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the lock-in&#39;s sensitivity.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;SENS </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">SENSITIVITIES</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">sens</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="SRS830.getSensitivity"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getSensitivity">[docs]</a>    <span class="k">def</span> <span class="nf">getSensitivity</span> <span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the lock-in&#39;s sensitivity.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">SENSITIVITIES</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;SENS?&#39;</span><span class="p">))],</span> <span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SRS830.setReserveMode"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.setReserveMode">[docs]</a>    <span class="k">def</span> <span class="nf">setReserveMode</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the lock-in&#39;s reserve mode.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;RMOD </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">RESERVE_MODES</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="SRS830.getReserveMode"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getReserveMode">[docs]</a>    <span class="k">def</span> <span class="nf">getReserveMode</span> <span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the lock-in&#39;s reserve mode.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">RESERVE_MODES</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;RMOD?&#39;</span><span class="p">))],</span> <span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SRS830.setTimeConstant"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.setTimeConstant">[docs]</a>    <span class="k">def</span> <span class="nf">setTimeConstant</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tconst</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the lock-in&#39;s time constant.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;OFLT </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">TIME_CONSTANTS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">tconst</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="SRS830.getTimeConstant"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getTimeConstant">[docs]</a>    <span class="k">def</span> <span class="nf">getTimeConstant</span> <span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the lock-in&#39;s time constant.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">TIME_CONSTANTS</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;OFLT?&#39;</span><span class="p">))],</span> <span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SRS830.setLowPassFilter"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.setLowPassFilter">[docs]</a>    <span class="k">def</span> <span class="nf">setLowPassFilter</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filt</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the lock-in&#39;s low-pass filter slope.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;OFSL </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">FILTER_SLOPES</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">filt</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="SRS830.getLowPassFilter"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getLowPassFilter">[docs]</a>    <span class="k">def</span> <span class="nf">getLowPassFilter</span> <span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the lock-in&#39;s low-pass filter slope.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">FILTER_SLOPES</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;OFSL?&#39;</span><span class="p">))],</span> <span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SRS830.setSynchronousFilter"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.setSynchronousFilter">[docs]</a>    <span class="k">def</span> <span class="nf">setSynchronousFilter</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filt</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the lock-in&#39;s synchronous filter status.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;SYNC </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">SYNC_FILTERS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">filt</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="SRS830.getSynchronousFilter"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getSynchronousFilter">[docs]</a>    <span class="k">def</span> <span class="nf">getSynchronousFilter</span> <span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the lock-in&#39;s synchronous filter status.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">SYNC_FILTERS</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;SYNC?&#39;</span><span class="p">))],</span> <span class="p">)</span>
+    
+    </div>
+<div class="viewcode-block" id="SRS830.getAllParameters"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getAllParameters">[docs]</a>    <span class="k">def</span> <span class="nf">getAllParameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read all lock-in parameters.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getReferencePhase</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getReferenceSource</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getReferenceFrequency</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getReferenceTrigger</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getDetectionHarmonic</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getReferenceVoltage</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getInputConfiguration</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getInputGrounding</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getInputCoupling</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getInputNotch</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getSensitivity</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getReserveMode</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getTimeConstant</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getLowPassFilter</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getSynchronousFilter</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">)</span>
+        
+        
+    <span class="c">#--------------------------------------------------------- Action definition</span>
+    </div>
+<div class="viewcode-block" id="SRS830.getActions"><a class="viewcode-back" href="../../../api_instruments_srs830.html#src.instruments.srs830.SRS830.getActions">[docs]</a>    <span class="k">def</span> <span class="nf">getActions</span> <span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the list of supported actions.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;read_voltages&#39;</span><span class="p">,</span> <span class="n">Action</span><span class="p">,</span>
+                <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                 <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span> 
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Read average voltages (X and Y)&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;inputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;pretime&#39;</span><span class="p">,</span> 
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Time before averaging (s)&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.3f</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> 
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;numavg&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Number of averages&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> 
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;intertime&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Time between averages (s)&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.3f</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">,</span> 
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">})</span>
+                 <span class="p">],</span>
+                 <span class="s">&#39;outputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;avgvx&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Average Vx&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.6e</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="s">&#39;Vx_avg&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;column&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> 
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;avgvy&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Average Vy&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.6e</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="s">&#39;Vy_avg&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;column&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> 
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">})</span>
+                 <span class="p">],</span>
+                 <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;Wait $pretime s, &#39;</span>
+                            <span class="s">&#39;then average voltage $numavg times, &#39;</span>
+                            <span class="s">&#39;spaced by $intertime s&#39;</span><span class="p">),</span>
+                 <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">readAverageVoltageXY</span>
+                <span class="p">}</span>
+            <span class="p">),</span>
+            <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;read_voltages_single&#39;</span><span class="p">,</span> <span class="n">Action</span><span class="p">,</span>
+                <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                 <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span> 
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Read single voltage (X and Y)&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;outputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;vx&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Vx&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.6e</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="s">&#39;Vx&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;column&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> 
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;vy&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Vy&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.6e</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="s">&#39;Vy&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;column&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> 
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">})</span>
+                 <span class="p">],</span>
+                 <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;Read the in-phase and out-of-phase voltages once.&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">readSingleVoltageXY</span>
+                <span class="p">}</span>
+            <span class="p">),</span>
+            <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;set_vref&#39;</span><span class="p">,</span> <span class="n">Action</span><span class="p">,</span>
+                <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                 <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span> 
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Set reference voltage&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;inputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;vref&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Vref (V)&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.3e</span><span class="s">&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="s">&#39;Vref (V)&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">})</span>
+                 <span class="p">],</span>
+                 <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;Set the sine-out voltage to $vref.&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">setReferenceVoltage</span>
+                <span class="p">}</span>
+            <span class="p">),</span>
+            <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;get_vref&#39;</span><span class="p">,</span> <span class="n">Action</span><span class="p">,</span>
+                <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                 <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span> 
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Get reference voltage&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;outputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;vref&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Vref&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.3e</span><span class="s">&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="s">&#39;Vref (V)&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> 
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">})</span>
+                 <span class="p">],</span>
+                 <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;Get the sine-out voltage.&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getReferenceVoltage</span>
+                <span class="p">}</span>
+            <span class="p">),</span>
+            <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;set_sens&#39;</span><span class="p">,</span> <span class="n">Action</span><span class="p">,</span>
+                <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                 <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span> 
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Set sensitivity&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;inputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;sens&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Sensitivity&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;10uV&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">SENSITIVITIES</span><span class="p">),</span> 
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">})</span>
+                 <span class="p">],</span>
+                 <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;Set sensitivity to $sens.&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">setSensitivity</span>
+                <span class="p">}</span>
+            <span class="p">),</span>
+            <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;set_tc&#39;</span><span class="p">,</span> <span class="n">Action</span><span class="p">,</span>
+                <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                 <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span> 
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Set time constant&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;inputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;tconst&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Time constant&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;300ms&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">TIME_CONSTANTS</span><span class="p">),</span> 
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">})</span>
+                 <span class="p">],</span>
+                 <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;Set time constant to $tconst.&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">setTimeConstant</span>
+                <span class="p">}</span>
+            <span class="p">),</span>
+            <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;read_params&#39;</span><span class="p">,</span> <span class="n">Action</span><span class="p">,</span>
+                <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                 <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span> 
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Read parameters&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;outputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;ref_phase&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Ref. phase&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.2f</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s">&#39; - Reference Phase (deg)&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> 
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;ref_source&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Ref. source&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s">&#39; - Reference source&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;Internal&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">REFERENCE_SOURCES</span><span class="p">),</span> 
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;ref_freq&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Ref. frequency&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.4f</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s">&#39; - Reference frequency (Hz)&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;19.0000&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;ref_trig&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Ref. trigger&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s">&#39; - Reference trigger&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;Sine zero crossing&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">REFERENCE_TRIGGERS</span><span class="p">),</span> 
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;harm&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Detection harmonic&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s">&#39; - Detection harmonic&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;vref&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Ref. voltage&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.3f</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s">&#39; - Reference voltage (V)&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;1.000&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;conf&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Input config&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s">&#39; - Input configuration&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;A-B&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">INPUT_CONFIGS</span><span class="p">),</span>
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;ground&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Input grounding&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s">&#39; - Input grounding&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;Ground&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">INPUT_GROUNDS</span><span class="p">),</span>
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;couple&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Input coupling&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s">&#39; - Input coupling&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;AC&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">INPUT_COUPLINGS</span><span class="p">),</span>
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;notch&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Notch filter&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s">&#39; - Notch filter&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;Out or none&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">INPUT_NOTCHES</span><span class="p">),</span>
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;sens&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Sensitivity&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s">&#39; - Sensitivity&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;10uV&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">SENSITIVITIES</span><span class="p">),</span>
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;mode&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Reserve mode&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s">&#39; - Reserve mode&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;High reserve&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">RESERVE_MODES</span><span class="p">),</span>
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;tconst&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Time constant&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s">&#39; - Time constant&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;300ms&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">TIME_CONSTANTS</span><span class="p">),</span>
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;lp_filt&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Low-pass filter&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s">&#39; - Low-pass filter slope&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;6 dB/oct&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">FILTER_SLOPES</span><span class="p">),</span>
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;sync_filt&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Synchronous filter&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s">&#39; - Synchronous filter&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;parameter&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;Off&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">SYNC_FILTERS</span><span class="p">),</span>
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">})</span>
+                 <span class="p">],</span>
+                 <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;Read all lock-in parameters.&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAllParameters</span>
+                <span class="p">}</span>
+            <span class="p">),</span>
+            <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;scan_vref&#39;</span><span class="p">,</span> <span class="n">ActionScan</span><span class="p">,</span>
+                <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                 <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span> 
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Scan reference voltage&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;inputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;vref&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Reference voltage&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.3f</span><span class="s">&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="s">&#39;V_ref&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;column&#39;</span><span class="p">,</span> 
+                         <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)],</span> 
+                         <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> 
+                         <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">})</span>
+                 <span class="p">],</span>
+                 <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;Scan reference voltage&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">setReferenceVoltage</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+        
+    <span class="c">#===========================================================================</span>
+    <span class="c"># Class methods</span>
+    <span class="c">#===========================================================================</span></div>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getRequiredParameters</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">inst</span><span class="o">.</span><span class="n">InstrumentParameter</span><span class="p">(</span><span class="s">&#39;VISA Address&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> 
+                                         <span class="n">inst</span><span class="o">.</span><span class="n">getVisaAddresses</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">)]</span>
+        </div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

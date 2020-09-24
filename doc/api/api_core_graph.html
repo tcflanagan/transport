@@ -1,0 +1,523 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The graph module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The core package" href="api_core.html" />
+    <link rel="next" title="The errors module" href="api_core_errors.html" />
+    <link rel="prev" title="The action module" href="api_core_action.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_core_errors.html" title="The errors module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_core_action.html" title="The action module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_core.html" accesskey="U">The <cite>core</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.core.graph">
+<span id="the-graph-module"></span><h1>The <cite>graph</cite> module<a class="headerlink" href="#module-src.core.graph" title="Permalink to this headline">¶</a></h1>
+<p>A container for graphical data.</p>
+<p>A <cite>Graph</cite> is an object to facilitate interactions between an <cite>Experiment</cite>
+and an actual GUI implementation of graphing.</p>
+<p>This module provides the following classes:</p>
+<dl class="docutils">
+<dt>Graph: </dt>
+<dd>An interface for passing data from an experiment to a visual graph.</dd>
+<dt>AbstractGraphManager: </dt>
+<dd>An interface for spawning graph threads; it (and all its methods) must be 
+overridden to actually see anything.</dd>
+</dl>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="abstractgraphmanager">
+<h3>AbstractGraphManager<a class="headerlink" href="#abstractgraphmanager" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.graph.AbstractGraphManager">
+<em class="property">class </em><tt class="descclassname">src.core.graph.</tt><tt class="descname">AbstractGraphManager</tt><big>(</big><em>parentFrame</em><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#AbstractGraphManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.AbstractGraphManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>An abstract manager for graphs.</p>
+<p>The purpose of a <cite>GraphManager</cite> is to take as input a list of <cite>Graph</cite> 
+objects and, as the experiment is preparing to run, create a frame or 
+frames to hold the graphical representation of the graphs and start 
+threads to update them as data become available.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parentFrame</strong> :</p>
+<blockquote class="last">
+<div><p>A GUI frame to pass as the parent of each graph frame.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.graph.AbstractGraphManager.abort">
+<tt class="descname">abort</tt><big>(</big><em>timeout=10.0</em><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#AbstractGraphManager.abort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.AbstractGraphManager.abort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop graphing.</p>
+<p>Command all <cite>Graph</cite> objects to stop taking new data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>timeout</strong> : float</p>
+<blockquote class="last">
+<div><p>The maximum time to wait for the threads to join.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.graph.AbstractGraphManager.saveGraphs">
+<tt class="descname">saveGraphs</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#AbstractGraphManager.saveGraphs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.AbstractGraphManager.saveGraphs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the graphs to a file or files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>filename</strong> : str or list</p>
+<blockquote class="last">
+<div><p>The output file(s) to which the graph(s) should be saved. 
+Implementations may require either a string or a list of strings.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.graph.AbstractGraphManager.setGraphs">
+<tt class="descname">setGraphs</tt><big>(</big><em>graphs</em><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#AbstractGraphManager.setGraphs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.AbstractGraphManager.setGraphs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the graphs to be managed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>graphs</strong> : list of <cite>Graph</cite></p>
+<blockquote class="last">
+<div><p>A list of <cite>Graph</cite> objects.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.graph.AbstractGraphManager.start">
+<tt class="descname">start</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#AbstractGraphManager.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.AbstractGraphManager.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start graphing.</p>
+<p>Start a thread for each <cite>Graph</cite> object. These should be spawned as 
+&#8216;daemon&#8217; threads, so that if the program is exited, the threads all 
+stop.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="graph">
+<h3>Graph<a class="headerlink" href="#graph" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.graph.Graph">
+<em class="property">class </em><tt class="descclassname">src.core.graph.</tt><tt class="descname">Graph</tt><big>(</big><em>experiment</em>, <em>colX</em>, <em>colY</em>, <em>colAdd</em><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#Graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.Graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <cite>Graph</cite> is an object for managing interactions between an 
+<cite>Experiment</cite> and some graphical interface for actually displaying the 
+data. It effects the data transfer by pushing data points onto a <cite>Queue</cite>
+object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The <cite>Experiment</cite> object which owns this <cite>Graph</cite>.</p>
+</div></blockquote>
+<p><strong>colx</strong> : str</p>
+<blockquote>
+<div><p>The name of the column from which the x coordinates come.</p>
+</div></blockquote>
+<p><strong>coly</strong> : str</p>
+<blockquote>
+<div><p>The name of the column from which the y coordinates come.</p>
+</div></blockquote>
+<p><strong>colAdd</strong> : str</p>
+<blockquote class="last">
+<div><p>The name of the column which, when updated, should signal that the next
+point added to the graph should begin a new plot.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The <cite>Graph</cite> object does not actually store all of the data&#8212;it only keeps 
+track of the latest point. The reason is that nearly every GUI 
+implementation of graphing needs to keep track of all of the data, so
+<cite>Graph</cite> and the graphing panel/frame contain it would double the 
+memory used with no real advantage.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.graph.Graph.addX">
+<tt class="descname">addX</tt><big>(</big><em>newx</em><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#Graph.addX"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.Graph.addX" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the x-coordinate of the next point to the graph.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>newx</strong> : float</p>
+<blockquote class="last">
+<div><p>The new x-value to add to the graph. If it is an integer or a
+string, it will be coerced to a float.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.graph.Graph.addY">
+<tt class="descname">addY</tt><big>(</big><em>newy</em><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#Graph.addY"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.Graph.addY" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the y-coordinate of the next point to the graph.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>newy</strong> : float</p>
+<blockquote class="last">
+<div><p>The new y-value to add to the graph. If it is an integer or a
+string, it will be coerced to a float.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.graph.Graph.checkPoint">
+<tt class="descname">checkPoint</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#Graph.checkPoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.Graph.checkPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a point to the graph, if appropriate.</p>
+<p>Check whether there is both an x- and a y-coordinate available. If so,
+add a tuple to the queue, where the tuple contains the following
+elements in order:</p>
+<blockquote>
+<div><ul class="simple">
+<li>New x-coordinate</li>
+<li>New y-coordinate</li>
+<li>Minimum x-coordinate for the graph</li>
+<li>Maximum x-coordinate for the graph</li>
+<li>Minimum y-coordinate for the graph</li>
+<li>Maximum y-coordinate for the graph</li>
+<li>Whether this point goes into a new plot</li>
+</ul>
+</div></blockquote>
+<p>Then reset the graph&#8217;s fields.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.graph.Graph.clear">
+<tt class="descname">clear</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#Graph.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.Graph.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the graph data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.graph.Graph.flagNewPlot">
+<tt class="descname">flagNewPlot</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#Graph.flagNewPlot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.Graph.flagNewPlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate that the next point should go into a new plot.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.graph.Graph.getColumns">
+<tt class="descname">getColumns</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#Graph.getColumns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.Graph.getColumns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the column names which will provide data to this graph.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>tuple of str</strong> :</p>
+<blockquote class="last">
+<div><p>A 3-tuple whose contents are, in order, the names of the x data
+column, the y data column, and the column to trigger new plots on
+the graph.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.graph.Graph.getTitle">
+<tt class="descname">getTitle</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#Graph.getTitle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.Graph.getTitle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the title of the graph (&#8220;y name vs. x name&#8221;).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>The name of the graph, in the form &#8220;y-column name vs. x-column 
+name&#8221;.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.graph.Graph.getXML">
+<tt class="descname">getXML</tt><big>(</big><em>indent=0</em><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#Graph.getXML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.Graph.getXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an XML string representing the graph.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>A string containing XML data representing all of the data related
+to the graph, possibly useful as an alternative to pickle.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.graph.Graph.isEnabled">
+<tt class="descname">isEnabled</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#Graph.isEnabled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.Graph.isEnabled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the graph is enabled.</p>
+<p>The enabled state determines only whether or not the experiment adds
+it to the manager. The <cite>Graph</cite> object itself does not use the flag at 
+all.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the graph is enabled.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.graph.Graph.setColumns">
+<tt class="descname">setColumns</tt><big>(</big><em>cols</em><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#Graph.setColumns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.Graph.setColumns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the names of the columns which will provide data to this graph.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>cols</strong> : tuple of str</p>
+<blockquote class="last">
+<div><p>A 3-tuple whose contents indicate the names of the x-column, the
+y-column, and the column which should trigger new plots on the
+graph, in that order.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.graph.Graph.setDataQueue">
+<tt class="descname">setDataQueue</tt><big>(</big><em>queue</em><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#Graph.setDataQueue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.Graph.setDataQueue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the queue to pass data to the UI.</p>
+<p>A queue is used to pass data from this graph object to the graphical
+component which actually displays the data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>queue</strong> : Queue.Queue</p>
+<blockquote class="last">
+<div><p>The queue to pass data to the user interface.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.graph.Graph.setEnabled">
+<tt class="descname">setEnabled</tt><big>(</big><em>enabled</em><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#Graph.setEnabled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.Graph.setEnabled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set whether this graph is enabled.</p>
+<p>The enabled state determines only whether or not the experiment adds
+it to the manager. The <cite>Graph</cite> object itself does not use the flag at 
+all.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>enabled</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether the graph should be enabled.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.graph.Graph.updateColumnsIfNecessary">
+<tt class="descname">updateColumnsIfNecessary</tt><big>(</big><em>oldcol</em>, <em>newcol</em><big>)</big><a class="reference internal" href="_modules/src/core/graph.html#Graph.updateColumnsIfNecessary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.graph.Graph.updateColumnsIfNecessary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update graph labels to reflect changes in column names.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>oldcol</strong> : str</p>
+<blockquote>
+<div><p>The name of the column from which the graph previously received
+data.</p>
+</div></blockquote>
+<p><strong>newcol</strong> : str</p>
+<blockquote class="last">
+<div><p>The name of the column from which the graph should now receive
+data.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>graph</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#abstractgraphmanager">AbstractGraphManager</a></li>
+<li><a class="reference internal" href="#graph">Graph</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_core_action.html"
+                        title="previous chapter">The <cite>action</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_core_errors.html"
+                        title="next chapter">The <cite>errors</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_core_graph.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_core_errors.html" title="The errors module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_core_action.html" title="The action module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_core.html" >The <cite>core</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

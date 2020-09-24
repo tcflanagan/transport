@@ -1,0 +1,231 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.core.errors &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.core.errors</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Custom-defined exceptions.</span>
+
+<span class="sd">The following custom-defined exceptions are defined in this module.</span>
+
+<span class="sd">    InstrumentInUseError</span>
+<span class="sd">        Raised when a user attempts to delete an instrument which is still</span>
+<span class="sd">        used by an action in the sequence.</span>
+<span class="sd">        </span>
+<span class="sd">    InvalidInputError</span>
+<span class="sd">        Raised when a user enters an input value which is not of the right</span>
+<span class="sd">        type.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;transport&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="InstrumentInUseError"><a class="viewcode-back" href="../../../api_core_errors.html#src.core.errors.InstrumentInUseError">[docs]</a><span class="k">class</span> <span class="nc">InstrumentInUseError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Error for when an attempt is made to delete a still-bound instrument.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actions : list of Action</span>
+<span class="sd">        A list of the actions which require the instrument the user is</span>
+<span class="sd">        trying to delete.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new InstrumentInUseError.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">InstrumentInUseError</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="s">&#39;The instrument is in use.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actions</span> <span class="o">=</span> <span class="n">actions</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">InstrumentInUseError</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="s">&#39;The instrument is in use.&#39;</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="InvalidInputError"><a class="viewcode-back" href="../../../api_core_errors.html#src.core.errors.InvalidInputError">[docs]</a><span class="k">class</span> <span class="nc">InvalidInputError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An error raised when an action cannot coerce an input to the right type.</span>
+<span class="sd">    </span>
+<span class="sd">    This exception subsumes TypeError and ValueError so that they can be</span>
+<span class="sd">    caught more easily by programs which set input values for actions, and</span>
+<span class="sd">    so that it is easier for those programs to know precisely whence the</span>
+<span class="sd">    error comes.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    msg : str</span>
+<span class="sd">        The message generated by the object which raises the exception.</span>
+<span class="sd">    valueName : str</span>
+<span class="sd">        The description of the input or output parameter for which an invalid</span>
+<span class="sd">        value was received.</span>
+<span class="sd">    val : str</span>
+<span class="sd">        The invalid input supplied for the parameter.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">valueName</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new InvalidInputError.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valueName</span> <span class="o">=</span> <span class="n">valueName</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;The field [</span><span class="si">%s</span><span class="s">] requires </span><span class="si">%s</span><span class="s">, which &quot;</span><span class="si">%s</span><span class="s">&quot; is not. &#39;</span>
+                  <span class="s">&#39;Please try again.&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s">&#39;string to float&#39;</span> <span class="ow">in</span> <span class="n">msg</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="n">string</span> <span class="o">%</span> <span class="p">(</span><span class="n">valueName</span><span class="p">,</span> <span class="s">&#39;a floating-point number&#39;</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="n">string</span> <span class="o">%</span> <span class="p">(</span><span class="n">valueName</span><span class="p">,</span> <span class="s">&#39;an integer&#39;</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> 
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">,</span> <span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">InvalidInputError</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="GeneralExperimentError"><a class="viewcode-back" href="../../../api_core_errors.html#src.core.errors.GeneralExperimentError">[docs]</a><span class="k">class</span> <span class="nc">GeneralExperimentError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An exception generated in response to miscellaneous problems.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    items : list of tuple of str</span>
+<span class="sd">        A list of tuples. Each tuple contains information about one error in</span>
+<span class="sd">        the form of two strings. The first is the severity and may be either</span>
+<span class="sd">        &#39;warning&#39;, which will allow the experiment to proceed if the user</span>
+<span class="sd">        commands it, or &#39;error&#39;, which will not allow the experiment to</span>
+<span class="sd">        proceed. The second is a message about the error.</span>
+<span class="sd">        </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    msg : str</span>
+<span class="sd">        A basic string: &#39;Errors have been found.&#39;</span>
+<span class="sd">    items : list of tuple of str</span>
+<span class="sd">        The same as `items` from the Parameters section.</span>
+<span class="sd">    errorCount : int</span>
+<span class="sd">        The number of elements of `items` which are &#39;error&#39;s rather than</span>
+<span class="sd">        mere &#39;warning&#39;s.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">items</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new GeneralExperimentError&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Errors have been found.&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">items</span> <span class="o">=</span> <span class="n">items</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">errorCount</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;error&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">errorCount</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">errorCount</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GeneralExperimentError</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Null"><a class="viewcode-back" href="../../../api_core_errors.html#src.core.errors.Null">[docs]</a><span class="k">class</span> <span class="nc">Null</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Fake VISA driver.</span>
+<span class="sd">    </span>
+<span class="sd">    This class is here so that the program will run even on a computer without</span>
+<span class="sd">    VISA drivers installed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Do nothing.&quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">((</span><span class="s">&#39;No VISA drivers: Cannot create object. Args=[</span><span class="si">%s</span><span class="s">]. &#39;</span>
+                   <span class="s">&#39;Kwargs=[</span><span class="si">%s</span><span class="s">]&#39;</span><span class="p">),</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Cannot call method, so do nothing.&quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;No VISA drivers: Cannot call method.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+    <span class="k">def</span> <span class="nf">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Cannot get attribute, so do nothing.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;__bases__&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;No VISA drivers: Cannot get attribute. </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+    <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Cannot set attribute, so do nothing.&quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;No VISA drivers: Cannot set attribute.&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Cannot delete attribute, so do nothing.&quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;No VISA drivers: Cannot delete attribute.&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

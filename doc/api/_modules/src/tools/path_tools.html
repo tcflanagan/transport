@@ -1,0 +1,534 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.tools.path_tools &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.tools.path_tools</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;A set of tools for managing paths.</span>
+
+<span class="sd">The `path_tools` module provides auxiliary methods for converting between </span>
+<span class="sd">different path names. It&#39;s main function is to convert path names indicated</span>
+<span class="sd">relative to the Transport directory to absolute path names.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">src</span> <span class="kn">import</span> <span class="n">about</span><span class="p">,</span> <span class="n">settings</span>
+
+<span class="n">_EXTS_DATA</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">EXTS_DATA</span>
+<span class="n">_EXTS_PARAMETERS</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">EXTS_PARAMETERS</span>
+<span class="n">_EXTS_IMAGE</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">EXTS_IMAGE</span>
+
+<span class="n">DATA_DIR</span> <span class="o">=</span> <span class="n">about</span><span class="o">.</span><span class="n">DATA_FOLDER</span>
+<span class="n">HOME_DIR</span> <span class="o">=</span> <span class="n">about</span><span class="o">.</span><span class="n">APP_FOLDER</span>
+<span class="n">HOME_PATH</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="flatten"><a class="viewcode-back" href="../../../api_tools_path_tools.html#src.tools.path_tools.flatten">[docs]</a><span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">nested</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes a nested list and returns a flattened list. The output is always a</span>
+<span class="sd">    single-level list, and the input can be a tuple, a list, a string, an </span>
+<span class="sd">    uncombined sequence of strings, or any nested combination of these.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    nested : sequence</span>
+<span class="sd">        A (possibly) nested sequence of strings. It can be entered as a list,</span>
+<span class="sd">        a single string, a tuple, or simply a comma-separated series of</span>
+<span class="sd">        arguments.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        A single-level list of the same elements.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">nested</span> <span class="o">+</span> <span class="s">&#39;&#39;</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span>
+        <span class="k">for</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="n">nested</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">sublist</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">element</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">nested</span>
+</div>
+<div class="viewcode-block" id="unrel"><a class="viewcode-back" href="../../../api_tools_path_tools.html#src.tools.path_tools.unrel">[docs]</a><span class="k">def</span> <span class="nf">unrel</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Expand a relative path into an absolute path.</span>
+<span class="sd">    </span>
+<span class="sd">    Merges the components in args (which may be a list, a tuple, or simply a</span>
+<span class="sd">    comma-separated series) and assembles a full path, assuming they are paths</span>
+<span class="sd">    relative to the project root.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : sequence</span>
+<span class="sd">        A (possibly) nested sequence of strings representing path elements,</span>
+<span class="sd">        relative to the root of the Transport project tree. It can be entered </span>
+<span class="sd">        as a list, a single string, a tuple, or simply a comma-separated series </span>
+<span class="sd">        of arguments.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        The absolute path of the specified file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s">&#39;sep&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">sep</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;sep&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sep</span> <span class="o">=</span> <span class="s">&#39;/&#39;</span>
+    <span class="n">fullList</span> <span class="o">=</span> <span class="n">HOME_PATH</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)))</span>
+    <span class="n">ans</span> <span class="o">=</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fullList</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ans</span>
+</div>
+<div class="viewcode-block" id="rel"><a class="viewcode-back" href="../../../api_tools_path_tools.html#src.tools.path_tools.rel">[docs]</a><span class="k">def</span> <span class="nf">rel</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">asList</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert an absolute path to one relative to the project home.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str</span>
+<span class="sd">        The absolute path to convert to a relative path.</span>
+<span class="sd">    asList : bool</span>
+<span class="sd">        Whether to return the result as a list. If `False`, the path will be</span>
+<span class="sd">        returned as a string. The default is `False`.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str or list(str)</span>
+<span class="sd">        The path relative to the project home. If `asList` is `True`, the result</span>
+<span class="sd">        is a list of path components. If it is `False`, the result is a relative</span>
+<span class="sd">        path string. If `path` is not a child of the project home, `None` is</span>
+<span class="sd">        returned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pathList</span> <span class="o">=</span> <span class="n">splitPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">homePosition</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">HOME_PATH</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pathList</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">homePosition</span> <span class="ow">or</span> <span class="n">pathList</span><span class="p">[</span><span class="n">homePosition</span><span class="p">]</span> <span class="o">!=</span> <span class="n">HOME_DIR</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="n">relativeList</span> <span class="o">=</span> <span class="n">pathList</span><span class="p">[</span><span class="n">homePosition</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="k">if</span> <span class="n">asList</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">relativeList</span>
+    <span class="k">return</span> <span class="s">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">relativeList</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="pathToImportString"><a class="viewcode-back" href="../../../api_tools_path_tools.html#src.tools.path_tools.pathToImportString">[docs]</a><span class="k">def</span> <span class="nf">pathToImportString</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">isRelative</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">importItem</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">importFrom</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert a path to a string suitable for importing.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str</span>
+<span class="sd">        The path of a python module.</span>
+<span class="sd">    isRelative : bool</span>
+<span class="sd">        Whether `path` is relative to the project home. If `False`, `path` will</span>
+<span class="sd">        be taken to be an absolute path. The default is `True`.</span>
+<span class="sd">    importItem : str</span>
+<span class="sd">        The name of the item to be imported.</span>
+<span class="sd">    importFrom : bool</span>
+<span class="sd">        If `importItem` is `None`: Whether the import string should be of the </span>
+<span class="sd">        form ``from [package] import [module]``. If `False`, the import string </span>
+<span class="sd">        will be of the form ``import [package].[module]``. </span>
+<span class="sd">        </span>
+<span class="sd">        If `importItem` is **not** `None`: whether the import string should be</span>
+<span class="sd">        of the form ``from [package].[module] import [importItem]``. If `False`,</span>
+<span class="sd">        the import string will be of the form </span>
+<span class="sd">        ``import [package].[module].[importItem]``.</span>
+<span class="sd">        </span>
+<span class="sd">        The default is `True`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple (str, str)</span>
+<span class="sd">        A two element tuple where the first element is a string containing</span>
+<span class="sd">        the requested components separated by periods, and the second is a</span>
+<span class="sd">        string which can be passed to `exec` to actually perform the import. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">element0</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">element1</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.py&#39;</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.py&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">isRelative</span><span class="p">:</span>
+        <span class="n">pathList</span> <span class="o">=</span> <span class="n">splitPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pathList</span> <span class="o">=</span> <span class="n">rel</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">importItem</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">element0</span> <span class="o">=</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pathList</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">importFrom</span><span class="p">:</span>
+            <span class="n">element1</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;from &#39;</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pathList</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span>
+                        <span class="s">&#39; import &#39;</span> <span class="o">+</span> <span class="n">pathList</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">element1</span> <span class="o">=</span> <span class="s">&#39;import &#39;</span> <span class="o">+</span> <span class="n">element0</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">element0</span> <span class="o">=</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pathList</span> <span class="o">+</span> <span class="p">[</span><span class="n">importItem</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">importFrom</span><span class="p">:</span>
+            <span class="n">element1</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;from &#39;</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pathList</span><span class="p">)</span> <span class="o">+</span>
+                        <span class="s">&#39; import &#39;</span> <span class="o">+</span> <span class="n">importItem</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">element1</span> <span class="o">=</span> <span class="s">&#39;import &#39;</span> <span class="o">+</span> <span class="n">element0</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">element0</span><span class="p">,</span> <span class="n">element1</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="normalizePath"><a class="viewcode-back" href="../../../api_tools_path_tools.html#src.tools.path_tools.normalizePath">[docs]</a><span class="k">def</span> <span class="nf">normalizePath</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Replace all backslashes with front-slashes.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str</span>
+<span class="sd">        A file path to normalize.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        The path with all front-slashes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">answer</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">while</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span> <span class="ow">in</span> <span class="n">answer</span> <span class="ow">or</span> <span class="s">&#39;//&#39;</span> <span class="ow">in</span> <span class="n">answer</span><span class="p">:</span>
+        <span class="n">answer</span> <span class="o">=</span> <span class="n">answer</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;/&#39;</span><span class="p">)</span>
+        <span class="n">answer</span> <span class="o">=</span> <span class="n">answer</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;//&#39;</span><span class="p">,</span> <span class="s">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">answer</span>
+</div>
+<div class="viewcode-block" id="splitPath"><a class="viewcode-back" href="../../../api_tools_path_tools.html#src.tools.path_tools.splitPath">[docs]</a><span class="k">def</span> <span class="nf">splitPath</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the path split into its components.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str</span>
+<span class="sd">        A file path.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of str</span>
+<span class="sd">        A list of strings representing the components of `path`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">normalizePath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="lsAbsolute"><a class="viewcode-back" href="../../../api_tools_path_tools.html#src.tools.path_tools.lsAbsolute">[docs]</a><span class="k">def</span> <span class="nf">lsAbsolute</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filesOnly</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;List the contents of a directory specified by an absolute path.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    directory : str</span>
+<span class="sd">        The absolute path of the directory to list.</span>
+<span class="sd">    filesOnly : bool</span>
+<span class="sd">        Whether to ignore subdirectories of `directory`.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of str</span>
+<span class="sd">        The contents of `directory` as a list of strings.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">filesOnly</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span> <span class="k">if</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">f</span><span class="p">))]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)]</span>
+
+</div>
+<div class="viewcode-block" id="ls"><a class="viewcode-back" href="../../../api_tools_path_tools.html#src.tools.path_tools.ls">[docs]</a><span class="k">def</span> <span class="nf">ls</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filesOnly</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;List the contents of a directory specified relative to the project home.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    directory : str</span>
+<span class="sd">        The relative (to the project home) path of the directory to list.</span>
+<span class="sd">    filesOnly : bool</span>
+<span class="sd">        Whether to ignore subdirectories of `directory`.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list(str)</span>
+<span class="sd">        The contents of `directory` as a list of strings.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">directory</span> <span class="o">=</span> <span class="n">unrel</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lsAbsolute</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filesOnly</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="getNextScan"><a class="viewcode-back" href="../../../api_tools_path_tools.html#src.tools.path_tools.getNextScan">[docs]</a><span class="k">def</span> <span class="nf">getNextScan</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Determine the next scan number.</span>
+<span class="sd">    </span>
+<span class="sd">    Determine the next unused scan number, assuming that scans are indicated</span>
+<span class="sd">    by &#39;sNNN&#39; or &#39;sNNNN&#39;, where N is a digit.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    directory : str</span>
+<span class="sd">        The absolute path of the directory of data files.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        A string representing the next scan number. It&#39;s format is &quot;sNNN&quot;,</span>
+<span class="sd">        where N is an integer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pat</span> <span class="o">=</span> <span class="s">&#39;^s[0-9]{3,4}&#39;</span>
+    <span class="n">numbers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">lsAbsolute</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">numbers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">numbers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&#39;s000&#39;</span>
+    <span class="k">return</span> <span class="s">&#39;s%03.u&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">numbers</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="appendDigitsAsNecessary"><a class="viewcode-back" href="../../../api_tools_path_tools.html#src.tools.path_tools.appendDigitsAsNecessary">[docs]</a><span class="k">def</span> <span class="nf">appendDigitsAsNecessary</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="s">&#39;xdat&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Append digits to avoid filename clashes.</span>
+<span class="sd">    </span>
+<span class="sd">    Append incrementally larger digits to the name of a file until the name</span>
+<span class="sd">    does not collide with existing files.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    folder : str</span>
+<span class="sd">        The folder in which the data file will be saved. It should **not**</span>
+<span class="sd">        include a trailing slash.</span>
+<span class="sd">    basename : str</span>
+<span class="sd">        The base name of the data file. It should include a scan number, if</span>
+<span class="sd">        applicable, but it should **not** include an extension.</span>
+<span class="sd">    extension : str</span>
+<span class="sd">        The intended extension of the filename. It should not include a</span>
+<span class="sd">        leading period.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        The base name for the data file with appropriate digits added and</span>
+<span class="sd">        no extension.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">extensions</span> <span class="o">=</span> <span class="n">_EXTS_DATA</span> <span class="o">+</span> <span class="n">_EXTS_PARAMETERS</span> <span class="o">+</span> <span class="n">_EXTS_IMAGE</span>
+    <span class="k">def</span> <span class="nf">checkExistance</span><span class="p">(</span><span class="n">fileToCheck</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether a file exists.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">extensions</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">fileToCheck</span><span class="p">,</span> <span class="n">ext</span><span class="p">)):</span>
+                <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;transport&#39;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Checking for and avoiding filename collisions.&#39;</span><span class="p">)</span>
+    <span class="n">extensionfree</span> <span class="o">=</span> <span class="n">basename</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">folder</span><span class="p">,</span> <span class="n">basename</span><span class="p">])</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">extension</span>
+    <span class="n">cont</span> <span class="o">=</span> <span class="n">checkExistance</span><span class="p">(</span><span class="n">extensionfree</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cont</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;File &#39;</span> <span class="o">+</span> <span class="n">filename</span> <span class="o">+</span> <span class="s">&#39; exists. Appending digits.&#39;</span><span class="p">)</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">cont</span><span class="p">:</span>
+        <span class="n">extensionfree</span> <span class="o">=</span> <span class="n">basename</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">folder</span><span class="p">,</span> <span class="n">extensionfree</span><span class="p">])</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">extension</span>
+        <span class="n">cont</span> <span class="o">=</span> <span class="n">checkExistance</span><span class="p">(</span><span class="n">extensionfree</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cont</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;File &#39;</span> <span class="o">+</span> <span class="n">filename</span> <span class="o">+</span> <span class="s">&#39; exists. Appending digits.&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;File &#39;</span> <span class="o">+</span> <span class="n">filename</span> <span class="o">+</span> <span class="s">&#39; does not exist. &#39;</span> <span class="o">+</span>
+                         <span class="s">&#39;Finished collision avoidance.&#39;</span><span class="p">)</span>
+        <span class="n">num</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">extensionfree</span>
+</div>
+<div class="viewcode-block" id="getFilesPostprocessor"><a class="viewcode-back" href="../../../api_tools_path_tools.html#src.tools.path_tools.getFilesPostprocessor">[docs]</a><span class="k">def</span> <span class="nf">getFilesPostprocessor</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return a dictionary containing data about postprocessor scripts.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        A dictionary in which the keys are strings representing an absolute</span>
+<span class="sd">        filename without an extension. The value for each key is a dictionary</span>
+<span class="sd">        with three keys: &#39;py&#39;, &#39;pyc&#39;, &#39;pyo&#39;. Each of the values is a `bool`</span>
+<span class="sd">        specifying whether the base file with the corresponding extension </span>
+<span class="sd">        exists.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">projectDir</span> <span class="o">=</span> <span class="n">unrel</span><span class="p">(</span><span class="s">&#39;lib&#39;</span><span class="p">,</span> <span class="s">&#39;postprocessors&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;posix&#39;</span><span class="p">):</span>
+        <span class="n">userDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&#39;~/.</span><span class="si">%s</span><span class="s">/lib/postprocessors&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">userDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&#39;~/AppData/Local/</span><span class="si">%s</span><span class="s">/lib/postprocessors&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">projectDir</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">projectDir</span><span class="p">):</span>
+        <span class="n">contents</span> <span class="o">=</span> <span class="n">lsAbsolute</span><span class="p">(</span><span class="n">projectDir</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">newFile</span> <span class="ow">in</span> <span class="n">contents</span><span class="p">:</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">projectDir</span><span class="p">,</span> <span class="n">_chopExtension</span><span class="p">(</span><span class="n">newFile</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">current</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">current</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">current</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;py&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">current</span> <span class="o">+</span> <span class="s">&#39;.py&#39;</span><span class="p">),</span>
+                                 <span class="s">&#39;pyc&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">current</span> <span class="o">+</span> <span class="s">&#39;.pyc&#39;</span><span class="p">),</span>
+                                 <span class="s">&#39;pyo&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">current</span> <span class="o">+</span> <span class="s">&#39;.pyo&#39;</span><span class="p">)}</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">userDir</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">userDir</span><span class="p">):</span>
+        <span class="n">contents</span> <span class="o">=</span> <span class="n">lsAbsolute</span><span class="p">(</span><span class="n">userDir</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">newFile</span> <span class="ow">in</span> <span class="n">contents</span><span class="p">:</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">userDir</span><span class="p">,</span> <span class="n">_chopExtension</span><span class="p">(</span><span class="n">newFile</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">current</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">current</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">current</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;py&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">current</span> <span class="o">+</span> <span class="s">&#39;.py&#39;</span><span class="p">),</span>
+                                 <span class="s">&#39;pyc&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">current</span> <span class="o">+</span> <span class="s">&#39;.pyc&#39;</span><span class="p">),</span>
+                                 <span class="s">&#39;pyo&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">current</span> <span class="o">+</span> <span class="s">&#39;.pyo&#39;</span><span class="p">)}</span>
+    <span class="k">return</span> <span class="n">data</span>
+</div>
+<span class="k">def</span> <span class="nf">_chopExtension</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Remove a .py, .pyo, or .pyc extension from a filename.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.py&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">filename</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.pyc&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.pyo&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">filename</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
+    <span class="k">return</span> <span class="bp">None</span>
+    
+<span class="k">def</span> <span class="nf">_locateDirectories</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Find the directories for various files to supplement the software.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">checkDirectory</span><span class="p">(</span><span class="n">dirPath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check whether a given path exists and is writable.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dirPath</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">dirPath</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">W_OK</span><span class="p">)</span>
+    
+    <span class="k">print</span> <span class="s">&quot;Finding directories&quot;</span>
+    
+    <span class="c"># configuration files</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;posix&#39;</span><span class="p">):</span>
+        <span class="n">confOpts</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&#39;~/.</span><span class="si">%s</span><span class="s">/etc&#39;</span> <span class="o">%</span> <span class="n">DATA_DIR</span><span class="p">),</span>
+                     <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s">&#39;/etc/</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">DATA_DIR</span><span class="p">),</span>
+                     <span class="n">unrel</span><span class="p">(</span><span class="s">&#39;etc&#39;</span><span class="p">)]</span>
+        <span class="n">libOpts</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&#39;~/.</span><span class="si">%s</span><span class="s">/lib&#39;</span> <span class="o">%</span> <span class="n">DATA_DIR</span><span class="p">),</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s">&#39;/lib/</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">DATA_DIR</span><span class="p">),</span>
+                    <span class="n">unrel</span><span class="p">(</span><span class="s">&#39;lib&#39;</span><span class="p">)]</span>
+    <span class="n">subLibs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;instruments&#39;</span><span class="p">,</span> <span class="s">&#39;postprocessors&#39;</span><span class="p">,</span> <span class="s">&#39;premades&#39;</span><span class="p">]</span>
+    
+    <span class="n">confdir</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">for</span> <span class="n">opt</span> <span class="ow">in</span> <span class="n">confOpts</span><span class="p">:</span>
+        <span class="k">print</span> <span class="n">opt</span>
+        <span class="k">if</span> <span class="n">checkDirectory</span><span class="p">(</span><span class="n">opt</span><span class="p">):</span>
+            <span class="n">confdir</span> <span class="o">=</span> <span class="n">opt</span>
+            <span class="k">break</span>
+    <span class="k">if</span> <span class="n">confdir</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">confOpts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">libdir</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">for</span> <span class="n">opt</span> <span class="ow">in</span> <span class="n">libOpts</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">checkDirectory</span><span class="p">(</span><span class="n">opt</span><span class="p">):</span>
+            <span class="n">libdir</span> <span class="o">=</span> <span class="n">opt</span>
+            <span class="k">break</span>
+    <span class="k">if</span> <span class="n">libdir</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">libdir</span> <span class="o">=</span> <span class="n">libOpts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">libdir</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">subLibs</span><span class="p">:</span>
+            <span class="n">fullPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">libdir</span><span class="p">,</span> <span class="n">sub</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">fullPath</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">subLibs</span><span class="p">:</span>
+            <span class="n">fullPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">libdir</span><span class="p">,</span> <span class="n">sub</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">fullPath</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                <span class="k">pass</span>
+    
+            
+    <span class="k">print</span> <span class="s">&#39;Configuration directory = &#39;</span> <span class="o">+</span> <span class="n">confdir</span>
+    <span class="k">print</span> <span class="s">&#39;Library directory =       &#39;</span> <span class="o">+</span> <span class="n">libdir</span>
+    
+
+<div class="viewcode-block" id="createHomePathOld"><a class="viewcode-back" href="../../../api_tools_path_tools.html#src.tools.path_tools.createHomePathOld">[docs]</a><span class="k">def</span> <span class="nf">createHomePathOld</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Create the home path the old way if necessary.&quot;&quot;&quot;</span>
+    <span class="n">myPath</span> <span class="o">=</span> <span class="n">splitPath</span><span class="p">(</span><span class="n">__file__</span><span class="p">)</span>
+    <span class="n">HOME_PATH</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">myPath</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">while</span> <span class="n">HOME_PATH</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">HOME_DIR</span><span class="p">:</span>
+        <span class="n">HOME_PATH</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">myPath</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="createHomePath"><a class="viewcode-back" href="../../../api_tools_path_tools.html#src.tools.path_tools.createHomePath">[docs]</a><span class="k">def</span> <span class="nf">createHomePath</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Create the home path if necessary.&quot;&quot;&quot;</span>
+    <span class="n">myPath</span> <span class="o">=</span> <span class="n">splitPath</span><span class="p">(</span><span class="n">__file__</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">myPath</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]:</span>
+        <span class="n">HOME_PATH</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+</div>
+<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">HOME_PATH</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">createHomePath</span><span class="p">()</span>
+    
+<span class="c"># _locateDirectories()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

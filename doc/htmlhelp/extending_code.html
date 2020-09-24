@@ -1,0 +1,413 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>4. Extending the Code: Instruments</title>
+
+
+
+
+</head>
+<body>
+<table><tr><td width="50%"><p><a href="index.html">Docs</a> &raquo;</p></td><td width="50%" align="right"><p>
+<a href="project_organization.html" title="3. Project organization" accesskey="P">previous</a> |
+<a href="genindex.html" title="General Index" accesskey="I">index</a></p></td></tr></table>
+<a name="extending-the-code-instruments">
+<h1>4. Extending the Code: Instruments</h1>
+<p>Writing code for new instruments is usually quite straightforward (the
+main exception being cryostats, which take quite a bit of work). Below
+are the basic instructions for how to go about doing it and some
+pitfalls which would make the code fail.</p>
+<a name="introduction"></a>
+<h2>4.1. Introduction</h2>
+<p>Since most instruments today follow a rather specific standard specified
+by IEEE, writing code to run them is quite simple. Nearly all instruments
+which can be connected to the computer via GPIB, USB, or RS232 implement
+VISA standards, and so the PyVISA module does all the work. Further,
+the commands follow a fairly standard form.</p>
+<p>The first step in coding a new instrument is to create a module for it. For
+everything to work, there are a few requirements, which follow.</p>
+<ol class="arabic simple">
+<li>The module must be placed in the <tt class="xref py py-mod docutils literal"><span class="pre">src.instruments</span></tt> package.</li>
+<li>The module must contain a class which inherits from the
+<tt class="xref py py-class docutils literal"><span class="pre">src.core.instrument.Instrument</span></tt> class.</li>
+<li>The class constructor (the <tt class="xref py py-meth docutils literal"><span class="pre">__init__()</span></tt> method) must
+have the signature of an <cite>Instrument</cite>, it must call the its
+superclass constructor, and it must define all attributes of
+the class.</li>
+<li>The new instrument must implement a class method
+<tt class="xref py py-meth docutils literal"><span class="pre">getRequiredParameters()</span></tt> which should return a list of
+<tt class="xref py py-class docutils literal"><span class="pre">src.core.instrument.InstrumentParameter</span></tt> objects. Each
+of these objects indicates one attribute which must be specified in
+order for the instrument to work. For most GPIB instruments, the
+list will include only one element: the VISA resource address.</li>
+<li>It must implement the methods <tt class="xref py py-meth docutils literal"><span class="pre">initialize()</span></tt>, which opens
+a communication channel with the instrument, and
+py:meth:<cite>finalize</cite>, which closes said communication channel. Note
+that both of these methods are called automatically.</li>
+<li>It must implement the <tt class="xref py py-meth docutils literal"><span class="pre">getActions()</span></tt> method, which returns a
+list of <tt class="xref py py-class docutils literal"><span class="pre">src.core.action.ActionSpec</span></tt> objects indicating
+what actions the instrument can perform.</li>
+</ol>
+<p>Let&#8217;s consider these steps individually, with the SRS 830 Lock-In Amplifier
+as an example.</p>
+
+<a name="module-and-class-creation"></a>
+<h2>4.2. Module and class creation</h2>
+<p>The first is fairly obvious. The module name should be
+<tt class="file docutils literal"><span class="pre">src/instruments/srs830.py</span></tt>.</p>
+<p>The second step means that the class definition line should reference the
+<tt class="xref py py-class docutils literal"><span class="pre">Instrument</span></tt> object. The module header, of course, must import
+this object:</p>
+<pre><font color="#204a87"><b>from</b></font> <font color="#000000">src.core.instrument</font> <font color="#204a87"><b>import</b></font> <font color="#000000">Instrument</font>
+</pre>
+
+<p>The class definition line should then look like this:</p>
+<pre>class SRS830(Instrument):</pre>
+
+
+<a name="the-instrument-specification"></a>
+<h2>4.3. The instrument specification</h2>
+<p>Configuring an instrument for use will often require a bit of information
+about the instrument. These parameters are specified via instances of the
+<tt class="xref py py-class docutils literal"><span class="pre">InstrumentParameter</span></tt> class, which stores four attributes:</p>
+<dl class="docutils">
+<dt>description</dt>
+<dd>A short, user-readable description of the parameter.</dd>
+<dt>value</dt>
+<dd>The value of the parameter. The default is an empty string.</dd>
+<dt>allowed</dt>
+<dd>The values which the parameter will accept, specified as a list
+of strings. If set to <tt class="docutils literal"><span class="pre">None</span></tt>, any value will be accepted.</dd>
+<dt>formatString</dt>
+<dd>A string indicating how the value should be formatted. See
+<a class="reference internal" href="#format-string-syntax"><em>Format string syntax</em></a>.</dd>
+</dl>
+<p>For typical GPIB instruments, the only bit of such information will be
+its resource address, and so the <tt class="xref py py-meth docutils literal"><span class="pre">getRequiredParameters()</span></tt>
+method will return a single-element list as follows:</p>
+<pre><font color="#5c35cc"><b>@classmethod</b></font>
+<font color="#204a87"><b>def</b></font> <font color="#000000">getRequiredParameters</font><font color="#000000"><b>(</b></font><font color="#000000">cls</font><font color="#000000"><b>):</b></font>
+    <font color="#204a87"><b>return</b></font> <font color="#000000"><b>[</b></font>
+        <font color="#000000">InstrumentParameter</font><font color="#000000"><b>(</b></font>
+            <font color="#000000">description</font><font color="#ce5c00"><b>=</b></font><font color="#4e9a06">&#39;Visa Address&#39;</font><font color="#000000"><b>,</b></font>
+            <font color="#000000">value</font><font color="#ce5c00"><b>=</b></font><font color="#4e9a06">&#39;&#39;</font><font color="#000000"><b>,</b></font>
+            <font color="#000000">allowed</font><font color="#ce5c00"><b>=</b></font><font color="#000000">Instrument</font><font color="#ce5c00"><b>.</b></font><font color="#000000">getVisaAddresses</font><font color="#000000"><b>,</b></font>
+            <font color="#000000">formatString</font><font color="#ce5c00"><b>=</b></font><font color="#4e9a06">&#39;</font><font color="#4e9a06">%s</font><font color="#4e9a06">&#39;</font>
+        <font color="#000000"><b>)</b></font>
+    <font color="#000000"><b>]</b></font>
+</pre>
+
+<p>This method simply returns the default for the <tt class="xref py py-class docutils literal"><span class="pre">Instrument</span></tt>
+subclass. The actual <strong>value</strong> for an <strong>instance</strong> is stored in the
+attribute <tt class="xref py py-attr docutils literal"><span class="pre">_spec</span></tt>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Specifying a value for <tt class="xref py py-attr docutils literal"><span class="pre">allowed</span></tt> makes no sense
+unless the value is a string.</p>
+</div>
+
+<a name="initialization-and-finalization"></a>
+<h2>4.4. Initialization and finalization</h2>
+<p>The constructor must be of the form:</p>
+<pre><font color="#204a87"><b>def</b></font> <font color="#000000">__init__</font><font color="#000000"><b>(</b></font><font color="#3465a4">self</font><font color="#000000"><b>,</b></font> <font color="#000000">experiment</font><font color="#000000"><b>,</b></font> <font color="#000000">name</font><font color="#ce5c00"><b>=</b></font><font color="#4e9a06">&#39;SRS830: Lock-in&#39;</font><font color="#000000"><b>,</b></font> <font color="#000000">spec</font><font color="#ce5c00"><b>=</b></font><font color="#3465a4">None</font><font color="#000000"><b>):</b></font>
+    <font color="#204a87">super</font><font color="#000000"><b>(</b></font><font color="#000000">SRS830</font><font color="#000000"><b>,</b></font> <font color="#3465a4">self</font><font color="#000000"><b>)</b></font><font color="#ce5c00"><b>.</b></font><font color="#000000">__init__</font><font color="#000000"><b>(</b></font><font color="#000000">experiment</font><font color="#000000"><b>,</b></font> <font color="#000000">name</font><font color="#000000"><b>,</b></font> <font color="#000000">spec</font><font color="#000000"><b>)</b></font>
+    <font color="#3465a4">self</font><font color="#ce5c00"><b>.</b></font><font color="#000000">_inst</font> <font color="#ce5c00"><b>=</b></font> <font color="#3465a4">None</font>
+    <font color="#3465a4">self</font><font color="#ce5c00"><b>.</b></font><font color="#000000">_info</font> <font color="#ce5c00"><b>=</b></font> <font color="#3465a4">None</font>
+</pre>
+
+<p>The requirement concerning the signature is, of course, implemented in
+the first line. Notice that all but <tt class="xref py py-attr docutils literal"><span class="pre">experiment</span></tt> are optional (they
+have default values specified). The second line calls the parent class&#8217;s
+constructor, and the third and fourth lines create the class&#8217;s attributes,
+which will be assigned actual values when the instrument is initialized (at
+the beginning of the experiment&#8217;s execution), as will be described next.</p>
+<p>The fourth step requires that the instrument implement the
+<tt class="xref py py-meth docutils literal"><span class="pre">initialize()</span></tt> and <tt class="xref py py-meth docutils literal"><span class="pre">finalize()</span></tt> methods, which run at the
+beginning and the end of the experiment. Examples are the following:</p>
+<pre><font color="#204a87"><b>def</b></font> <font color="#000000">initialize</font> <font color="#000000"><b>(</b></font><font color="#3465a4">self</font><font color="#000000"><b>):</b></font>
+    <font color="#8f5902"><i>&quot;&quot;&quot;Initialize the lock-in.&quot;&quot;&quot;</i></font>
+    <font color="#3465a4">self</font><font color="#ce5c00"><b>.</b></font><font color="#000000">_inst</font> <font color="#ce5c00"><b>=</b></font> <font color="#000000">visa</font><font color="#ce5c00"><b>.</b></font><font color="#000000">instrument</font><font color="#000000"><b>(</b></font><font color="#3465a4">self</font><font color="#ce5c00"><b>.</b></font><font color="#000000">_spec</font><font color="#000000"><b>[</b></font><font color="#0000cf"><b>0</b></font><font color="#000000"><b>])</b></font>
+    <font color="#000000">info</font> <font color="#ce5c00"><b>=</b></font> <font color="#000000"><b>[</b></font><font color="#4e9a06">&#39;Instrument: &#39;</font> <font color="#ce5c00"><b>+</b></font> <font color="#3465a4">self</font><font color="#ce5c00"><b>.</b></font><font color="#000000">_name</font><font color="#000000"><b>,</b></font>
+            <font color="#4e9a06">&#39;SRS 830: Lock-in amplifier&#39;</font><font color="#000000"><b>,</b></font>
+            <font color="#3465a4">self</font><font color="#ce5c00"><b>.</b></font><font color="#000000">_inst</font><font color="#ce5c00"><b>.</b></font><font color="#000000">ask</font><font color="#000000"><b>(</b></font><font color="#4e9a06">&#39;*IDN?&#39;</font><font color="#000000"><b>)]</b></font>
+    <font color="#3465a4">self</font><font color="#ce5c00"><b>.</b></font><font color="#000000">_info</font> <font color="#ce5c00"><b>=</b></font> <font color="#4e9a06">&#39;</font><font color="#4e9a06">\n</font><font color="#4e9a06">&#39;</font><font color="#ce5c00"><b>.</b></font><font color="#000000">join</font><font color="#000000"><b>(</b></font><font color="#000000">info</font><font color="#000000"><b>)</b></font>
+
+<font color="#204a87"><b>def</b></font> <font color="#000000">finalize</font> <font color="#000000"><b>(</b></font><font color="#3465a4">self</font><font color="#000000"><b>):</b></font>
+    <font color="#8f5902"><i>&quot;&quot;&quot;Finalize the lock-in.&quot;&quot;&quot;</i></font>
+    <font color="#3465a4">self</font><font color="#ce5c00"><b>.</b></font><font color="#000000">_inst</font><font color="#ce5c00"><b>.</b></font><font color="#000000">close</font><font color="#000000"><b>()</b></font>
+</pre>
+
+<p>In the <tt class="xref py py-meth docutils literal"><span class="pre">initialize()</span></tt> method, the <tt class="xref py py-attr docutils literal"><span class="pre">_inst</span></tt> attribute is
+set to a <tt class="xref py py-class docutils literal"><span class="pre">pyvisa.visa.Instrument</span></tt> object. The argument to
+the constructor is the VISA resource address. The <tt class="xref py py-attr docutils literal"><span class="pre">_info</span></tt>
+attribute is set to a three-line string describing the instrument,
+including its user-defined name, its model, and what it knows about
+itself.</p>
+<p>In the <tt class="xref py py-meth docutils literal"><span class="pre">finalize()</span></tt> method, the instrument communication channel
+is closed to free system resources.</p>
+
+<a name="actions"></a>
+<h2>4.5. Actions</h2>
+<p>Most instruments implement two types of actions: simple actions, which can
+set or read values, and scans, which repeat a simple action with multiple
+values. Regardless of its type, the action must define the following values:</p>
+<dl class="docutils">
+<dt>experiment</dt>
+<dd>The <tt class="xref py py-class docutils literal"><span class="pre">Experiment</span></tt> object which owns the
+instrument. This will nearly always be the <tt class="xref py py-class docutils literal"><span class="pre">Experiment</span></tt> which
+owns the instrument, and so you can pass the attribute
+<tt class="xref py py-attr docutils literal"><span class="pre">self._expt</span></tt>.</dd>
+<dt>instrument</dt>
+<dd>The <tt class="xref py py-class docutils literal"><span class="pre">Instrument</span></tt> object which owns the
+action. This should nearly always be <tt class="xref py py-attr docutils literal"><span class="pre">self</span></tt>.</dd>
+<dt>description</dt>
+<dd>A short phrase describing the action in a way that users can understand.</dd>
+<dt>inputs</dt>
+<dd>A list of parameters which will be sent to the instrument when it&#8217;s
+time for it to perform the action.</dd>
+<dt>outputs</dt>
+<dd>A list of parameters which the instrument will return once it has
+finished performing the action.</dd>
+<dt>string</dt>
+<dd>A template string which will be filled in for turning the complete
+action sequence into strings for conveying information to the user.</dd>
+<dt>method</dt>
+<dd>The (bound) method  which will carry out the action. This will be
+discussed further later.</dd>
+</dl>
+<p>An action will be specified through a <tt class="xref py py-mod docutils literal"><span class="pre">collections.namedtuple</span></tt>
+instance, <tt class="xref py py-class docutils literal"><span class="pre">ActionSpec</span></tt>, which has three attributes:
+<tt class="xref py py-attr docutils literal"><span class="pre">name</span></tt>, a one-word name for the action, mainly for lookup
+purposes; <tt class="xref py py-attr docutils literal"><span class="pre">cls</span></tt>, the <tt class="xref py py-class docutils literal"><span class="pre">Action</span></tt> class, or one of its
+subclasses, which will be used to construct the object; and
+<tt class="xref py py-attr docutils literal"><span class="pre">args</span></tt>, a dictionary containing the keys listed above and their
+respective values.</p>
+<p>An <tt class="xref py py-class docutils literal"><span class="pre">ActionScan</span></tt> object must have <strong>one and only one</strong> input, which
+should be a list of three-element tuples specifying the default range
+over which some quantity is varied. This range will be expanded, and the
+values will be passed sequentially to the method specified in the
+<tt class="xref py py-class docutils literal"><span class="pre">ActionSpec</span></tt>.</p>
+
+<a name="parameters"></a>
+<h2>4.6. Parameters</h2>
+<p>Parameters are specified through a
+<tt class="xref py py-mod docutils literal"><span class="pre">collections.namedtuple</span></tt> instance, <tt class="xref py py-class docutils literal"><span class="pre">ParameterSpec</span></tt>,
+which has attributes <tt class="xref py py-attr docutils literal"><span class="pre">name</span></tt> and <tt class="xref py py-attr docutils literal"><span class="pre">args</span></tt>. The first
+should be a short, single-word string to specify the parameter, and the
+second is a dictionary containing the following properties:</p>
+<dl class="docutils">
+<dt>experiment</dt>
+<dd>The <tt class="xref py py-class docutils literal"><span class="pre">src.core.experiment.Experiment</span></tt> object which owns
+the action which owns the parameter.</dd>
+<dt>description</dt>
+<dd>A short phrase describing the parameter in a way that users can
+understand.</dd>
+<dt>value</dt>
+<dd>The default value for the parameter. It should be of the correct data
+type.
+<dd><p><div class="last admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the action is an <tt class="xref py py-class docutils literal"><span class="pre">ActionScan</span></tt>, the value
+should be specified as a list of tuples indicating the default
+scan components. For example, <tt class="docutils literal"><span class="pre">'value':</span> <span class="pre">[(0.0,</span> <span class="pre">1.0,</span> <span class="pre">0.1),</span>
+<span class="pre">(1.0,</span> <span class="pre">2.0,</span> <span class="pre">0.5)]</span></tt> would by default scan from 0.0 to 1.0 in
+steps of 0.1 and then from 1.0 to 2.0 in steps of 0.5.</p>
+</div></p></dd>
+</dd>
+<dt>binName</dt>
+<dd>The default name for the data storage bin to which the value will
+be saved, or <tt class="docutils literal"><span class="pre">None</span></tt> if it will not be saved by default.</dd>
+<dt>binType</dt>
+<dd>The default type of data bin (either &#8216;column&#8217; or &#8216;parameter&#8217;, or <tt class="docutils literal"><span class="pre">None</span></tt>
+if the data will not be saved by default).</dd>
+<dt>formatString</dt>
+<dd>A string indicating how the value should be formatted. See
+<a class="reference internal" href="#format-string-syntax"><em>Format string syntax</em></a>.
+<dd><p><div class="last admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the action is an <tt class="xref py py-class docutils literal"><span class="pre">ActionScan</span></tt>, the formatString
+should end with &#8216;[]&#8217;</p>
+</div></p></dd>
+</dd>
+<dt>allowed</dt>
+<dd>A list containing the allowed values for the parameter. This only makes
+sense if the data type is a string.</dd>
+</dl>
+
+<a name="the-action-syntax"></a>
+<h2>4.7. The action syntax</h2>
+<p>The <tt class="xref py py-meth docutils literal"><span class="pre">getActions()</span></tt> method should return a list of
+<tt class="xref py py-class docutils literal"><span class="pre">ActionSpec</span></tt> objects specifying all the actions which the
+instrument can perform (or, at least, all the actions which users of the
+instrument will <em>want</em> to perform).</p>
+<p>The syntax for defining such an <tt class="xref py py-class docutils literal"><span class="pre">ActionSpec</span></tt> is as follows</p>
+<pre><font color="#000000">ActionSpec</font><font color="#000000"><b>(</b></font>
+    <font color="#000000">name</font><font color="#ce5c00"><b>=</b></font><font color="#4e9a06">&#39;set_vref&#39;</font><font color="#000000"><b>,</b></font>
+    <font color="#000000">cls</font><font color="#ce5c00"><b>=</b></font><font color="#000000">Action</font><font color="#000000"><b>,</b></font>
+    <font color="#000000">args</font><font color="#ce5c00"><b>=</b></font><font color="#000000"><b>{</b></font>
+        <font color="#4e9a06">&#39;experiment&#39;</font><font color="#000000"><b>:</b></font> <font color="#3465a4">self</font><font color="#ce5c00"><b>.</b></font><font color="#000000">_expt</font><font color="#000000"><b>,</b></font>
+        <font color="#4e9a06">&#39;instrument&#39;</font><font color="#000000"><b>:</b></font> <font color="#3465a4">self</font><font color="#000000"><b>,</b></font>
+        <font color="#4e9a06">&#39;description&#39;</font><font color="#000000"><b>:</b></font> <font color="#4e9a06">&#39;Set reference voltage&#39;</font><font color="#000000"><b>,</b></font>
+        <font color="#4e9a06">&#39;inputs&#39;</font><font color="#000000"><b>:</b></font> <font color="#000000"><b>[</b></font>
+            <font color="#000000">ParameterSpec</font><font color="#000000"><b>(</b></font>
+                <font color="#000000">name</font><font color="#ce5c00"><b>=</b></font><font color="#4e9a06">&#39;vref&#39;</font><font color="#000000"><b>,</b></font>
+                <font color="#000000">args</font><font color="#ce5c00"><b>=</b></font><font color="#000000"><b>{</b></font>
+                   <font color="#4e9a06">&#39;experiment&#39;</font><font color="#000000"><b>:</b></font> <font color="#3465a4">self</font><font color="#ce5c00"><b>.</b></font><font color="#000000">_expt</font><font color="#000000"><b>,</b></font>
+                   <font color="#4e9a06">&#39;description&#39;</font><font color="#000000"><b>:</b></font> <font color="#4e9a06">&#39;Vref&#39;</font><font color="#000000"><b>,</b></font>
+                   <font color="#4e9a06">&#39;formatString&#39;</font><font color="#000000"><b>:</b></font> <font color="#4e9a06">&#39;</font><font color="#4e9a06">%.4f</font><font color="#4e9a06">&#39;</font><font color="#000000"><b>,</b></font>
+                   <font color="#4e9a06">&#39;binName&#39;</font><font color="#000000"><b>:</b></font> <font color="#4e9a06">&#39;Vref&#39;</font><font color="#000000"><b>,</b></font>
+                   <font color="#4e9a06">&#39;binType&#39;</font><font color="#000000"><b>:</b></font> <font color="#4e9a06">&#39;parameter&#39;</font><font color="#000000"><b>,</b></font>
+                   <font color="#4e9a06">&#39;value&#39;</font><font color="#000000"><b>:</b></font> <font color="#0000cf"><b>0</b></font><font color="#000000"><b>,</b></font>
+                   <font color="#4e9a06">&#39;allowed&#39;</font><font color="#000000"><b>:</b></font> <font color="#3465a4">None</font><font color="#000000"><b>,</b></font>
+                   <font color="#4e9a06">&#39;instantiate&#39;</font><font color="#000000"><b>:</b></font> <font color="#3465a4">False</font>
+                <font color="#000000"><b>}</b></font>
+            <font color="#000000"><b>)</b></font>
+        <font color="#000000"><b>],</b></font>
+        <font color="#4e9a06">&#39;string&#39;</font><font color="#000000"><b>:</b></font> <font color="#4e9a06">&#39;Set the sine-out voltage to $vref.&#39;</font><font color="#000000"><b>,</b></font>
+        <font color="#4e9a06">&#39;method&#39;</font><font color="#000000"><b>:</b></font> <font color="#3465a4">self</font><font color="#ce5c00"><b>.</b></font><font color="#000000">setReferenceVoltage</font>
+    <font color="#000000"><b>}</b></font>
+<font color="#000000"><b>)</b></font>
+</pre>
+
+<p>The <tt class="xref py py-attr docutils literal"><span class="pre">name</span></tt> values are very important. The name of
+the input parameter here is &#8216;vref&#8217;, and you can see that the same value
+occurs in the &#8216;string&#8217; value for the <tt class="xref py py-class docutils literal"><span class="pre">ActionSpec</span></tt>. This is
+not a coincidence. When the software attempts to create informative
+strings about a given action, it will fill in the &#8216;string&#8217; value,
+replacing all occurances of &#8220;${name}&#8221; with the value of the parameter
+specified by <tt class="docutils literal"><span class="pre">{name}</span></tt>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The values of <tt class="xref py py-attr docutils literal"><span class="pre">name</span></tt> <strong>must not contain spaces or
+special characters other than underscores</strong>.</p>
+</div>
+<p>In the above code, the &#8216;method&#8217; entry is set to
+<tt class="xref py py-meth docutils literal"><span class="pre">self.setReferenceVoltage()</span></tt>. This is class method bound to the
+instance of the class whose <tt class="xref py py-meth docutils literal"><span class="pre">getActions()</span></tt> method is called.
+Note the lack of parentheses at the end. This means that it is the
+<strong>method itself</strong>, and <em>not</em> the return value of the method, which is
+being put in that slot.</p>
+
+<a name="defining-the-methods"></a>
+<h2>4.8. Defining the methods</h2>
+<p>Now, of course, to pass the <tt class="xref py py-meth docutils literal"><span class="pre">setReferenceVoltage()</span></tt> to anything, the
+method must be defined in the class.</p>
+<p>The first step in defining such a method is to find out the command
+which will induce the instrument to do what the <tt class="xref py py-class docutils literal"><span class="pre">Action</span></tt>
+wants. Referring to the manual for the SRS 830, we find that the command to
+set the reference voltage is &#8220;SLVL&#8221;. Then the method to perform the
+action could be written like this:</p>
+<pre><font color="#204a87"><b>def</b></font> <font color="#000000">setReferenceVoltage</font> <font color="#000000"><b>(</b></font><font color="#3465a4">self</font><font color="#000000"><b>,</b></font> <font color="#000000">vref</font><font color="#000000"><b>):</b></font>
+    <font color="#3465a4">self</font><font color="#ce5c00"><b>.</b></font><font color="#000000">_inst</font><font color="#ce5c00"><b>.</b></font><font color="#000000">write</font><font color="#000000"><b>(</b></font><font color="#4e9a06">&#39;SLVL </font><font color="#4e9a06">%.4f</font><font color="#4e9a06">&#39;</font> <font color="#ce5c00"><b>%</b></font> <font color="#000000">vref</font><font color="#000000"><b>)</b></font>
+    <font color="#204a87"><b>return</b></font> <font color="#000000"><b>()</b></font>
+</pre>
+
+<p>The arguments to the method are <tt class="docutils literal"><span class="pre">self</span></tt>, which is required in all
+methods, and <tt class="docutils literal"><span class="pre">vref</span></tt>, which is the desired value for the reference voltage.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>There are some important things to remember about the
+<tt class="docutils literal"><span class="pre">vref</span></tt> argument.</p>
+<ol class="last arabic simple">
+<li>It has the same name as one of the <tt class="xref py py-class docutils literal"><span class="pre">ParameterSpec</span></tt> objects
+defined in the <tt class="xref py py-meth docutils literal"><span class="pre">getActions()</span></tt> method above. It is the value
+of that parameter which will be substituted into this method, so if
+the names of the arguments to the method are not <strong>exactly the same</strong>
+as the names of the <tt class="xref py py-class docutils literal"><span class="pre">ParameterSpec</span></tt> objects defined in the
+&#8216;inputs&#8217; bin of the relevant <tt class="xref py py-class docutils literal"><span class="pre">ActionSpec</span></tt>, the  <strong>software
+will crash</strong>.</li>
+<li>It is passed in whatever type is natural to the parameter. Since the
+reference voltage is a floating-point number, <tt class="docutils literal"><span class="pre">vref</span></tt> will be passed
+as a <tt class="docutils literal"><span class="pre">float</span></tt>. Therefore, since the SRS830 accepts ASCII string
+commands, the value must be turned into a string. That is why the
+string substitution occurs in the <tt class="xref py py-meth docutils literal"><span class="pre">write()</span></tt> call above.</li>
+<li>If the method is bound to the <tt class="xref py py-class docutils literal"><span class="pre">ActionSpec</span></tt> of an
+<tt class="xref py py-class docutils literal"><span class="pre">ActionScan</span></tt>, the method must have <strong>one and only one</strong>
+argument.</li>
+</ol>
+</div>
+
+<a name="format-string-syntax"></a>
+<a name="id1"></a><h2>4.9. Format string syntax</h2>
+<p>Format strings follow format which is fairly standardized (it&#8217;s actually the
+same as in LabVIEW). Such a string begins with the percent symbol. The
+final character depends on the data type:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="55%" />
+<col width="45%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">type</th>
+<th class="head">character</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>integer</td>
+<td>&#8220;d&#8221;</td>
+</tr>
+<tr class="row-odd"><td>string</td>
+<td>&#8220;s&#8221;</td>
+</tr>
+<tr class="row-even"><td>float</td>
+<td>&#8220;f&#8221;</td>
+</tr>
+<tr class="row-odd"><td>exponential</td>
+<td>&#8220;e&#8221;</td>
+</tr>
+</tbody>
+</table>
+<p>For the last two data types, both floating-point, the precision is
+specified by a period followed by the number of digits which should be
+printed after the decimal point. This bit should be between the
+percent sign and the data-type indicator.  For example, to the format
+a number into a string of the form &#8220;2.012592e+02&#8221;, use &#8220;%.6e&#8221;.</p>
+<p>There are actually considerably more options for customizing the
+string formatting, but they are less frequently used. More information
+can be found in a variety of places. For examples in the Python
+language specifically, see <a class="reference external" href="http://docs.python.org/2/library/stdtypes.html#string-formatting-operations">the official documentation</a></p>
+
+<a name="summary-of-potential-problems"></a>
+<h2>4.10. Summary of potential problems</h2>
+<p>Here is a recap of the simple mistakes which would cause the program to
+crash.</p>
+<ol class="arabic simple">
+<li>The names of the <tt class="xref py py-class docutils literal"><span class="pre">ParameterSpec</span></tt> objects defined under
+&#8216;inputs&#8217; for the relevant <tt class="xref py py-class docutils literal"><span class="pre">ActionSpec</span></tt> must <strong>precisely
+match</strong> the names of the arguments to the &#8216;method&#8217; defined by said
+<tt class="xref py py-class docutils literal"><span class="pre">ActionSpec</span></tt>.</li>
+<li>The names of <tt class="xref py py-class docutils literal"><span class="pre">ParameterSpec</span></tt> objects must also <strong>precisely
+match</strong> the values of the substitution strings (indicated by a dollar
+sign followed by the name) in the &#8216;string&#8217; slot of the relevant
+<tt class="xref py py-class docutils literal"><span class="pre">ActionSpec</span></tt>.</li>
+<li>The value of each argument to an instrument method needs to be
+converted to an appropriately formatted string if the natural type of
+the value is not already a string.</li>
+<li>The value of &#8216;allowed&#8217; for some <tt class="xref py py-class docutils literal"><span class="pre">ParameterSpec</span></tt> or
+<tt class="xref py py-class docutils literal"><span class="pre">InstrumentParameter</span></tt> should be <tt class="docutils literal"><span class="pre">None</span></tt> unless the
+value of the parameter should be a string and only certain
+values are allowed for that string, in which case &#8216;allowed&#8217; should be
+a list of strings.</li>
+<li>Values of the <tt class="xref py py-attr docutils literal"><span class="pre">name</span></tt> attribute of instances of
+<tt class="xref py py-class docutils literal"><span class="pre">ActionSpec</span></tt> or <tt class="xref py py-class docutils literal"><span class="pre">ParameterSpec</span></tt> must <strong>not</strong> contain
+spaces or special characters (except the underscore).</li>
+<li>For <tt class="xref py py-class docutils literal"><span class="pre">ActionScan</span></tt> objects, the &#8216;formatString&#8217; of the
+<tt class="xref py py-class docutils literal"><span class="pre">ParameterSpec</span></tt> should end with &#8220;[]&#8221;</li>
+<li>An <tt class="xref py py-class docutils literal"><span class="pre">ActionScan</span></tt> must have <strong>one and only one</strong> input, whose
+value is a list of three-element tuples which will be expanded into a
+range whose values will be passed sequentially into the method.</li>
+</ol>
+
+
+</a>
+<table><tr><td width="50%"><p><a href="index.html">Docs</a> &raquo;</p></td><td width="50%" align="right"><p>
+<a href="project_organization.html" title="3. Project organization">previous</a> |
+<a href="genindex.html" title="General Index">index</a></p></td></tr></table>
+<div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+    </div>
+</body>
+</html>

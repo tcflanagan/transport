@@ -1,0 +1,1265 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The vector_magnet module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The instruments package" href="api_instruments.html" />
+    <link rel="next" title="The keithley6220 module" href="api_instruments_keithley6220.html" />
+    <link rel="prev" title="The keithley2182a module" href="api_instruments_keithley2182a.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_keithley6220.html" title="The keithley6220 module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_keithley2182a.html" title="The keithley2182a module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" accesskey="U">The <cite>instruments</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.instruments.vector_magnet">
+<span id="the-vector-magnet-module"></span><h1>The <cite>vector_magnet</cite> module<a class="headerlink" href="#module-src.instruments.vector_magnet" title="Permalink to this headline">¶</a></h1>
+<p>A software representation of the Oxford Heliox 3He insert.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="vectormagnet">
+<h3>VectorMagnet<a class="headerlink" href="#vectormagnet" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.instruments.vector_magnet.VectorMagnet">
+<em class="property">class </em><tt class="descclassname">src.instruments.vector_magnet.</tt><tt class="descname">VectorMagnet</tt><big>(</big><em>experiment</em>, <em>name='Vector Magnet'</em>, <em>spec=None</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Vector Magnet.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The experiment which owns the instrument.</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote class="last">
+<div><p>The name of the instrument. Typically, it will always be &#8216;Vector
+Magnet&#8217;.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.directGetFieldCartesian">
+<tt class="descname">directGetFieldCartesian</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.directGetFieldCartesian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.directGetFieldCartesian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the magnetic field in Cartesian coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote>
+<div><p>The x-component of the magnetic field.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The y-component of the magnetic field.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The z-component of the magnetic field.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.directGetFieldRampRates">
+<tt class="descname">directGetFieldRampRates</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.directGetFieldRampRates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.directGetFieldRampRates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the magnetic field sweep rates directly from the power supplies.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote>
+<div><p>The ramp rate for the x-component of the magnetic field in 
+Tesla/min.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The ramp rate for the y-component of the magnetic field in 
+Tesla/min.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The ramp rate for the z-component of the magnetic field in 
+Tesla/min.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.directGetFieldSetpoints">
+<tt class="descname">directGetFieldSetpoints</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.directGetFieldSetpoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.directGetFieldSetpoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the field setpoints from the power supplies.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote>
+<div><p>The magnetic field setpoint in the x-direction in Tesla.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The magnetic field setpoint in the y-direction in Tesla.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The magnetic field setpoint in the z-direction in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.directGetFieldSpherical">
+<tt class="descname">directGetFieldSpherical</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.directGetFieldSpherical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.directGetFieldSpherical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the magnetic field in Cartesian coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote>
+<div><p>The magnitude of the magnetic field in Tesla.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The azimuthal angle of the magnetic field vector, measured in
+degrees down from the positive z-axis.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The polar angle of the magnetic field vector, measured in
+degrees counter-clockwise from the positive x-axis.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.directGetHe3SetpointAndPid">
+<tt class="descname">directGetHe3SetpointAndPid</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.directGetHe3SetpointAndPid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.directGetHe3SetpointAndPid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the He3 temperature setpoint and PID values from the controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote>
+<div><p>The setpoint for the He3 pot.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The proportional band value for the controller.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The integral action time for the controller.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The derivative action time for the controller.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.directGetTemperatureHe3">
+<tt class="descname">directGetTemperatureHe3</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.directGetTemperatureHe3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.directGetTemperatureHe3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the He3 pot temperature from the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The temperature of the He3 pot.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.directGetTemperatureHeatSwitch">
+<tt class="descname">directGetTemperatureHeatSwitch</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.directGetTemperatureHeatSwitch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.directGetTemperatureHeatSwitch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the heat switch temperature from the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The temperature of the heat switch.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.directGetTemperatureIntPlate">
+<tt class="descname">directGetTemperatureIntPlate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.directGetTemperatureIntPlate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.directGetTemperatureIntPlate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the intermediate plate temperature from the controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The temperature of the intermediate plate.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.directGetTemperatureMagnet">
+<tt class="descname">directGetTemperatureMagnet</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.directGetTemperatureMagnet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.directGetTemperatureMagnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the magnet temperature from the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The temperature of the magnet plate.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.directGetTemperaturePT1Plate">
+<tt class="descname">directGetTemperaturePT1Plate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.directGetTemperaturePT1Plate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.directGetTemperaturePT1Plate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the PT 1 plate temperature from the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The temperature of the PT1 plate.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.directGetTemperaturePT2Plate">
+<tt class="descname">directGetTemperaturePT2Plate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.directGetTemperaturePT2Plate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.directGetTemperaturePT2Plate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the PT 2 plate temperature from the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The temperature of PT 2 plate.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.directGetTemperatureSorb">
+<tt class="descname">directGetTemperatureSorb</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.directGetTemperatureSorb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.directGetTemperatureSorb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the sorb temperature from the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The temperature of the sorb.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.finalize">
+<tt class="descname">finalize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalize the Oxford vector magnet system.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.getActions">
+<tt class="descname">getActions</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.getActions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.getActions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of supported actions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.getField">
+<tt class="descname">getField</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.getField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.getField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the z-component of the magnetic field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The z-component of the magnetic field in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.getFieldCartesian">
+<tt class="descname">getFieldCartesian</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.getFieldCartesian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.getFieldCartesian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the field vector in Cartesian coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote>
+<div><p>The x-component of the magnetic field vector.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The y-component of the magnetic field vector.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The z-component of the magnetic field vector.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.getFieldRampProportion">
+<tt class="descname">getFieldRampProportion</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.getFieldRampProportion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.getFieldRampProportion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the magnetic field ramp rate proportion.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The ratio of the desired ramp rate to the maximum ramp rate. The
+actual rate used for any given magnet sweep will be such that all
+power supplies reach the target at the same time, limited by the
+power supply with the lowest maximum ramp rate, which will be
+multiplied by <cite>proportion</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.getFieldRampRates">
+<tt class="descname">getFieldRampRates</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.getFieldRampRates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.getFieldRampRates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the magnetic field ramp rates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote>
+<div><p>The ramp rate for the x-component of the magnetic field in 
+Tesla/min.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The ramp rate for the y-component of the magnetic field in 
+Tesla/min.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The ramp rate for the z-component of the magnetic field in 
+Tesla/min.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.getFieldSetpoints">
+<tt class="descname">getFieldSetpoints</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.getFieldSetpoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.getFieldSetpoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the magnetic field setpoints.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote>
+<div><p>The magnetic field setpoint in the x-direction in Tesla.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The magnetic field setpoint in the y-direction in Tesla.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The magnetic field setpoint in the z-direction in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.getFieldSpherical">
+<tt class="descname">getFieldSpherical</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.getFieldSpherical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.getFieldSpherical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the field vector in spherical coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote>
+<div><p>The magnitude of the magnetic field vector.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The azimuthal angle of the magnetic field vector, measured in
+degrees down from the positive z-axis.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The polar angle of the magnetic field vector, measured in degrees
+counter-clockwise from the positive x-axis.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.getInformation">
+<tt class="descname">getInformation</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.getInformation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.getInformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the vector magnet system&#8217;s information string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.getTemperature">
+<tt class="descname">getTemperature</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.getTemperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.getTemperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the temperature of the He3 pot.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The temperature of the He3 pot in Kelvin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the Oxford vector magnet system.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.isFieldAtSetpoint">
+<tt class="descname">isFieldAtSetpoint</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.isFieldAtSetpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.isFieldAtSetpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the fields have reached the setpoints.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="src.instruments.vector_magnet.VectorMagnet.isSingleton">
+<em class="property">classmethod </em><tt class="descname">isSingleton</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.isSingleton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.isSingleton" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether at most one instance of the instrument may exist.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether only zero or one instance of the instrument may exist.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.pauseField">
+<tt class="descname">pauseField</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.pauseField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.pauseField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pause the field sweep.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.procedureCondense">
+<tt class="descname">procedureCondense</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.procedureCondense"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.procedureCondense" title="Permalink to this definition">¶</a></dt>
+<dd><p>Condense the He3.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.procedureCooldown">
+<tt class="descname">procedureCooldown</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.procedureCooldown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.procedureCooldown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform the system initial cooldown sequence.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.procedurePrecondense">
+<tt class="descname">procedurePrecondense</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.procedurePrecondense"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.procedurePrecondense" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare to condense the helium.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.procedureRecondense">
+<tt class="descname">procedureRecondense</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.procedureRecondense"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.procedureRecondense" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recondense the cryostat.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.procedureRunToTemp">
+<tt class="descname">procedureRunToTemp</tt><big>(</big><em>target</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.procedureRunToTemp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.procedureRunToTemp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the cryostat to the desired temperature.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>target</strong> : float</p>
+<blockquote class="last">
+<div><p>The desired temperature for the He3 pot in Kelvin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.procedureSetTemp">
+<tt class="descname">procedureSetTemp</tt><big>(</big><em>target</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.procedureSetTemp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.procedureSetTemp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enter a temperature setpoint.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>target</strong> : float</p>
+<blockquote class="last">
+<div><p>The desired temperature for the He3 pot in Kelvin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setField">
+<tt class="descname">setField</tt><big>(</big><em>field</em>, <em>block='yes'</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the z-component of the magnetic field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>field</strong> : float</p>
+<blockquote class="last">
+<div><p>The desired z-component of the magnetic field in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldAzimuthal">
+<tt class="descname">setFieldAzimuthal</tt><big>(</big><em>azimuthalAngle</em>, <em>block</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldAzimuthal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldAzimuthal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnitude of the magnetic field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>azimuthalAngle</strong> : float</p>
+<blockquote>
+<div><p>The new azimuthal angle for the field vector, measured in degrees
+down from the positive z-axis.</p>
+</div></blockquote>
+<p><strong>block</strong> : str</p>
+<blockquote class="last">
+<div><p>A string, either &#8216;Yes&#8217; or &#8216;No&#8217;, indicating whether to block the
+sequence until the desired field is reached.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldCartesian">
+<tt class="descname">setFieldCartesian</tt><big>(</big><em>fieldX</em>, <em>fieldY</em>, <em>fieldZ</em>, <em>block</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldCartesian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldCartesian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnetic field to a specified value in Cartesian coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>fieldX</strong> : float</p>
+<blockquote>
+<div><p>The x-component of the field in Tesla.</p>
+</div></blockquote>
+<p><strong>fieldY</strong> : float</p>
+<blockquote>
+<div><p>The y-component of the field in Tesla.</p>
+</div></blockquote>
+<p><strong>fieldZ</strong> : float</p>
+<blockquote>
+<div><p>The z-component of the field in Tesla.</p>
+</div></blockquote>
+<p><strong>block</strong> : str</p>
+<blockquote class="last">
+<div><p>A string, either &#8216;Yes&#8217; or &#8216;No&#8217;, indicating whether to block the
+sequence until the desired field is reached.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldMagnitude">
+<tt class="descname">setFieldMagnitude</tt><big>(</big><em>field</em>, <em>block</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldMagnitude"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldMagnitude" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnitude of the magnetic field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>field</strong> : float</p>
+<blockquote>
+<div><p>The new magnitude for the magnetic field in Tesla.</p>
+</div></blockquote>
+<p><strong>block</strong> : str</p>
+<blockquote class="last">
+<div><p>A string, either &#8216;Yes&#8217; or &#8216;No&#8217;, indicating whether to block the
+sequence until the desired field is reached.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitAzimuthal">
+<tt class="descname">setFieldNoWaitAzimuthal</tt><big>(</big><em>azimuthalAngle</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldNoWaitAzimuthal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitAzimuthal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the azimuthal angle of the magnetic field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>azimuthalAngle</strong> : float</p>
+<blockquote class="last">
+<div><p>The desired azimuthal angle for the magnetic field, measured in
+degrees down from the positive z-axis.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitCartesian">
+<tt class="descname">setFieldNoWaitCartesian</tt><big>(</big><em>fieldX</em>, <em>fieldY</em>, <em>fieldZ</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldNoWaitCartesian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitCartesian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnetic field to a specified value in Cartesian coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>fieldX</strong> : float</p>
+<blockquote>
+<div><p>The x-component of the field in Tesla.</p>
+</div></blockquote>
+<p><strong>fieldY</strong> : float</p>
+<blockquote>
+<div><p>The y-component of the field in Tesla.</p>
+</div></blockquote>
+<p><strong>fieldZ</strong> : float</p>
+<blockquote class="last">
+<div><p>The z-component of the field in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitMagnitude">
+<tt class="descname">setFieldNoWaitMagnitude</tt><big>(</big><em>field</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldNoWaitMagnitude"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitMagnitude" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnitude of the magnetic field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>field</strong> : float</p>
+<blockquote class="last">
+<div><p>The new magnitude for the magnetic field in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitPolar">
+<tt class="descname">setFieldNoWaitPolar</tt><big>(</big><em>polarAngle</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldNoWaitPolar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitPolar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the polar angle of the magnetic field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>polarAngle</strong> : float</p>
+<blockquote class="last">
+<div><p>The desired polar angle for the magnetic field, measured in
+degrees counter-clockwise from the positive x-axis.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitSpherical">
+<tt class="descname">setFieldNoWaitSpherical</tt><big>(</big><em>magnitude</em>, <em>azimuthalAngle</em>, <em>polarAngle</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldNoWaitSpherical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitSpherical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnetic field in spherical coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>magnitude</strong> : float</p>
+<blockquote>
+<div><p>The magnitude of the magnetic field in Tesla.</p>
+</div></blockquote>
+<p><strong>azimuthalAngle</strong> : float</p>
+<blockquote>
+<div><p>The desired azimuthal angle, measured in degrees downward from the
+positive z-axis.</p>
+</div></blockquote>
+<p><strong>polarAngle</strong> : float</p>
+<blockquote class="last">
+<div><p>The desired polar angle, measured in degrees counter-clockwise from
+the positive x-axis.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitX">
+<tt class="descname">setFieldNoWaitX</tt><big>(</big><em>field</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldNoWaitX"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitX" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the x-component of the magnetic field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>field</strong> : float</p>
+<blockquote class="last">
+<div><p>The new value of the x-component of the magnetic field in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitY">
+<tt class="descname">setFieldNoWaitY</tt><big>(</big><em>field</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldNoWaitY"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitY" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the y-component of the magnetic field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>field</strong> : float</p>
+<blockquote class="last">
+<div><p>The new value of the y-component of the magnetic field in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitZ">
+<tt class="descname">setFieldNoWaitZ</tt><big>(</big><em>field</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldNoWaitZ"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitZ" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the z-component of the magnetic field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>field</strong> : float</p>
+<blockquote class="last">
+<div><p>The new value of the z-component of the magnetic field in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldPolar">
+<tt class="descname">setFieldPolar</tt><big>(</big><em>polarAngle</em>, <em>block</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldPolar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldPolar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnitude of the magnetic field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>polarAngle</strong> : float</p>
+<blockquote>
+<div><p>The new polar angle for the field vector, measured in degrees
+counter-clockwise from the positive x-axis.</p>
+</div></blockquote>
+<p><strong>block</strong> : str</p>
+<blockquote class="last">
+<div><p>A string, either &#8216;Yes&#8217; or &#8216;No&#8217;, indicating whether to block the
+sequence until the desired field is reached.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldRampProportion">
+<tt class="descname">setFieldRampProportion</tt><big>(</big><em>proportion</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldRampProportion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldRampProportion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnetic field ramp rate proportion.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>proportion</strong> : float</p>
+<blockquote class="last">
+<div><p>The ratio of the desired ramp rate to the maximum ramp rate. The
+actual rate used for any given magnet sweep will be such that all
+power supplies reach the target at the same time, limited by the
+power supply with the lowest maximum ramp rate, which will be
+multiplied by <cite>proportion</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldSpherical">
+<tt class="descname">setFieldSpherical</tt><big>(</big><em>magnitude</em>, <em>azimuthalAngle</em>, <em>polarAngle</em>, <em>block</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldSpherical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldSpherical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnetic field in spherical coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>magnitude</strong> : float</p>
+<blockquote>
+<div><p>The magnitude of the magnetic field in Tesla.</p>
+</div></blockquote>
+<p><strong>azimuthalAngle</strong> : float</p>
+<blockquote>
+<div><p>The desired azimuthal angle, measured in degrees downward from the
+positive z-axis.</p>
+</div></blockquote>
+<p><strong>polarAngle</strong> : float</p>
+<blockquote>
+<div><p>The desired polar angle, measured in degrees counter-clockwise from
+the positive x-axis.</p>
+</div></blockquote>
+<p><strong>block</strong> : str</p>
+<blockquote class="last">
+<div><p>A string, either &#8216;Yes&#8217; or &#8216;No&#8217;, indicating whether to block the
+sequence until the desired field is reached.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldX">
+<tt class="descname">setFieldX</tt><big>(</big><em>field</em>, <em>block</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldX"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldX" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the x-component of the magnetic field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>field</strong> : float</p>
+<blockquote>
+<div><p>The new x-component for the magnetic field.</p>
+</div></blockquote>
+<p><strong>block</strong> : str</p>
+<blockquote class="last">
+<div><p>A string, either &#8216;Yes&#8217; or &#8216;No&#8217;, indicating whether to block the
+sequence until the desired field is reached.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldY">
+<tt class="descname">setFieldY</tt><big>(</big><em>field</em>, <em>block</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldY"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldY" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the y-component of the magnetic field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>field</strong> : float</p>
+<blockquote>
+<div><p>The new x-component for the magnetic field.</p>
+</div></blockquote>
+<p><strong>block</strong> : str</p>
+<blockquote class="last">
+<div><p>A string, either &#8216;Yes&#8217; or &#8216;No&#8217;, indicating whether to block the
+sequence until the desired field is reached.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setFieldZ">
+<tt class="descname">setFieldZ</tt><big>(</big><em>field</em>, <em>block</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setFieldZ"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setFieldZ" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the z-component of the magnetic field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>field</strong> : float</p>
+<blockquote>
+<div><p>The new x-component for the magnetic field.</p>
+</div></blockquote>
+<p><strong>block</strong> : str</p>
+<blockquote class="last">
+<div><p>A string, either &#8216;Yes&#8217; or &#8216;No&#8217;, indicating whether to block the
+sequence until the desired field is reached.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setMode">
+<tt class="descname">setMode</tt><big>(</big><em>newMode</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setMode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the vector magnet system reading mode.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>newMode</strong> : int</p>
+<blockquote class="last">
+<div><p>An integer (MODE_DIRECT or MODE_THROUGH_MONITOR) to specify the
+reading mode. If it is MODE_DIRECT, all data come directly from
+the temperature controller. If it is MODE_THROUGH_MONITOR, only
+the temperature monitor triggers direct readings from the 
+controller, and other requests from data receive the most recent
+readings so triggered.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.setTemperature">
+<tt class="descname">setTemperature</tt><big>(</big><em>temp</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.setTemperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.setTemperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the temperature for the He3 pot.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>temp</strong> : float</p>
+<blockquote class="last">
+<div><p>The desired temperature for the He3 pot in Kelvin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.unpauseField">
+<tt class="descname">unpauseField</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.unpauseField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.unpauseField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resume the field sweep.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.vector_magnet.VectorMagnet.waitForField">
+<tt class="descname">waitForField</tt><big>(</big><em>readMethod</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#VectorMagnet.waitForField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.VectorMagnet.waitForField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait until the field has reached its target.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>readMethod</strong> : instancemethod</p>
+<blockquote class="last">
+<div><p>The method to use to update information about the current fields.
+It should probably be either <cite>directGetFieldCartesian</cite> or
+<cite>directGetFieldSpherical</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.instruments.vector_magnet.searchPIDTable">
+<tt class="descclassname">src.instruments.vector_magnet.</tt><tt class="descname">searchPIDTable</tt><big>(</big><em>targetTemp</em>, <em>pidTable</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#searchPIDTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.searchPIDTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the PID values appropriate for a specified setpoint.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>targetTemp</strong> : float</p>
+<blockquote>
+<div><p>The setpoint for which PID values are desired.</p>
+</div></blockquote>
+<p><strong>pidTable</strong> : list of tuple of float</p>
+<blockquote>
+<div><p>The PID table for the appropriate sensor. Each tuple should consist
+of four values: the largest temperature for which the row applies
+and the values of the P, I, and D control terms.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote>
+<div><p>Whether the supplied PID table contains a row suitable for the 
+specified setpoint.</p>
+</div></blockquote>
+<p><strong>tuple of float</strong> :</p>
+<blockquote class="last">
+<div><p>The PID values appropriate for the specified setpoint if such values
+are contained in the table. Otherwise, the PID values associated
+with the largest upper-bound temperature in the table.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.instruments.vector_magnet.searchStabilityTable">
+<tt class="descclassname">src.instruments.vector_magnet.</tt><tt class="descname">searchStabilityTable</tt><big>(</big><em>targetTemp</em>, <em>stabilityTable</em><big>)</big><a class="reference internal" href="_modules/src/instruments/vector_magnet.html#searchStabilityTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.vector_magnet.searchStabilityTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the allowed deviation for the specified setpoint.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>targetTemp</strong> : float</p>
+<blockquote>
+<div><p>The desired temperature setpoint in Kelvin.</p>
+</div></blockquote>
+<p><strong>stabilityTable</strong> : list of tuple</p>
+<blockquote>
+<div><p>A list of tuples, where each tuple contains three elements: a float
+indicating the maximum temperature for which the row is applicable,
+a float indicating the maximum deviation, and a string indicating how
+the maximum deviation should be interpreted. If the string is &#8216;value&#8217;,
+the deviation will be interpreted as an absolute value; otherwise, it
+will be interpreted as a fraction of the setpoint.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The maximum deviation from the setpoint a system can exhibit while
+still be considered stable.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>vector_magnet</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#vectormagnet">VectorMagnet</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_instruments_keithley2182a.html"
+                        title="previous chapter">The <cite>keithley2182a</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_instruments_keithley6220.html"
+                        title="next chapter">The <cite>keithley6220</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_instruments_vector_magnet.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_keithley6220.html" title="The keithley6220 module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_keithley2182a.html" title="The keithley2182a module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" >The <cite>instruments</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

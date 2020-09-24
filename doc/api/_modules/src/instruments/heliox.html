@@ -1,0 +1,825 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.instruments.heliox &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.instruments.heliox</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;A software representation of the Oxford Heliox 3He insert.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">ConfigParser</span> <span class="kn">import</span> <span class="n">ConfigParser</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Lock</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span><span class="p">,</span> <span class="n">clock</span>
+
+<span class="kn">from</span> <span class="nn">src.core</span> <span class="kn">import</span> <span class="n">instrument</span> <span class="k">as</span> <span class="n">inst</span>
+<span class="kn">from</span> <span class="nn">src.core.action</span> <span class="kn">import</span> <span class="n">Action</span><span class="p">,</span> <span class="n">ActionScan</span><span class="p">,</span> <span class="n">ActionSpec</span><span class="p">,</span> <span class="n">ParameterSpec</span>
+<span class="kn">from</span> <span class="nn">src.instruments.noauto.itc503</span> <span class="kn">import</span> <span class="n">ITC503</span>
+<span class="kn">from</span> <span class="nn">src.instruments.noauto.oxford_common</span> <span class="kn">import</span> <span class="p">(</span><span class="n">waitForStableTemperature</span><span class="p">,</span>
+                                                  <span class="n">expandRange</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">src.instruments.noauto.ps120</span> <span class="kn">import</span> <span class="n">PS120</span>
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">path_tools</span> <span class="k">as</span> <span class="n">pt</span>
+
+<span class="n">MODE_DIRECT</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">MODE_THROUGH_MONITOR</span> <span class="o">=</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="Heliox"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox">[docs]</a><span class="k">class</span> <span class="nc">Heliox</span><span class="p">(</span><span class="n">inst</span><span class="o">.</span><span class="n">Instrument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A Heliox 3He insert.&quot;&quot;&quot;</span>
+     
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;Heliox&#39;</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Heliox</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Instrument: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> 
+                      <span class="s">&#39;Oxford Instruments Heliox 3He Insert&#39;</span><span class="p">)</span>
+        
+        <span class="n">config</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="p">()</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;etc&#39;</span><span class="p">,</span> <span class="s">&#39;heliox.conf&#39;</span><span class="p">))</span>
+        
+        <span class="c"># Power supply settings</span>
+        <span class="n">psProtocol</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;ps_address&#39;</span><span class="p">,</span> <span class="s">&#39;protocol&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">psGpibaddress</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;ps_address&#39;</span><span class="p">,</span> <span class="s">&#39;gpib_address&#39;</span><span class="p">)</span>
+        <span class="n">psIsobusaddress</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;ps_address&#39;</span><span class="p">,</span> <span class="s">&#39;isobus_address&#39;</span><span class="p">)</span>
+        <span class="n">psSerial</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">psProtocol</span> <span class="o">==</span> <span class="s">&#39;serial&#39;</span> <span class="ow">or</span> <span class="n">psProtocol</span> <span class="o">==</span> <span class="s">&#39;isobus&#39;</span><span class="p">:</span>
+            <span class="n">psSerial</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;baud_rate&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;ps_address&#39;</span><span class="p">,</span>
+                                                <span class="s">&#39;serial_baud_rate&#39;</span><span class="p">),</span>
+                        <span class="s">&#39;parity&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;ps_address&#39;</span><span class="p">,</span>
+                                             <span class="s">&#39;serial_parity&#39;</span><span class="p">),</span>
+                        <span class="s">&#39;data_bits&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;ps_address&#39;</span><span class="p">,</span>
+                                                <span class="s">&#39;serial_data_bits&#39;</span><span class="p">),</span>
+                        <span class="s">&#39;stop_bits&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;ps_address&#39;</span><span class="p">,</span>
+                                                <span class="s">&#39;serial_stop_bits&#39;</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupply</span> <span class="o">=</span> <span class="n">PS120</span><span class="p">(</span><span class="s">&#39;Magnet&#39;</span><span class="p">,</span> <span class="n">psProtocol</span><span class="p">,</span> <span class="n">psIsobusaddress</span><span class="p">,</span>
+                                  <span class="n">psGpibaddress</span><span class="p">,</span> <span class="n">psSerial</span><span class="p">)</span>
+        
+        <span class="c"># Temperature controller settings</span>
+        <span class="n">tcProtocol</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;tc_address&#39;</span><span class="p">,</span> <span class="s">&#39;protocol&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">tcGpibaddress</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;tc_address&#39;</span><span class="p">,</span> <span class="s">&#39;gpib_address&#39;</span><span class="p">)</span>
+        <span class="n">tcIsobusaddress</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;tc_address&#39;</span><span class="p">,</span> <span class="s">&#39;isobus_address&#39;</span><span class="p">)</span>
+        <span class="n">tcSerial</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">tcProtocol</span> <span class="o">==</span> <span class="s">&#39;serial&#39;</span> <span class="ow">or</span> <span class="n">tcProtocol</span> <span class="o">==</span> <span class="s">&#39;isobus&#39;</span><span class="p">:</span>
+            <span class="n">tcSerial</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;baud_rate&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;tc_address&#39;</span><span class="p">,</span>
+                                                <span class="s">&#39;serial_baud_rate&#39;</span><span class="p">),</span>
+                        <span class="s">&#39;parity&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;tc_address&#39;</span><span class="p">,</span>
+                                             <span class="s">&#39;serial_parity&#39;</span><span class="p">),</span>
+                        <span class="s">&#39;data_bits&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;tc_address&#39;</span><span class="p">,</span>
+                                                <span class="s">&#39;serial_data_bits&#39;</span><span class="p">),</span>
+                        <span class="s">&#39;stop_bits&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;tc_address&#39;</span><span class="p">,</span>
+                                                <span class="s">&#39;serial_stop_bits&#39;</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span> <span class="o">=</span> <span class="n">ITC503</span><span class="p">(</span><span class="s">&#39;Temperature Controller&#39;</span><span class="p">,</span> 
+                                      <span class="n">tcProtocol</span><span class="p">,</span> <span class="n">tcIsobusaddress</span><span class="p">,</span>
+                                      <span class="n">tcGpibaddress</span><span class="p">,</span> <span class="n">tcSerial</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_standardPID</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;low&#39;</span><span class="p">:</span> <span class="nb">eval</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;pid&#39;</span><span class="p">,</span> <span class="s">&#39;low&#39;</span><span class="p">)),</span>
+                             <span class="s">&#39;high&#39;</span><span class="p">:</span> <span class="nb">eval</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;pid&#39;</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">)),</span>
+                             <span class="s">&#39;condense&#39;</span><span class="p">:</span> <span class="nb">eval</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;pid&#39;</span><span class="p">,</span> <span class="s">&#39;condense&#39;</span><span class="p">))}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cutoffTemperature</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s">&#39;smart_temp&#39;</span><span class="p">,</span> <span class="s">&#39;cutoff&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tempStepArray</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;smart_temp&#39;</span><span class="p">,</span> <span class="s">&#39;step_array&#39;</span><span class="p">))</span>
+        
+        <span class="c"># These are set at initialization time.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_activeSensor</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pid</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fieldRampRate</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s">&#39;field&#39;</span><span class="p">,</span> <span class="s">&#39;default_ramp&#39;</span><span class="p">)</span>
+                
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="n">MODE_DIRECT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
+    
+    
+    <span class="c">#===========================================================================</span>
+    <span class="c"># General</span>
+    <span class="c">#===========================================================================</span>
+    
+<div class="viewcode-block" id="Heliox.getInformation"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.getInformation">[docs]</a>    <span class="k">def</span> <span class="nf">getInformation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the Heliox&#39;s information string.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info</span>
+    </div>
+<div class="viewcode-block" id="Heliox.initialize"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the Oxford Heliox.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupply</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+        
+    <span class="c">#FIXME: write finalize methods  </span></div>
+<div class="viewcode-block" id="Heliox.finalize"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Finalize the Oxford Heliox.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span><span class="o">.</span><span class="n">closeCommunication</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupply</span><span class="o">.</span><span class="n">closeCommunication</span><span class="p">()</span>
+        </div>
+<div class="viewcode-block" id="Heliox.setMode"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.setMode">[docs]</a>    <span class="k">def</span> <span class="nf">setMode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newMode</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the Heliox reading mode.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newMode : int</span>
+<span class="sd">            An integer (MODE_DIRECT or MODE_THROUGH_MONITOR) to specify the</span>
+<span class="sd">            reading mode. If it is MODE_DIRECT, all data come directly from</span>
+<span class="sd">            the temperature controller. If it is MODE_THROUGH_MONITOR, only</span>
+<span class="sd">            the temperature monitor triggers direct readings from the </span>
+<span class="sd">            controller, and other requests from data receive the most recent</span>
+<span class="sd">            readings so triggered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="n">newMode</span>
+    
+    
+    <span class="c">#===========================================================================</span>
+    <span class="c"># Magnetic field</span>
+    <span class="c">#===========================================================================</span>
+    </div>
+<div class="viewcode-block" id="Heliox.setField"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.setField">[docs]</a>    <span class="k">def</span> <span class="nf">setField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">block</span><span class="o">=</span><span class="s">&#39;yes&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnetic field.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : float</span>
+<span class="sd">            The magnetic field in Tesla.</span>
+<span class="sd">        wait : str</span>
+<span class="sd">            A string of either &#39;wait&#39; or &#39;proceed&#39; to determine whether to</span>
+<span class="sd">            wait for the field to reach the target.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFieldNoWait</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;yes&#39;</span><span class="p">:</span>
+            <span class="k">while</span> <span class="nb">abs</span><span class="p">(</span><span class="n">field</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.0001</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">directGetField</span><span class="p">()</span>
+                <span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="o">.</span><span class="n">isPaused</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setFieldNoWait</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">)</span>
+                    <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="o">.</span><span class="n">isPaused</span><span class="p">():</span>
+                        <span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setFieldNoWait</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">directGetField</span><span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="Heliox.setFieldNoWait"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.setFieldNoWait">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldNoWait</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the target magnetic field and return.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : float</span>
+<span class="sd">            The target magnetic field in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupply</span><span class="o">.</span><span class="n">setField</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span> <span class="o">=</span> <span class="n">field</span>
+                </div>
+<div class="viewcode-block" id="Heliox.directGetField"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.directGetField">[docs]</a>    <span class="k">def</span> <span class="nf">directGetField</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the magnetic field from the power supply.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnetic field in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupply</span><span class="o">.</span><span class="n">getField</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_field</span>
+    </div>
+<div class="viewcode-block" id="Heliox.getField"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.getField">[docs]</a>    <span class="k">def</span> <span class="nf">getField</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the magnetic field.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnetic field in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="n">MODE_DIRECT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetField</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_field</span>
+    </div>
+<div class="viewcode-block" id="Heliox.directGetFieldSetpoint"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.directGetFieldSetpoint">[docs]</a>    <span class="k">def</span> <span class="nf">directGetFieldSetpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the field setpoint from the power supply.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnetic field setpoint in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupply</span><span class="o">.</span><span class="n">getFieldSetpoint</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span>
+    </div>
+<div class="viewcode-block" id="Heliox.getFieldSetpoint"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.getFieldSetpoint">[docs]</a>    <span class="k">def</span> <span class="nf">getFieldSetpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the magnetic field setpoint.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnetic field setpoint in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="n">MODE_DIRECT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldSetpoint</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span>
+    </div>
+<div class="viewcode-block" id="Heliox.setFieldRampRate"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.setFieldRampRate">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldRampRate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rampRate</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnetic field ramp rate.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        rampRate : float</span>
+<span class="sd">            The desired magnetic field ramp rate in Tesla/min.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupply</span><span class="o">.</span><span class="n">setSweepRate</span><span class="p">(</span><span class="n">rampRate</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fieldRampRate</span> <span class="o">=</span> <span class="n">rampRate</span>
+    </div>
+<div class="viewcode-block" id="Heliox.directGetFieldRampRate"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.directGetFieldRampRate">[docs]</a>    <span class="k">def</span> <span class="nf">directGetFieldRampRate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the magnetic field sweep rate directly from the power supply.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnetic field ramp rate in Tesla/min.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fieldRampRate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupply</span><span class="o">.</span><span class="n">getSweepRate</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fieldRampRate</span>
+    </div>
+<div class="viewcode-block" id="Heliox.getFieldRampRate"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.getFieldRampRate">[docs]</a>    <span class="k">def</span> <span class="nf">getFieldRampRate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the magnetic field sweep rate.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnetic field ramp rate in Tesla/min.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="n">MODE_DIRECT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldRampRate</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fieldRampRate</span>
+    
+    
+    <span class="c">#===========================================================================</span>
+    <span class="c"># Temperature</span>
+    <span class="c">#===========================================================================</span>
+    </div>
+<div class="viewcode-block" id="Heliox.setTemperatureSorb"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.setTemperatureSorb">[docs]</a>    <span class="k">def</span> <span class="nf">setTemperatureSorb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the target for the sorb-temperature sensor.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        temperature : float</span>
+<span class="sd">            The target temperature in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeSensor</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span><span class="o">.</span><span class="n">setHeaterSensor</span><span class="p">(</span><span class="s">&#39;1&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_activeSensor</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span><span class="o">.</span><span class="n">setTemperature</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span>
+        
+        </div>
+<div class="viewcode-block" id="Heliox.directGetTemperatureSorb"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.directGetTemperatureSorb">[docs]</a>    <span class="k">def</span> <span class="nf">directGetTemperatureSorb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the sorb temperature from the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The sorb temperature in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span><span class="o">.</span><span class="n">getTemperature</span><span class="p">(</span><span class="s">&#39;1&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    </div>
+<div class="viewcode-block" id="Heliox.getTemperatureSorb"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.getTemperatureSorb">[docs]</a>    <span class="k">def</span> <span class="nf">getTemperatureSorb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the sorb temperature.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The sorb temperature in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="n">MODE_DIRECT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureSorb</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        </div>
+<div class="viewcode-block" id="Heliox.setTemperatureLow"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.setTemperatureLow">[docs]</a>    <span class="k">def</span> <span class="nf">setTemperatureLow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the target for the low-temperature sensor.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        temperature : float</span>
+<span class="sd">            The target temperature in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeSensor</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span><span class="o">.</span><span class="n">setHeaterSensor</span><span class="p">(</span><span class="s">&#39;2&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_activeSensor</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span><span class="o">.</span><span class="n">setTemperature</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="Heliox.directGetTemperatureLow"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.directGetTemperatureLow">[docs]</a>    <span class="k">def</span> <span class="nf">directGetTemperatureLow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the sample-low temperature from the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The sample-low temperature in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span><span class="o">.</span><span class="n">getTemperature</span><span class="p">(</span><span class="s">&#39;2&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    </div>
+<div class="viewcode-block" id="Heliox.getTemperatureLow"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.getTemperatureLow">[docs]</a>    <span class="k">def</span> <span class="nf">getTemperatureLow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the sample-low temperature.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The sorb temperature in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="n">MODE_DIRECT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureLow</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    </div>
+<div class="viewcode-block" id="Heliox.setTemperatureHigh"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.setTemperatureHigh">[docs]</a>    <span class="k">def</span> <span class="nf">setTemperatureHigh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the target for the high-temperature sensor.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        temperature : float</span>
+<span class="sd">            The target temperature in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activeSensor</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span><span class="o">.</span><span class="n">setHeaterSensor</span><span class="p">(</span><span class="s">&#39;3&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_activeSensor</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span><span class="o">.</span><span class="n">setTemperature</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="Heliox.directGetTemperatureHigh"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.directGetTemperatureHigh">[docs]</a>    <span class="k">def</span> <span class="nf">directGetTemperatureHigh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the sample-high temperature from the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The sample-high temperature in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span><span class="o">.</span><span class="n">getTemperature</span><span class="p">(</span><span class="s">&#39;3&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    </div>
+<div class="viewcode-block" id="Heliox.getTemperatureHigh"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.getTemperatureHigh">[docs]</a>    <span class="k">def</span> <span class="nf">getTemperatureHigh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the sample-high temperature.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The sample-high temperature in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="n">MODE_DIRECT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHigh</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    </div>
+<div class="viewcode-block" id="Heliox.directGetTemperatures"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.directGetTemperatures">[docs]</a>    <span class="k">def</span> <span class="nf">directGetTemperatures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the temperatures measured on all three sensors.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of float</span>
+<span class="sd">            A tuple consisting of the sorb temperature, the sample-low</span>
+<span class="sd">            temperature, and the sample-high temperature expressed as floats.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span><span class="o">.</span><span class="n">getTemperatures</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">)</span> 
+    </div>
+<div class="viewcode-block" id="Heliox.getTemperatures"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.getTemperatures">[docs]</a>    <span class="k">def</span> <span class="nf">getTemperatures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the temperatures measured on all three sensors.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of float</span>
+<span class="sd">            A tuple consisting of the sorb temperature, the sample-low</span>
+<span class="sd">            temperature, and the sample-high temperature expressed as floats.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="n">MODE_DIRECT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatures</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">)</span>
+        
+    </div>
+<div class="viewcode-block" id="Heliox.directGetSampleTemperatures"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.directGetSampleTemperatures">[docs]</a>    <span class="k">def</span> <span class="nf">directGetSampleTemperatures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the sample temperatures from the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of float</span>
+<span class="sd">            A 2-tuple consisting of the low and high sample temperatures (i.e.</span>
+<span class="sd">            all temperatures except that of the sorb).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span><span class="o">.</span><span class="n">getTemperature</span><span class="p">(</span><span class="s">&#39;2&#39;</span><span class="p">),</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span><span class="o">.</span><span class="n">getTemperature</span><span class="p">(</span><span class="s">&#39;3&#39;</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+    </div>
+<div class="viewcode-block" id="Heliox.getSampleTemperatures"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.getSampleTemperatures">[docs]</a>    <span class="k">def</span> <span class="nf">getSampleTemperatures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the sample temperatures.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of float</span>
+<span class="sd">            A 2-tuple consisting of the low and high sample temperatures (i.e.</span>
+<span class="sd">            all temperatures except that of the sorb).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="n">MODE_DIRECT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetSampleTemperatures</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+    </div>
+<div class="viewcode-block" id="Heliox.setTemperature"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.setTemperature">[docs]</a>    <span class="k">def</span> <span class="nf">setTemperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the temperature intelligently.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        target : float</span>
+<span class="sd">            The temperature setpoint.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">target</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoffTemperature</span><span class="p">:</span>
+            <span class="n">sensor</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sensor</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">temps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatures</span><span class="p">()</span>
+                
+        <span class="n">goingUp</span> <span class="o">=</span> <span class="n">target</span> <span class="o">&gt;</span> <span class="n">temps</span><span class="p">[</span><span class="n">sensor</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">goingUp</span><span class="p">:</span>
+            <span class="n">currTemp</span> <span class="o">=</span> <span class="nb">min</span><span class="p">([</span><span class="n">temps</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">temps</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
+                
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">currTemp</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">temps</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">temps</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
+    
+        <span class="k">if</span> <span class="p">(</span><span class="n">currTemp</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoffTemperature</span> <span class="ow">and</span> 
+            <span class="n">target</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoffTemperature</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_auxSetTemp</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">currTemp</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoffTemperature</span> <span class="ow">and</span>
+              <span class="n">target</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoffTemperature</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_auxSetTemp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cutoffTemperature</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_auxSetTemp</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">currTemp</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoffTemperature</span> <span class="ow">and</span>
+              <span class="n">target</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoffTemperature</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_auxSetTemp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cutoffTemperature</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_auxSetTemp</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_auxSetTemp</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">target</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoffTemperature</span><span class="p">:</span>
+            <span class="n">waitForStableTemperature</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHigh</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">waitForStableTemperature</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureLow</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        </div>
+    <span class="k">def</span> <span class="nf">_auxSetTemp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">aboveCutoff</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">30.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Help set the temperature.</span>
+<span class="sd">        </span>
+<span class="sd">        Help set the temperature by breaking up the full range into a series</span>
+<span class="sd">        of smaller, user-defined steps. Set the temperature to a step value,</span>
+<span class="sd">        wait until the temperature passes that value, then move on to the next</span>
+<span class="sd">        step. Continue until the target temperature has been passed.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        target : float</span>
+<span class="sd">            The desired temperature in Kelvin.</span>
+<span class="sd">        aboveCutoff : bool</span>
+<span class="sd">            `True` if the **starting** temperature is above the low sensor/high</span>
+<span class="sd">            sensor cutoff temperature.</span>
+<span class="sd">        timeout : float</span>
+<span class="sd">            The maximum time (in seconds) to wait after setting the temperature</span>
+<span class="sd">            setpoint at each step before proceeding to the next step.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">aboveCutoff</span><span class="p">:</span>
+            <span class="n">getTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHigh</span>
+            <span class="n">setTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setTemperatureLow</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">getTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureLow</span>
+            <span class="n">setTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setTemperatureLow</span>
+            
+        <span class="k">if</span> <span class="n">target</span> <span class="o">&gt;</span> <span class="n">getTemp</span><span class="p">():</span>
+            <span class="k">def</span> <span class="nf">compareTemp</span><span class="p">(</span><span class="n">tempA</span><span class="p">,</span> <span class="n">tempB</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;Return tempA &lt; tempB. &quot;&quot;&quot;</span>
+                <span class="k">return</span> <span class="n">tempA</span> <span class="o">&lt;</span> <span class="n">tempB</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">compareTemp</span><span class="p">(</span><span class="n">tempA</span><span class="p">,</span> <span class="n">tempB</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;Return tempB &lt; tempA&quot;&quot;&quot;</span>
+                <span class="k">return</span> <span class="n">tempB</span> <span class="o">&lt;</span> <span class="n">tempA</span>
+            
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">getTemp</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">expandRange</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tempStepArray</span><span class="p">):</span>
+            <span class="n">setTemp</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
+            <span class="n">startTime</span> <span class="o">=</span> <span class="n">clock</span><span class="p">()</span>
+            <span class="k">while</span> <span class="n">compareTemp</span><span class="p">(</span><span class="n">getTemp</span><span class="p">(),</span> <span class="n">step</span><span class="p">):</span>
+                <span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">clock</span><span class="p">()</span> <span class="o">-</span> <span class="n">startTime</span> <span class="o">&gt;</span> <span class="n">timeout</span><span class="p">:</span>
+                    <span class="k">break</span>
+       
+<div class="viewcode-block" id="Heliox.getTemperature"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.getTemperature">[docs]</a>    <span class="k">def</span> <span class="nf">getTemperature</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the temperature (a weighted average of the sample temperatures).</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The sample temperature.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="n">MODE_DIRECT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatures</span><span class="p">()</span>
+        <span class="n">tempLowC</span> <span class="o">=</span> <span class="mf">1.6</span>
+        <span class="n">tempHighC</span> <span class="o">=</span> <span class="mf">2.5</span>
+        <span class="n">tempLow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">tempHigh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">tempLow</span> <span class="o">&lt;=</span> <span class="n">tempLowC</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tempLow</span>
+        <span class="k">if</span> <span class="n">tempHigh</span> <span class="o">&gt;=</span> <span class="n">tempHighC</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tempHigh</span>
+        <span class="k">return</span> <span class="p">((</span><span class="n">tempLow</span><span class="o">*</span><span class="p">(</span><span class="n">tempHighC</span><span class="o">-</span><span class="n">tempHigh</span><span class="p">)</span> <span class="o">+</span> <span class="n">tempHigh</span><span class="o">*</span><span class="p">(</span><span class="n">tempLow</span><span class="o">-</span><span class="n">tempLowC</span><span class="p">))</span><span class="o">/</span>
+               <span class="p">((</span><span class="n">tempHighC</span><span class="o">-</span><span class="n">tempHigh</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">tempLow</span><span class="o">-</span><span class="n">tempLowC</span><span class="p">)))</span>
+                </div>
+<div class="viewcode-block" id="Heliox.setPID"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.setPID">[docs]</a>    <span class="k">def</span> <span class="nf">setPID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newP</span><span class="p">,</span> <span class="n">newI</span><span class="p">,</span> <span class="n">newD</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the PID values for the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newP : float</span>
+<span class="sd">            The proportional band in Kelvin, to a resolution of 0.001 K. </span>
+<span class="sd">        newI : float</span>
+<span class="sd">            The integral action time in minutes. Values between 0 and</span>
+<span class="sd">            140 minutes (inclusive), in steps of 0.1 minutes, are accepted.</span>
+<span class="sd">        newD : float</span>
+<span class="sd">            The derivative action time in minutes. The allowed range is</span>
+<span class="sd">            0 to 273 minutes. The default is 0.0.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span><span class="o">.</span><span class="n">setPID</span><span class="p">(</span><span class="n">newP</span><span class="p">,</span> <span class="n">newI</span><span class="p">,</span> <span class="n">newD</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pid</span> <span class="o">=</span> <span class="p">(</span><span class="n">newP</span><span class="p">,</span> <span class="n">newI</span><span class="p">,</span> <span class="n">newD</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+        </div>
+<div class="viewcode-block" id="Heliox.directGetPID"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.directGetPID">[docs]</a>    <span class="k">def</span> <span class="nf">directGetPID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the PID values from the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of float</span>
+<span class="sd">            The proportional, integral, and derivative constants for the</span>
+<span class="sd">            temperature controller as floats in a tuple.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tempController</span><span class="o">.</span><span class="n">getPID</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pid</span>
+    </div>
+<div class="viewcode-block" id="Heliox.getPID"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.getPID">[docs]</a>    <span class="k">def</span> <span class="nf">getPID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the PID values.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of float</span>
+<span class="sd">            The proportional, integral, and derivative constants for the</span>
+<span class="sd">            temperature controller as floats in a tuple.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="n">MODE_DIRECT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetPID</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pid</span>
+    </div>
+<div class="viewcode-block" id="Heliox.getActions"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.getActions">[docs]</a>    <span class="k">def</span> <span class="nf">getActions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the list of supported actions.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;get_field&#39;</span><span class="p">,</span> <span class="n">Action</span><span class="p">,</span>
+                <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                 <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span> 
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Get field&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;outputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;field&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                        <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Magnetic field&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.4f</span><span class="s">&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="s">&#39;Field&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;column&#39;</span><span class="p">})</span>
+                 <span class="p">],</span>
+                 <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;Read the magnetic field.&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getField</span><span class="p">}</span>
+            <span class="p">),</span>
+            <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;set_field&#39;</span><span class="p">,</span> <span class="n">Action</span><span class="p">,</span>
+                <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                 <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span> 
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Set field&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;inputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;field&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                        <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Magnetic field&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.4f</span><span class="s">&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="s">&#39;Field&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;column&#39;</span><span class="p">}</span>
+                    <span class="p">),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;wait&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                        <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Following action&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                        <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                        <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;wait&#39;</span><span class="p">,</span> <span class="s">&#39;proceed&#39;</span><span class="p">],</span>
+                        <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;wait&#39;</span><span class="p">}</span>
+                    <span class="p">)</span>
+                 <span class="p">],</span>
+                 <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;Set the magnetic field to $field T and $wait.&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">setField</span><span class="p">}</span>
+            <span class="p">),</span>
+            <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;scan_field&#39;</span><span class="p">,</span> <span class="n">ActionScan</span><span class="p">,</span>
+                <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                 <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span> 
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Scan field&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;inputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;field&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                        <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Magnetic field&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.4f</span><span class="s">[]&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="s">&#39;Field&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;column&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)]}</span>
+                    <span class="p">)</span>
+                 <span class="p">],</span>
+                 <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;Scan the magnetic field&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">setField</span><span class="p">}</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+
+
+    <span class="c">#===========================================================================</span>
+    <span class="c"># Class methods</span>
+    <span class="c">#===========================================================================</span>
+    </div>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getRequiredParameters</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Heliox.isSingleton"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.Heliox.isSingleton">[docs]</a>    <span class="k">def</span> <span class="nf">isSingleton</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether at most one instance of the instrument may exist.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether only zero or one instance of the instrument may exist.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div></div>
+<div class="viewcode-block" id="HelioxDummy"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.HelioxDummy">[docs]</a><span class="k">class</span> <span class="nc">HelioxDummy</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A dummy class for testing Heliox updating&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new heliox dummy.&quot;&quot;&quot;</span>
+        
+<div class="viewcode-block" id="HelioxDummy.directGetField"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.HelioxDummy.directGetField">[docs]</a>    <span class="k">def</span> <span class="nf">directGetField</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dummy...read field from file.&quot;&quot;&quot;</span>
+        <span class="n">tempfile</span> <span class="o">=</span> <span class="s">&#39;C:/Users/thomas.DellWin-PC/Desktop/field.txt&#39;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tempfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">temp</span><span class="p">:</span>
+            <span class="n">ans</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">temp</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">ans</span></div>
+<div class="viewcode-block" id="HelioxDummy.getFieldSetpoint"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.HelioxDummy.getFieldSetpoint">[docs]</a>    <span class="k">def</span> <span class="nf">getFieldSetpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dummy...read field setpoint from file.&quot;&quot;&quot;</span>
+        <span class="n">tempfile</span> <span class="o">=</span> <span class="s">&#39;C:/Users/thomas.DellWin-PC/Desktop/setpoint.txt&#39;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tempfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">temp</span><span class="p">:</span>
+            <span class="n">ans</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">temp</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">ans</span></div>
+<div class="viewcode-block" id="HelioxDummy.getFieldRampRate"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.HelioxDummy.getFieldRampRate">[docs]</a>    <span class="k">def</span> <span class="nf">getFieldRampRate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dummy...read ramp rate from file.&quot;&quot;&quot;</span>
+        <span class="n">tempfile</span> <span class="o">=</span> <span class="s">&#39;C:/Users/thomas.DellWin-PC/Desktop/ramp.txt&#39;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tempfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">temp</span><span class="p">:</span>
+            <span class="n">ans</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">temp</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">ans</span></div>
+<div class="viewcode-block" id="HelioxDummy.getPID"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.HelioxDummy.getPID">[docs]</a>    <span class="k">def</span> <span class="nf">getPID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dummy...read PID from file.&quot;&quot;&quot;</span>
+        <span class="n">tempfile</span> <span class="o">=</span> <span class="s">&#39;C:/Users/thomas.DellWin-PC/Desktop/pid.txt&#39;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tempfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">temp</span><span class="p">:</span>
+            <span class="n">val1</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">temp</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="n">val2</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">temp</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="n">val3</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">temp</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">val1</span><span class="p">,</span> <span class="n">val2</span><span class="p">,</span> <span class="n">val3</span><span class="p">]</span></div>
+<div class="viewcode-block" id="HelioxDummy.directGetTemperatures"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.HelioxDummy.directGetTemperatures">[docs]</a>    <span class="k">def</span> <span class="nf">directGetTemperatures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dummy...read temperature from file.&quot;&quot;&quot;</span>
+        <span class="n">tempfile</span> <span class="o">=</span> <span class="s">&#39;C:/Users/thomas.DellWin-PC/Desktop/temp.txt&#39;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tempfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">temp</span><span class="p">:</span>
+            <span class="n">val1</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">temp</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="n">val2</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">temp</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="n">val3</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">temp</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">val1</span><span class="p">,</span> <span class="n">val2</span><span class="p">,</span> <span class="n">val3</span><span class="p">]</span></div>
+<div class="viewcode-block" id="HelioxDummy.getTemperature"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.HelioxDummy.getTemperature">[docs]</a>    <span class="k">def</span> <span class="nf">getTemperature</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the temperature.&quot;&quot;&quot;</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatures</span><span class="p">()</span>
+        <span class="n">tempLowC</span> <span class="o">=</span> <span class="mf">1.6</span>
+        <span class="n">tempHighC</span> <span class="o">=</span> <span class="mf">2.5</span>
+        <span class="n">tempLow</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">tempHigh</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">tempLow</span> <span class="o">&lt;=</span> <span class="n">tempLowC</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tempLow</span>
+        <span class="k">if</span> <span class="n">tempHigh</span> <span class="o">&gt;=</span> <span class="n">tempHighC</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tempHigh</span>
+        <span class="k">return</span> <span class="p">((</span><span class="n">tempLow</span><span class="o">*</span><span class="p">(</span><span class="n">tempHighC</span><span class="o">-</span><span class="n">tempHigh</span><span class="p">)</span> <span class="o">+</span> <span class="n">tempHigh</span><span class="o">*</span><span class="p">(</span><span class="n">tempLow</span><span class="o">-</span><span class="n">tempLowC</span><span class="p">))</span><span class="o">/</span>
+               <span class="p">((</span><span class="n">tempHighC</span><span class="o">-</span><span class="n">tempHigh</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">tempLow</span><span class="o">-</span><span class="n">tempLowC</span><span class="p">)))</span>
+        </div>
+<div class="viewcode-block" id="HelioxDummy.setField"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.HelioxDummy.setField">[docs]</a>    <span class="k">def</span> <span class="nf">setField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s">&#39;wait&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnetic field.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+<div class="viewcode-block" id="HelioxDummy.setFieldRampRate"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.HelioxDummy.setFieldRampRate">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldRampRate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rampRate</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnetic field ramp rate.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+<div class="viewcode-block" id="HelioxDummy.setPID"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.HelioxDummy.setPID">[docs]</a>    <span class="k">def</span> <span class="nf">setPID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newP</span><span class="p">,</span> <span class="n">newI</span><span class="p">,</span> <span class="n">newD</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the PID values for the temperature controller.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+<div class="viewcode-block" id="HelioxDummy.setTemperatureSorb"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.HelioxDummy.setTemperatureSorb">[docs]</a>    <span class="k">def</span> <span class="nf">setTemperatureSorb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the sorb temperature.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+<div class="viewcode-block" id="HelioxDummy.setTemperatureSampleLow"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.HelioxDummy.setTemperatureSampleLow">[docs]</a>    <span class="k">def</span> <span class="nf">setTemperatureSampleLow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the sample-low temperature.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+<div class="viewcode-block" id="HelioxDummy.setTemperatureSampleHigh"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.HelioxDummy.setTemperatureSampleHigh">[docs]</a>    <span class="k">def</span> <span class="nf">setTemperatureSampleHigh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the sample-high temperature.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+<div class="viewcode-block" id="HelioxDummy.setTemperature"><a class="viewcode-back" href="../../../api_instruments_heliox.html#src.instruments.heliox.HelioxDummy.setTemperature">[docs]</a>    <span class="k">def</span> <span class="nf">setTemperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the sample temperature using the automatic algorithm.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

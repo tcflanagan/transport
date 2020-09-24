@@ -1,0 +1,299 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The basicframe module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The graphing package" href="api_gui_graphing.html" />
+    <link rel="next" title="The embeddable module" href="api_gui_graphing_embeddable.html" />
+    <link rel="prev" title="The basicpanel module" href="api_gui_graphing_basicpanel.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_graphing_embeddable.html" title="The embeddable module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_graphing_basicpanel.html" title="The basicpanel module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li>
+          <li><a href="api_gui_graphing.html" accesskey="U">The <cite>graphing</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.gui.graphing.basicframe">
+<span id="the-basicframe-module"></span><h1>The <cite>basicframe</cite> module<a class="headerlink" href="#module-src.gui.graphing.basicframe" title="Permalink to this headline">¶</a></h1>
+<p>A basic, standalone, single-graph frame for displaying data.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="standardgraphmanager">
+<h3>StandardGraphManager<a class="headerlink" href="#standardgraphmanager" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.graphing.basicframe.StandardGraphManager">
+<em class="property">class </em><tt class="descclassname">src.gui.graphing.basicframe.</tt><tt class="descname">StandardGraphManager</tt><big>(</big><em>parentFrame</em><big>)</big><a class="reference internal" href="_modules/src/gui/graphing/basicframe.html#StandardGraphManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.graphing.basicframe.StandardGraphManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class for sending data from experiments to GUI panels.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parentFrame</strong> : wx.Window</p>
+<blockquote class="last">
+<div><p>The frame which will be used as the parent for the <cite>GraphFrame</cite> objects
+spawned by this manager.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.graphing.basicframe.StandardGraphManager.abort">
+<tt class="descname">abort</tt><big>(</big><em>timeout=10</em><big>)</big><a class="reference internal" href="_modules/src/gui/graphing/basicframe.html#StandardGraphManager.abort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.graphing.basicframe.StandardGraphManager.abort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abort the update threads.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.graphing.basicframe.StandardGraphManager.getGraphs">
+<tt class="descname">getGraphs</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/graphing/basicframe.html#StandardGraphManager.getGraphs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.graphing.basicframe.StandardGraphManager.getGraphs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the figures from the graphing panels.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.graphing.basicframe.StandardGraphManager.saveGraphs">
+<tt class="descname">saveGraphs</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="_modules/src/gui/graphing/basicframe.html#StandardGraphManager.saveGraphs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.graphing.basicframe.StandardGraphManager.saveGraphs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the graphs to a file.</p>
+<p>Resize all graphs to the appropriate size. Then arrange them into a
+grid and save that grid to the file specified by <cite>filename</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>filename</strong> : str</p>
+<blockquote class="last">
+<div><p>A string pointing to which the graph images should be saved. Note 
+that all graphs go to the same file. <cite>filename</cite> should be a 
+complete path name, including an extension.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.graphing.basicframe.StandardGraphManager.setGraphs">
+<tt class="descname">setGraphs</tt><big>(</big><em>graphs</em><big>)</big><a class="reference internal" href="_modules/src/gui/graphing/basicframe.html#StandardGraphManager.setGraphs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.graphing.basicframe.StandardGraphManager.setGraphs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the graphs which will be managed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>graphs</strong> : list of Graph</p>
+<blockquote class="last">
+<div><p>The <cite>Graph</cite> objects which will send their data to the frames
+managed by this object.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.graphing.basicframe.StandardGraphManager.start">
+<tt class="descname">start</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/graphing/basicframe.html#StandardGraphManager.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.graphing.basicframe.StandardGraphManager.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start the update threads.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="graphthread">
+<h3>GraphThread<a class="headerlink" href="#graphthread" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.graphing.basicframe.GraphThread">
+<em class="property">class </em><tt class="descclassname">src.gui.graphing.basicframe.</tt><tt class="descname">GraphThread</tt><big>(</big><em>parentFrame</em>, <em>dataQueue</em>, <em>columns</em><big>)</big><a class="reference internal" href="_modules/src/gui/graphing/basicframe.html#GraphThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.graphing.basicframe.GraphThread" title="Permalink to this definition">¶</a></dt>
+<dd><p>A thread to update a particular graph at regular intervals.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parentFrame</strong> : wx.Window</p>
+<blockquote>
+<div><p>The frame or panel which will contain the Frame managed by this thread.</p>
+</div></blockquote>
+<p><strong>dataQueue</strong> : Queue</p>
+<blockquote>
+<div><p>The <cite>Queue</cite> object which will move data from the <cite>Graph</cite> object to the
+<cite>GraphFrame</cite> associated with this thread (and, therefore, to the
+<cite>GraphPanel</cite>.</p>
+</div></blockquote>
+<p><strong>columns</strong> : 2-tuple of str</p>
+<blockquote class="last">
+<div><p>Strings representing the column names which provide the x- and y-values
+for the graph. These strings will label the axes in the <cite>GraphPanel</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+</dd></dl>
+
+</div>
+<div class="section" id="graphframe">
+<h3>GraphFrame<a class="headerlink" href="#graphframe" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.graphing.basicframe.GraphFrame">
+<em class="property">class </em><tt class="descclassname">src.gui.graphing.basicframe.</tt><tt class="descname">GraphFrame</tt><big>(</big><em>parent</em>, <em>dataQueue</em>, <em>thread</em>, <em>columns</em><big>)</big><a class="reference internal" href="_modules/src/gui/graphing/basicframe.html#GraphFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.graphing.basicframe.GraphFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>A frame for containing a single graph.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : Frame</p>
+<blockquote>
+<div><p>This frame&#8217;s parent (so that if the parent is closed, this will also
+be closed).</p>
+</div></blockquote>
+<p><strong>dataQueue</strong> : Queue</p>
+<blockquote>
+<div><p>The <cite>Queue.Queue</cite> object which will be passed to the panel for 
+transferring data from the <cite>Graph</cite>.</p>
+</div></blockquote>
+<p><strong>thread</strong> : Thread</p>
+<blockquote>
+<div><p>The <cite>threading.Thread</cite> object in which the graph will run.</p>
+</div></blockquote>
+<p><strong>columns</strong> : iterable</p>
+<blockquote class="last">
+<div><p>A list or tuple containing the names of the columns relevent to this
+graph. In order, they are the x-column, the y-column, and the column
+which triggers new plots.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>basicframe</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#standardgraphmanager">StandardGraphManager</a></li>
+<li><a class="reference internal" href="#graphthread">GraphThread</a></li>
+<li><a class="reference internal" href="#graphframe">GraphFrame</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_gui_graphing_basicpanel.html"
+                        title="previous chapter">The <cite>basicpanel</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_gui_graphing_embeddable.html"
+                        title="next chapter">The <cite>embeddable</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_gui_graphing_basicframe.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_graphing_embeddable.html" title="The embeddable module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_graphing_basicpanel.html" title="The basicpanel module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li>
+          <li><a href="api_gui_graphing.html" >The <cite>graphing</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

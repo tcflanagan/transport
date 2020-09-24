@@ -1,0 +1,374 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The srs830 module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The instruments package" href="api_instruments.html" />
+    <link rel="next" title="The heliox module" href="api_instruments_heliox.html" />
+    <link rel="prev" title="The ps120 module" href="api_instruments_noauto_ps120.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_heliox.html" title="The heliox module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_noauto_ps120.html" title="The ps120 module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" accesskey="U">The <cite>instruments</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.instruments.srs830">
+<span id="the-srs830-module"></span><h1>The <cite>srs830</cite> module<a class="headerlink" href="#module-src.instruments.srs830" title="Permalink to this headline">¶</a></h1>
+<p>DSP Lock-In Amplifier</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="srs830">
+<h3>SRS830<a class="headerlink" href="#srs830" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.instruments.srs830.SRS830">
+<em class="property">class </em><tt class="descclassname">src.instruments.srs830.</tt><tt class="descname">SRS830</tt><big>(</big><em>experiment</em>, <em>name='SRS830: Lock-in amplifier'</em>, <em>spec=None</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830" title="Permalink to this definition">¶</a></dt>
+<dd><p>Driver for an SRS830 lock-in amplifier.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.finalize">
+<tt class="descname">finalize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the communication channel.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getActions">
+<tt class="descname">getActions</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getActions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getActions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the list of supported actions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getAddress">
+<tt class="descname">getAddress</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getAddress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getAddress" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the instrument&#8217;s VISA resource address.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getAllParameters">
+<tt class="descname">getAllParameters</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getAllParameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getAllParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read all lock-in parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getDetectionHarmonic">
+<tt class="descname">getDetectionHarmonic</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getDetectionHarmonic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getDetectionHarmonic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the lock-in&#8217;s detection harmonic.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getInputConfiguration">
+<tt class="descname">getInputConfiguration</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getInputConfiguration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getInputConfiguration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the lock-in&#8217;s input configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getInputCoupling">
+<tt class="descname">getInputCoupling</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getInputCoupling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getInputCoupling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the lock-in&#8217;s input coupling configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getInputGrounding">
+<tt class="descname">getInputGrounding</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getInputGrounding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getInputGrounding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the lock-in&#8217;s input shield grounding configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getInputNotch">
+<tt class="descname">getInputNotch</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getInputNotch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getInputNotch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the input line notch filter status.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getLowPassFilter">
+<tt class="descname">getLowPassFilter</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getLowPassFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getLowPassFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the lock-in&#8217;s low-pass filter slope.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getReferenceFrequency">
+<tt class="descname">getReferenceFrequency</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getReferenceFrequency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getReferenceFrequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the lock-in&#8217;s reference frequency.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getReferencePhase">
+<tt class="descname">getReferencePhase</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getReferencePhase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getReferencePhase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the lock-in&#8217;s reference phase.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getReferenceSource">
+<tt class="descname">getReferenceSource</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getReferenceSource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getReferenceSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the lock-in&#8217;s reference source.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getReferenceTrigger">
+<tt class="descname">getReferenceTrigger</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getReferenceTrigger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getReferenceTrigger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the lock-in&#8217;s reference trigger for external reference mode.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getReferenceVoltage">
+<tt class="descname">getReferenceVoltage</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getReferenceVoltage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getReferenceVoltage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the lock-in&#8217;s reference voltage.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getReserveMode">
+<tt class="descname">getReserveMode</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getReserveMode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getReserveMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the lock-in&#8217;s reserve mode.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getSensitivity">
+<tt class="descname">getSensitivity</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getSensitivity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getSensitivity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the lock-in&#8217;s sensitivity.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getSynchronousFilter">
+<tt class="descname">getSynchronousFilter</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getSynchronousFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getSynchronousFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the lock-in&#8217;s synchronous filter status.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.getTimeConstant">
+<tt class="descname">getTimeConstant</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.getTimeConstant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.getTimeConstant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the lock-in&#8217;s time constant.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open the communication channel.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.readAverageVoltageXY">
+<tt class="descname">readAverageVoltageXY</tt><big>(</big><em>pretime</em>, <em>numavg</em>, <em>intertime</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.readAverageVoltageXY"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.readAverageVoltageXY" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take an average in- and out-of-phase voltage measurement.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.readSingleVoltageXY">
+<tt class="descname">readSingleVoltageXY</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.readSingleVoltageXY"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.readSingleVoltageXY" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take a single in- and out-of-phase voltage measurement.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.setDetectionHarmonic">
+<tt class="descname">setDetectionHarmonic</tt><big>(</big><em>harm</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.setDetectionHarmonic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.setDetectionHarmonic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the lock-in&#8217;s detection harmonic.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.setInputConfiguration">
+<tt class="descname">setInputConfiguration</tt><big>(</big><em>config</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.setInputConfiguration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.setInputConfiguration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the lock-in&#8217;s input configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.setInputCoupling">
+<tt class="descname">setInputCoupling</tt><big>(</big><em>cpl</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.setInputCoupling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.setInputCoupling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the lock-in&#8217;s input coupling configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.setInputGrounding">
+<tt class="descname">setInputGrounding</tt><big>(</big><em>ground</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.setInputGrounding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.setInputGrounding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the lock-in&#8217;s input shield grounding configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.setInputNotch">
+<tt class="descname">setInputNotch</tt><big>(</big><em>notch</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.setInputNotch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.setInputNotch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the input line notch filter status.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.setLowPassFilter">
+<tt class="descname">setLowPassFilter</tt><big>(</big><em>filt</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.setLowPassFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.setLowPassFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the lock-in&#8217;s low-pass filter slope.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.setReferenceFrequency">
+<tt class="descname">setReferenceFrequency</tt><big>(</big><em>freq</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.setReferenceFrequency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.setReferenceFrequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the lock-in&#8217;s reference frequency.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.setReferencePhase">
+<tt class="descname">setReferencePhase</tt><big>(</big><em>phase</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.setReferencePhase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.setReferencePhase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the lock-in&#8217;s reference phase.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.setReferenceSource">
+<tt class="descname">setReferenceSource</tt><big>(</big><em>source</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.setReferenceSource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.setReferenceSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the lock-in&#8217;s reference source.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.setReferenceTrigger">
+<tt class="descname">setReferenceTrigger</tt><big>(</big><em>trig</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.setReferenceTrigger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.setReferenceTrigger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the lock-in&#8217;s reference trigger for external reference mode.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.setReferenceVoltage">
+<tt class="descname">setReferenceVoltage</tt><big>(</big><em>vref</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.setReferenceVoltage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.setReferenceVoltage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the lock-in&#8217;s reference voltage.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.setReserveMode">
+<tt class="descname">setReserveMode</tt><big>(</big><em>mode</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.setReserveMode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.setReserveMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the lock-in&#8217;s reserve mode.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.setSensitivity">
+<tt class="descname">setSensitivity</tt><big>(</big><em>sens</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.setSensitivity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.setSensitivity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the lock-in&#8217;s sensitivity.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.setSynchronousFilter">
+<tt class="descname">setSynchronousFilter</tt><big>(</big><em>filt</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.setSynchronousFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.setSynchronousFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the lock-in&#8217;s synchronous filter status.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.srs830.SRS830.setTimeConstant">
+<tt class="descname">setTimeConstant</tt><big>(</big><em>tconst</em><big>)</big><a class="reference internal" href="_modules/src/instruments/srs830.html#SRS830.setTimeConstant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.srs830.SRS830.setTimeConstant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the lock-in&#8217;s time constant.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>srs830</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#srs830">SRS830</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_instruments_noauto_ps120.html"
+                        title="previous chapter">The <cite>ps120</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_instruments_heliox.html"
+                        title="next chapter">The <cite>heliox</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_instruments_srs830.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_heliox.html" title="The heliox module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_noauto_ps120.html" title="The ps120 module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" >The <cite>instruments</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

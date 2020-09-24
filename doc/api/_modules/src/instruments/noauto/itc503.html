@@ -1,0 +1,479 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.instruments.noauto.itc503 &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.instruments.noauto.itc503</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Basic drivers for an Oxford Instruments model ITC503 temperature controller</span>
+
+<span class="sd">Note that this module does **not** represent an `Instrument` subclass, since</span>
+<span class="sd">the ITC503 is never used by itself---it is always part of a larger system </span>
+<span class="sd">driving both a magnet power supply and temperature controllers, and the</span>
+<span class="sd">temperature controller cannot usually be used in isolation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">src.instruments.noauto.oxford_common</span> <span class="kn">import</span> <span class="n">OxfordCommon</span>
+
+<div class="viewcode-block" id="ITC503"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503">[docs]</a><span class="k">class</span> <span class="nc">ITC503</span><span class="p">(</span><span class="n">OxfordCommon</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An Oxford Instruments ITC</span>
+<span class="sd">    </span>
+<span class="sd">    This is a basic driver for an Oxford Instruments ITC503 (Intelligent</span>
+<span class="sd">    Temperature Controller). It should typically be included in an `Instrument`</span>
+<span class="sd">    class representing a cryostat-magnet system.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        A name to identify the instrument.</span>
+<span class="sd">    protocol : {&#39;ISOBUS&#39;, &#39;GPIB&#39;, &#39;Serial&#39;, &#39;Gateway Master&#39;, &#39;Gateway Slave&#39;}</span>
+<span class="sd">        The protocol for communication between the computer and the temperature</span>
+<span class="sd">        controller.</span>
+<span class="sd">    isobusAddress : str</span>
+<span class="sd">        An integer string representing the ISOBUS address, if relevant. An</span>
+<span class="sd">        integer will be accepted and converted.</span>
+<span class="sd">    visaAddress : str</span>
+<span class="sd">        A full VISA resource address (including the bus) to locate the </span>
+<span class="sd">        instrument (e.g. &quot;GPIB0::27&quot;).</span>
+<span class="sd">    serialConfig : dict</span>
+<span class="sd">        A dictionary to indicate how to configure a serial port, which is used</span>
+<span class="sd">        with both the &#39;ISOBUS&#39; and &#39;Serial&#39; protocols.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+        
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;Temperatures&quot;</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="s">&#39;ISOBUS&#39;</span><span class="p">,</span> <span class="n">isobusAddress</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> 
+                 <span class="n">visaAddress</span><span class="o">=</span><span class="s">&#39;GPIB0::23&#39;</span><span class="p">,</span> <span class="n">serialConfig</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new temperature controller instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Initialization for this object really only involves passing all</span>
+<span class="sd">        arguments into the `OxfordCommon` superclass.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+         
+        <span class="nb">super</span><span class="p">(</span><span class="n">ITC503</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">isobusAddress</span><span class="p">,</span>
+                                     <span class="n">visaAddress</span><span class="p">,</span> <span class="n">serialConfig</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_controlMode</span> <span class="o">=</span> <span class="s">&#39;0&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_autoPID</span> <span class="o">=</span> <span class="s">&#39;0&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heaterSensor</span> <span class="o">=</span> <span class="s">&#39;1&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_autoStatus</span> <span class="o">=</span> <span class="p">(</span><span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="ITC503.initialize"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prepare the temperature controller for use.</span>
+<span class="sd">        </span>
+<span class="sd">        Prepare the temperature controller for use by </span>
+<span class="sd">            1. opening the appropriate communication channel;</span>
+<span class="sd">            2. setting the control mode to &#39;remote and unlocked&#39;;</span>
+<span class="sd">            3. setting the auto/manual status to full auto;</span>
+<span class="sd">            4. get the currently set PID values;</span>
+<span class="sd">            5. get the current temperature readings from all sensors; and</span>
+<span class="sd">            6. read the status.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ITC503</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setControlMode</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setAutoStatus</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getPID</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getTemperatures</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_readStatus</span><span class="p">()</span>
+        </div>
+    <span class="k">def</span> <span class="nf">_readStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the temperature controller status.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            A dictionary specifying the status of the temperature controller.</span>
+<span class="sd">            It includes the following keys: &#39;autoManualStatus&#39;, &#39;controlMode&#39;,</span>
+<span class="sd">            &#39;sweepStatus&#39;, &#39;sensor&#39;, and &#39;autoPID&#39;. The meanings are </span>
+<span class="sd">            specified in the Notes section.</span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The temperature controller returns a string of the form </span>
+<span class="sd">        ``XnAnCnSnnHnLn``. The meanings and values of the parts of this are </span>
+<span class="sd">        described here.</span>
+<span class="sd">        </span>
+<span class="sd">        ``Xn``: System status</span>
+<span class="sd">            Currently always zero</span>
+<span class="sd">        ``An``: Auto/Manual status</span>
+<span class="sd">            - 0: Heater manual, gas manual</span>
+<span class="sd">            - 1: Heater auto, gas manual</span>
+<span class="sd">            - 2: Heater manual, gas auto</span>
+<span class="sd">            - 3: Heater auto, gas auto</span>
+<span class="sd">        ``Cn``: Control status</span>
+<span class="sd">            - 0: Local and locked</span>
+<span class="sd">            - 1: Remote and locked</span>
+<span class="sd">            - 2: Local and unlocked</span>
+<span class="sd">            - 3: Remote and unlocked</span>
+<span class="sd">        ``Snn``: Sweep status</span>
+<span class="sd">            - nn=0: Sweep not running</span>
+<span class="sd">            - nn=2P-1: Sweeping to step P</span>
+<span class="sd">            - nn=2P: Holding at step P</span>
+<span class="sd">        ``Hn``: Control sensor</span>
+<span class="sd">            - 1: Sensor 1</span>
+<span class="sd">            - 2: Sensor 2</span>
+<span class="sd">            - 3: Sensor 3</span>
+<span class="sd">        ``Ln``: Auto-PID status</span>
+<span class="sd">            - 0: Disable use of auto-PID</span>
+<span class="sd">            - 1: Enable use of auto-PID</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;X&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">status</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;0&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_autoStatus</span> <span class="o">=</span> <span class="p">(</span><span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">status</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;1&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_autoStatus</span> <span class="o">=</span> <span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">status</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;2&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_autoStatus</span> <span class="o">=</span> <span class="p">(</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_autoStatus</span> <span class="o">=</span> <span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_controlMode</span> <span class="o">=</span> <span class="n">status</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heaterSensor</span> <span class="o">=</span> <span class="n">status</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_autoPID</span> <span class="o">=</span> <span class="n">status</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span>
+        
+<div class="viewcode-block" id="ITC503.setControlMode"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.setControlMode">[docs]</a>    <span class="k">def</span> <span class="nf">setControlMode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">controlMode</span><span class="o">=</span><span class="s">&#39;3&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the control mode for the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        controlMode : str, optional</span>
+<span class="sd">            An integer string representing the desired control mode. Allowed</span>
+<span class="sd">            values are the following.</span>
+<span class="sd">                - &#39;0&#39;: Local and locked (power-up state).</span>
+<span class="sd">                - &#39;1&#39;: Remote and locked.</span>
+<span class="sd">                - &#39;2&#39;: Local and unlocked.</span>
+<span class="sd">                - &#39;3&#39;: Remote and unlocked (default).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;C&#39;</span> <span class="o">+</span> <span class="n">controlMode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_controlMode</span> <span class="o">=</span> <span class="n">controlMode</span>
+        </div>
+<div class="viewcode-block" id="ITC503.getAutoStatus"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.getAutoStatus">[docs]</a>    <span class="k">def</span> <span class="nf">getAutoStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether the heater and needle valve are in automatic mode.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether the heater is in automatic mode.</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether the needle valve (gas controller) is in automatic mode.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_autoStatus</span>
+    </div>
+<div class="viewcode-block" id="ITC503.setAutoStatus"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.setAutoStatus">[docs]</a>    <span class="k">def</span> <span class="nf">setAutoStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">heater</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">needleValve</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span><span class="c">#status=&#39;3&#39;):</span>
+        <span class="sd">&quot;&quot;&quot;Set the auto/manual status of the heater and gas controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        heater : bool</span>
+<span class="sd">            Whether the temperature controller&#39;s heater should be placed in</span>
+<span class="sd">            automatic mode. If `False`, the heater will be placed in manual</span>
+<span class="sd">            mode.</span>
+<span class="sd">        needleValve : bool</span>
+<span class="sd">            Whether the temperature controller&#39;s needle valve (gas flow</span>
+<span class="sd">            controller) should be placed in automatic mode. If `False`, the</span>
+<span class="sd">            needle valve will be placed in manual mode.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">heater</span> <span class="o">==</span> <span class="bp">False</span> <span class="ow">and</span> <span class="n">needleValve</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s">&#39;0&#39;</span>
+        <span class="k">elif</span> <span class="n">heater</span> <span class="o">==</span> <span class="bp">True</span> <span class="ow">and</span> <span class="n">needleValve</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s">&#39;1&#39;</span>
+        <span class="k">elif</span> <span class="n">heater</span> <span class="o">==</span> <span class="bp">False</span> <span class="ow">and</span> <span class="n">needleValve</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s">&#39;2&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s">&#39;3&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;A&#39;</span> <span class="o">+</span> <span class="n">status</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_autoStatus</span> <span class="o">=</span> <span class="p">(</span><span class="n">heater</span><span class="p">,</span> <span class="n">needleValve</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="ITC503.setP"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.setP">[docs]</a>    <span class="k">def</span> <span class="nf">setP</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newP</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the PID values for the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newP : float</span>
+<span class="sd">            The proportional band in Kelvin, to a resolution of 0.001 K.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;P</span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">newP</span><span class="p">)</span>
+            </div>
+<div class="viewcode-block" id="ITC503.setI"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.setI">[docs]</a>    <span class="k">def</span> <span class="nf">setI</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newI</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the PID values for the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newI : float</span>
+<span class="sd">            The integral action time in minutes. Values between 0 and</span>
+<span class="sd">            140 minutes (inclusive), in steps of 0.1 minutes, are accepted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;I</span><span class="si">%.1f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">newI</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ITC503.setD"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.setD">[docs]</a>    <span class="k">def</span> <span class="nf">setD</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newD</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the PID values for the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newD : float</span>
+<span class="sd">            The derivative action time in minutes. The allowed range is</span>
+<span class="sd">            0 to 273 minutes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;D</span><span class="si">%.1f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">newD</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ITC503.setPID"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.setPID">[docs]</a>    <span class="k">def</span> <span class="nf">setPID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newP</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">newI</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">newD</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the PID values for the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newP : float, optional</span>
+<span class="sd">            The proportional band in Kelvin, to a resolution of 0.001 K.</span>
+<span class="sd">        newI : float, optional</span>
+<span class="sd">            The integral action time in minutes. Values between 0 and</span>
+<span class="sd">            140 minutes (inclusive), in steps of 0.1 minutes, are accepted.</span>
+<span class="sd">        newD : float, optional</span>
+<span class="sd">            The derivative action time in minutes. The allowed range is</span>
+<span class="sd">            0 to 273 minutes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;P</span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">newP</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;I</span><span class="si">%.1f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">newI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;D</span><span class="si">%.1f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">newD</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ITC503.getHeaterSensor"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.getHeaterSensor">[docs]</a>    <span class="k">def</span> <span class="nf">getHeaterSensor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return which sensor is currently active.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            An integer string, &#39;1&#39;, &#39;2&#39;, or &#39;3&#39;, indicating which sensor is</span>
+<span class="sd">            currently being used to control the temperature(s).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heaterSensor</span>
+    </div>
+<div class="viewcode-block" id="ITC503.setHeaterSensor"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.setHeaterSensor">[docs]</a>    <span class="k">def</span> <span class="nf">setHeaterSensor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sensor</span><span class="o">=</span><span class="s">&#39;1&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the active temperature sensor.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sensor : str</span>
+<span class="sd">            An integer string representing the sensor to activate. Allowed</span>
+<span class="sd">            values are &#39;1&#39;, &#39;2&#39;, and &#39;3&#39;, the meanings of which should be</span>
+<span class="sd">            obvious.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;H&#39;</span> <span class="o">+</span> <span class="n">sensor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heaterSensor</span> <span class="o">=</span> <span class="n">sensor</span>
+</div>
+<div class="viewcode-block" id="ITC503.toggleAutoPid"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.toggleAutoPid">[docs]</a>    <span class="k">def</span> <span class="nf">toggleAutoPid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">autoPID</span><span class="o">=</span><span class="s">&#39;0&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the auto-PID status of the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        If a PID table has been programmed into the instrument, you can enable</span>
+<span class="sd">        auto-PID, so that the PID values will be automatically chosen based</span>
+<span class="sd">        on the temperature range.</span>
+<span class="sd">        </span>
+<span class="sd">        .. warning:: If a PID table has not been programmed, attempting to </span>
+<span class="sd">           enable auto-PID will return an error.</span>
+<span class="sd">           </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        autoPID : str</span>
+<span class="sd">            An integer string representing the desired auto-PID status. The</span>
+<span class="sd">            allowed values are below.</span>
+<span class="sd">                - 0: Disable auto-PID</span>
+<span class="sd">                - 1: Enable auto-PID</span>
+<span class="sd">            This method also accepts a boolean value for `autoPID`, and this</span>
+<span class="sd">            value would be interpreted in the obvious way.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">autoPID</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">autoPID</span><span class="p">:</span>
+                <span class="n">autoPID</span> <span class="o">=</span> <span class="s">&#39;1&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">autoPID</span> <span class="o">=</span> <span class="s">&#39;0&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;L&#39;</span> <span class="o">+</span> <span class="n">autoPID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_autoPID</span> <span class="o">=</span> <span class="n">autoPID</span>
+        </div>
+<div class="viewcode-block" id="ITC503.getAutoPID"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.getAutoPID">[docs]</a>    <span class="k">def</span> <span class="nf">getAutoPID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether auto-PID is enabled.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether the ITC is configured for auto-PID.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_autoPID</span> <span class="o">==</span> <span class="s">&#39;1&#39;</span>
+        </div>
+<div class="viewcode-block" id="ITC503.setTemperature"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.setTemperature">[docs]</a>    <span class="k">def</span> <span class="nf">setTemperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the target temperature for the controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Set the target temperature for the currently-selected sensor to</span>
+<span class="sd">        `temperature`, and begin moving toward the setpoint.</span>
+<span class="sd">        </span>
+<span class="sd">        .. note:: If a sweep is in progress, the sweep will override the value</span>
+<span class="sd">           set by this command.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        temperature : float</span>
+<span class="sd">            The temperature setpoint for the currently-enabled sensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;T</span><span class="si">%.4s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">temperature</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ITC503.setMaximumHeaterVoltage"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.setMaximumHeaterVoltage">[docs]</a>    <span class="k">def</span> <span class="nf">setMaximumHeaterVoltage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">voltage</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the maximum voltage for the currently controlled heater.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        voltage : float</span>
+<span class="sd">            The largest voltage allowed to be supplied to the heater.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;M</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">voltage</span> <span class="o">*</span> <span class="mi">10</span><span class="p">))</span>
+    </div>
+<div class="viewcode-block" id="ITC503.getPID"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.getPID">[docs]</a>    <span class="k">def</span> <span class="nf">getPID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the PID values for the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Return the values for the proportional band, the integral action time,</span>
+<span class="sd">        and the derivative action time which the temperature controller is</span>
+<span class="sd">        currently using.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of float</span>
+<span class="sd">            A tuple of floats containing, in order, P, I, and D.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;R8&#39;</span><span class="p">)),</span>
+                <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;R9&#39;</span><span class="p">)),</span>
+                <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;R10&#39;</span><span class="p">)))</span>
+    </div>
+<div class="viewcode-block" id="ITC503.getSetpoint"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.getSetpoint">[docs]</a>    <span class="k">def</span> <span class="nf">getSetpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the setpoint temperature.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The setpoint temperature in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;R0&#39;</span><span class="p">))</span>
+        </div>
+<div class="viewcode-block" id="ITC503.getTemperature"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.getTemperature">[docs]</a>    <span class="k">def</span> <span class="nf">getTemperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sensor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the temperature measured by the specified sensor.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sensor : {&#39;1&#39;, &#39;2&#39;, &#39;3&#39;}</span>
+<span class="sd">            An integer string representing the temperature sensor from which</span>
+<span class="sd">            to read.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The temperature measured by the specified sensor in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;R&#39;</span> <span class="o">+</span> <span class="n">sensor</span><span class="p">))</span>
+    </div>
+<div class="viewcode-block" id="ITC503.getTemperatures"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.getTemperatures">[docs]</a>    <span class="k">def</span> <span class="nf">getTemperatures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the readings from all three temperature sensors.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of float</span>
+<span class="sd">            The temperatures measured by sensors 1, 2, and 3, expressed as</span>
+<span class="sd">            floats in a tuple with the obvious order.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;R1&#39;</span><span class="p">)),</span>
+                <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;R2&#39;</span><span class="p">)),</span>
+                <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;R3&#39;</span><span class="p">)))</span>
+</div>
+<div class="viewcode-block" id="ITC503.setHeaterOutput"><a class="viewcode-back" href="../../../../api_instruments_noauto_itc503.html#src.instruments.noauto.itc503.ITC503.setHeaterOutput">[docs]</a>    <span class="k">def</span> <span class="nf">setHeaterOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the output for the selected heater.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        output : float</span>
+<span class="sd">            The desired heater output as a percent of the maximum range.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;O</span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">output</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

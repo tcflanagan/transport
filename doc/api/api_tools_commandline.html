@@ -1,0 +1,417 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The commandline module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The tools package" href="api_tools.html" />
+    <link rel="next" title="The instrospection module" href="api_tools_instrospection.html" />
+    <link rel="prev" title="The expt_loader module" href="api_tools_expt_loader.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_tools_instrospection.html" title="The instrospection module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_tools_expt_loader.html" title="The expt_loader module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_tools.html" accesskey="U">The <cite>tools</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.tools.commandline">
+<span id="the-commandline-module"></span><h1>The <cite>commandline</cite> module<a class="headerlink" href="#module-src.tools.commandline" title="Permalink to this headline">¶</a></h1>
+<p>A collection of tools for interacting with the command line.</p>
+<div class="section" id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
+<p>The contents of this module have not been tested in Windows.</p>
+</div>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="environment">
+<h3>Environment<a class="headerlink" href="#environment" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.tools.commandline.Environment">
+<em class="property">class </em><tt class="descclassname">src.tools.commandline.</tt><tt class="descname">Environment</tt><a class="reference internal" href="_modules/src/tools/commandline.html#Environment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.commandline.Environment" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class representing a shell session.</p>
+<p>In its present implementation, this class can only be expected to work
+properly in Linux.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.tools.commandline.Environment.changeDirectory">
+<tt class="descname">changeDirectory</tt><big>(</big><em>directory</em><big>)</big><a class="reference internal" href="_modules/src/tools/commandline.html#Environment.changeDirectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.commandline.Environment.changeDirectory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the working directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>directory</strong> : str</p>
+<blockquote class="last">
+<div><p>The new working directory as a string.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.commandline.Environment.communicate">
+<tt class="descname">communicate</tt><big>(</big><em>command</em>, <em>shell=True</em><big>)</big><a class="reference internal" href="_modules/src/tools/commandline.html#Environment.communicate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.commandline.Environment.communicate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send a command and read the response.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>command</strong> : str</p>
+<blockquote>
+<div><p>The command to execute.</p>
+</div></blockquote>
+<p><strong>shell</strong> : bool</p>
+<blockquote>
+<div><p>Whether to run in the system shell.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>The standard output (STDOUT) for the process.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.commandline.Environment.copy">
+<tt class="descname">copy</tt><big>(</big><em>source</em>, <em>target</em>, <em>recursive=True</em><big>)</big><a class="reference internal" href="_modules/src/tools/commandline.html#Environment.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.commandline.Environment.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy a file or folder.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>source</strong> : str</p>
+<blockquote>
+<div><p>The path of the file or folder to copy.</p>
+</div></blockquote>
+<p><strong>target</strong> : str</p>
+<blockquote>
+<div><p>The path to which the file should be copied.</p>
+</div></blockquote>
+<p><strong>recursive</strong> : bool</p>
+<blockquote class="last">
+<div><p>If <cite>source</cite> is a folder, whether to copy all of its contents
+recursively.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>If <cite>recursive</cite> is not set and <cite>source</cite> is a folder with contents, the
+operation will fail.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.commandline.Environment.extendPath">
+<tt class="descname">extendPath</tt><big>(</big><em>name</em>, <em>value</em>, <em>start=True</em>, <em>forceReplace=False</em><big>)</big><a class="reference internal" href="_modules/src/tools/commandline.html#Environment.extendPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.commandline.Environment.extendPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extend a path-like environment variable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the environment variable to extend. In this application,
+it will often be &#8220;PYTHONPATH&#8221;.</p>
+</div></blockquote>
+<p><strong>value</strong> : str</p>
+<blockquote>
+<div><p>The value to append to the path.</p>
+</div></blockquote>
+<p><strong>start</strong> : bool</p>
+<blockquote>
+<div><p>Whether to prepend the new component to the variable. If <cite>False</cite>, 
+the new component will be appended.</p>
+</div></blockquote>
+<p><strong>forceReplace</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether to change the variable if it already has a value set.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="src.tools.commandline.Environment.isWindows">
+<em class="property">classmethod </em><tt class="descname">isWindows</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/commandline.html#Environment.isWindows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.commandline.Environment.isWindows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine whether the operating system is Windows.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.commandline.Environment.move">
+<tt class="descname">move</tt><big>(</big><em>source</em>, <em>target</em>, <em>force=False</em><big>)</big><a class="reference internal" href="_modules/src/tools/commandline.html#Environment.move"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.commandline.Environment.move" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move a file or folder.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>source</strong> : str</p>
+<blockquote>
+<div><p>The path of the file or folder to move.</p>
+</div></blockquote>
+<p><strong>target</strong> : str</p>
+<blockquote>
+<div><p>Where the file or folder should be moved.</p>
+</div></blockquote>
+<p><strong>force</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether to overwrite files without prompting or failing. The default
+is <cite>False</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.commandline.Environment.moveDirectoryContents">
+<tt class="descname">moveDirectoryContents</tt><big>(</big><em>source</em>, <em>target</em>, <em>force=False</em><big>)</big><a class="reference internal" href="_modules/src/tools/commandline.html#Environment.moveDirectoryContents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.commandline.Environment.moveDirectoryContents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move the contents of a directory from one location to another.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>source</strong> : str</p>
+<blockquote>
+<div><p>The path of the folder whose contents should be moved.</p>
+</div></blockquote>
+<p><strong>target</strong> : str</p>
+<blockquote>
+<div><p>The path of the folder into which the files should be moved.</p>
+</div></blockquote>
+<p><strong>force</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether to automatically overwrite file conflicts. The default is
+<cite>False</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.commandline.Environment.remove">
+<tt class="descname">remove</tt><big>(</big><em>fileName</em><big>)</big><a class="reference internal" href="_modules/src/tools/commandline.html#Environment.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.commandline.Environment.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a regular file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>fileName</strong> : str</p>
+<blockquote class="last">
+<div><p>The path of the file to delete.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.commandline.Environment.removeDirectory">
+<tt class="descname">removeDirectory</tt><big>(</big><em>directory</em>, <em>recursive=True</em><big>)</big><a class="reference internal" href="_modules/src/tools/commandline.html#Environment.removeDirectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.commandline.Environment.removeDirectory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>directory</strong> : str</p>
+<blockquote>
+<div><p>The path of the directory to remove.</p>
+</div></blockquote>
+<p><strong>recursive</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether to recursively remove all sub-materials.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.commandline.Environment.removeDirectoryContents">
+<tt class="descname">removeDirectoryContents</tt><big>(</big><em>directory</em>, <em>filesOnly=True</em>, <em>ignoreHidden=True</em><big>)</big><a class="reference internal" href="_modules/src/tools/commandline.html#Environment.removeDirectoryContents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.commandline.Environment.removeDirectoryContents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the contents of a directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>directory</strong> : str</p>
+<blockquote>
+<div><p>The path of the directory whose contents should be removed.</p>
+</div></blockquote>
+<p><strong>filesOnly</strong> : bool</p>
+<blockquote>
+<div><p>Whether to delete only regular files (i.e. ignore subfolders). The
+default is <cite>True</cite>.</p>
+</div></blockquote>
+<p><strong>ignoreHidden</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether to ignore hidden files and folders. The default is <cite>True</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.commandline.Environment.setPath">
+<tt class="descname">setPath</tt><big>(</big><em>name</em>, <em>value</em><big>)</big><a class="reference internal" href="_modules/src/tools/commandline.html#Environment.setPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.commandline.Environment.setPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set a path-like variable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the environment variable to extend. In this application,
+it will often be &#8220;PYTHONPATH&#8221;.</p>
+</div></blockquote>
+<p><strong>value</strong> : str</p>
+<blockquote class="last">
+<div><p>The value to append to the path.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>commandline</cite> module</a><ul>
+<li><a class="reference internal" href="#notes">Notes</a></li>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#environment">Environment</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_tools_expt_loader.html"
+                        title="previous chapter">The <cite>expt_loader</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_tools_instrospection.html"
+                        title="next chapter">The <cite>instrospection</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_tools_commandline.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_tools_instrospection.html" title="The instrospection module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_tools_expt_loader.html" title="The expt_loader module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_tools.html" >The <cite>tools</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

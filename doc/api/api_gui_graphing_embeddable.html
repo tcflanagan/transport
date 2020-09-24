@@ -1,0 +1,264 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The embeddable module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The graphing package" href="api_gui_graphing.html" />
+    <link rel="next" title="The sequencebuilder package" href="api_gui_sequencebuilder.html" />
+    <link rel="prev" title="The basicframe module" href="api_gui_graphing_basicframe.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_sequencebuilder.html" title="The sequencebuilder package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_graphing_basicframe.html" title="The basicframe module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li>
+          <li><a href="api_gui_graphing.html" accesskey="U">The <cite>graphing</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.gui.graphing.embeddable">
+<span id="the-embeddable-module"></span><h1>The <cite>embeddable</cite> module<a class="headerlink" href="#module-src.gui.graphing.embeddable" title="Permalink to this headline">¶</a></h1>
+<p>A panel for containing multiple graphs which can be embedded in a frame.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="embeddablegraphmanager">
+<h3>EmbeddableGraphManager<a class="headerlink" href="#embeddablegraphmanager" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.graphing.embeddable.EmbeddableGraphManager">
+<em class="property">class </em><tt class="descclassname">src.gui.graphing.embeddable.</tt><tt class="descname">EmbeddableGraphManager</tt><big>(</big><em>parentFrame</em>, <em>graphPanels</em><big>)</big><a class="reference internal" href="_modules/src/gui/graphing/embeddable.html#EmbeddableGraphManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.graphing.embeddable.EmbeddableGraphManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class to manage the graphs for an experiment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parentFrame</strong> : wx.Window</p>
+<blockquote>
+<div><p>The frame or panel which contains the panels for the individual graphs.</p>
+</div></blockquote>
+<p><strong>graphPanels</strong> : list of GraphPanel</p>
+<blockquote class="last">
+<div><p>A list containing all of the <cite>GraphPanel</cite> objects which this
+<cite>GraphManager</cite> will manage.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.graphing.embeddable.EmbeddableGraphManager.abort">
+<tt class="descname">abort</tt><big>(</big><em>timeout=10</em><big>)</big><a class="reference internal" href="_modules/src/gui/graphing/embeddable.html#EmbeddableGraphManager.abort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.graphing.embeddable.EmbeddableGraphManager.abort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop the thread for updating the graphs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.graphing.embeddable.EmbeddableGraphManager.getGraphs">
+<tt class="descname">getGraphs</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/graphing/embeddable.html#EmbeddableGraphManager.getGraphs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.graphing.embeddable.EmbeddableGraphManager.getGraphs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the figures for the graphs so that they can be saved.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.graphing.embeddable.EmbeddableGraphManager.saveGraphs">
+<tt class="descname">saveGraphs</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="_modules/src/gui/graphing/embeddable.html#EmbeddableGraphManager.saveGraphs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.graphing.embeddable.EmbeddableGraphManager.saveGraphs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the graphs to a file.</p>
+<p>Resize all graphs to the appropriate size. Then arrange them into a
+grid and save that grid to the file specified by <cite>filename</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>filename</strong> : str</p>
+<blockquote class="last">
+<div><p>A string pointing to which the graph images should be saved. Note 
+that all graphs go to the same file. <cite>filename</cite> should be a 
+complete path name, including an extension.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.graphing.embeddable.EmbeddableGraphManager.setGraphs">
+<tt class="descname">setGraphs</tt><big>(</big><em>graphs</em><big>)</big><a class="reference internal" href="_modules/src/gui/graphing/embeddable.html#EmbeddableGraphManager.setGraphs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.graphing.embeddable.EmbeddableGraphManager.setGraphs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the graphs to manage.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>graphs</strong> : list of Graph</p>
+<blockquote class="last">
+<div><p>A list of <cite>Graph</cite> objects which will send their data to this
+manager to be put into the appropriate panels.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.graphing.embeddable.EmbeddableGraphManager.start">
+<tt class="descname">start</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/graphing/embeddable.html#EmbeddableGraphManager.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.graphing.embeddable.EmbeddableGraphManager.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start the thread for updating the graphs.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="graphthread">
+<h3>GraphThread<a class="headerlink" href="#graphthread" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.graphing.embeddable.GraphThread">
+<em class="property">class </em><tt class="descclassname">src.gui.graphing.embeddable.</tt><tt class="descname">GraphThread</tt><big>(</big><em>parentFrame</em>, <em>graphPanels</em><big>)</big><a class="reference internal" href="_modules/src/gui/graphing/embeddable.html#GraphThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.graphing.embeddable.GraphThread" title="Permalink to this definition">¶</a></dt>
+<dd><p>A thread to update the graphs at regular intervals.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parentFrame</strong> : wx.Window</p>
+<blockquote>
+<div><p>The frame or panel which contains the panels for the individual graphs.</p>
+</div></blockquote>
+<p><strong>graphPanels</strong> : list of GraphPanel</p>
+<blockquote class="last">
+<div><p>A list containing all of the <cite>GraphPanel</cite> objects which this
+thread will manage.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.graphing.embeddable.GraphThread.abort">
+<tt class="descname">abort</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/graphing/embeddable.html#GraphThread.abort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.graphing.embeddable.GraphThread.abort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal that the thread should stop.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>embeddable</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#embeddablegraphmanager">EmbeddableGraphManager</a></li>
+<li><a class="reference internal" href="#graphthread">GraphThread</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_gui_graphing_basicframe.html"
+                        title="previous chapter">The <cite>basicframe</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_gui_sequencebuilder.html"
+                        title="next chapter">The <cite>sequencebuilder</cite> package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_gui_graphing_embeddable.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_sequencebuilder.html" title="The sequencebuilder package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_graphing_basicframe.html" title="The basicframe module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li>
+          <li><a href="api_gui_graphing.html" >The <cite>graphing</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,288 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The premade_loader module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The main package" href="api_gui_main.html" />
+    <link rel="next" title="The expt_editor module" href="api_gui_main_expt_editor.html" />
+    <link rel="prev" title="The base_premade module" href="api_gui_main_base_premade.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_main_expt_editor.html" title="The expt_editor module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_main_base_premade.html" title="The base_premade module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li>
+          <li><a href="api_gui_main.html" accesskey="U">The <cite>main</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.gui.main.premade_loader">
+<span id="the-premade-loader-module"></span><h1>The <cite>premade_loader</cite> module<a class="headerlink" href="#module-src.gui.main.premade_loader" title="Permalink to this headline">¶</a></h1>
+<p>A loader and filter system for premade experiments.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="premademanager">
+<h3>PremadeManager<a class="headerlink" href="#premademanager" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.main.premade_loader.PremadeManager">
+<em class="property">class </em><tt class="descclassname">src.gui.main.premade_loader.</tt><tt class="descname">PremadeManager</tt><a class="reference internal" href="_modules/src/gui/main/premade_loader.html#PremadeManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.premade_loader.PremadeManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class for managing and filtering premade experiments.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.main.premade_loader.PremadeManager.getFiltered">
+<tt class="descname">getFiltered</tt><big>(</big><em>measurementType</em>, <em>cryostat</em>, <em>voltageMode</em>, <em>devices</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/premade_loader.html#PremadeManager.getFiltered"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.premade_loader.PremadeManager.getFiltered" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the items which pass through the filtering parameters.</p>
+<p>Any of the parameters may be &#8216;All&#8217;, in which case that filter
+parameter will not have any effect on the output list. Any input
+which is not &#8216;All&#8217; must be in a particular premade&#8217;s signature
+in order to be returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>measurementType</strong> : str</p>
+<blockquote>
+<div><p>The measurement type string.</p>
+</div></blockquote>
+<p><strong>cryostat</strong> : str</p>
+<blockquote>
+<div><p>The cryostat name.</p>
+</div></blockquote>
+<p><strong>voltageMode</strong> : str</p>
+<blockquote>
+<div><p>The voltage mode (either &#8216;AC&#8217; or &#8216;DC&#8217; in most cases)</p>
+</div></blockquote>
+<p><strong>devices</strong> : str</p>
+<blockquote>
+<div><p>An integer string representing the number of devices to measure.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>tuple of list</strong> :</p>
+<blockquote class="last">
+<div><p>A two-element tuple. The first element is a list of the names
+of the experiments which match the filter conditions. The second
+element is a list of classes corresponding to the names in the
+first list.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.premade_loader.PremadeManager.getStrings">
+<tt class="descname">getStrings</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/premade_loader.html#PremadeManager.getStrings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.premade_loader.PremadeManager.getStrings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of strings representing possible filter values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>tuple of list of str</strong> :</p>
+<blockquote class="last">
+<div><p>A 4-tuple of lists of strings. The first list contains the
+recognized measurement types. The second contains the names of
+the cryostats. The third contains the valid source voltage modes
+(usually either &#8216;AC&#8217; or &#8216;DC&#8217; or both) used in the premades.
+The last list contains the numbers of devices which are represented
+in the premades.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="premadeframe">
+<h3>PremadeFrame<a class="headerlink" href="#premadeframe" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.main.premade_loader.PremadeFrame">
+<em class="property">class </em><tt class="descclassname">src.gui.main.premade_loader.</tt><tt class="descname">PremadeFrame</tt><big>(</big><em>parent</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/premade_loader.html#PremadeFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.premade_loader.PremadeFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>A frame for managing and loading premade experiments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote class="last">
+<div><p>The panel or frame which owns this frame.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.gui.main.premade_loader.constructListBox">
+<tt class="descclassname">src.gui.main.premade_loader.</tt><tt class="descname">constructListBox</tt><big>(</big><em>parent</em>, <em>sizer</em>, <em>label</em>, <em>items</em>, <em>handler=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/premade_loader.html#constructListBox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.premade_loader.constructListBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a list box.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The parent or frame which should own the list box.</p>
+</div></blockquote>
+<p><strong>sizer</strong> : wxSizer</p>
+<blockquote>
+<div><p>The sizer into which the list box&#8217;s panel should go.</p>
+</div></blockquote>
+<p><strong>label</strong> : str</p>
+<blockquote>
+<div><p>The label for the list box&#8217;s static frame.</p>
+</div></blockquote>
+<p><strong>items</strong> : list of str</p>
+<blockquote>
+<div><p>The strings which should serve as the list box&#8217;s initial data.</p>
+</div></blockquote>
+<p><strong>handler</strong> : method</p>
+<blockquote>
+<div><p>The method which should be called when the list box&#8217;s selection
+changes.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>wxListBox</strong> :</p>
+<blockquote class="last">
+<div><p>A list box control.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>premade_loader</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#premademanager">PremadeManager</a></li>
+<li><a class="reference internal" href="#premadeframe">PremadeFrame</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_gui_main_base_premade.html"
+                        title="previous chapter">The <cite>base_premade</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_gui_main_expt_editor.html"
+                        title="next chapter">The <cite>expt_editor</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_gui_main_premade_loader.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_main_expt_editor.html" title="The expt_editor module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_main_base_premade.html" title="The base_premade module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li>
+          <li><a href="api_gui_main.html" >The <cite>main</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

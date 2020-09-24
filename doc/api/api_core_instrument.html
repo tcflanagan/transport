@@ -1,0 +1,880 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The instrument module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The core package" href="api_core.html" />
+    <link rel="next" title="The action module" href="api_core_action.html" />
+    <link rel="prev" title="The core package" href="api_core.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_core_action.html" title="The action module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_core.html" title="The core package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_core.html" accesskey="U">The <cite>core</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.core.instrument">
+<span id="the-instrument-module"></span><h1>The <cite>instrument</cite> module<a class="headerlink" href="#module-src.core.instrument" title="Permalink to this headline">¶</a></h1>
+<p>Software representation of a physical instrument.</p>
+<p>An <cite>Instrument</cite> is an object-oriented representation of an instrument&#8212;that is,
+an object which can accept or return data or do things. Most instruments will be
+physical devices like voltmeters or cryostats, but they may also be purely
+computational.</p>
+<p>This module provides the following class.</p>
+<dl class="docutils">
+<dt>Instrument: </dt>
+<dd>An abstract base class which should be extended by real instruments, each 
+of which should define their own capabilities.</dd>
+</dl>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="instrument">
+<h3>Instrument<a class="headerlink" href="#instrument" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.instrument.Instrument">
+<em class="property">class </em><tt class="descclassname">src.core.instrument.</tt><tt class="descname">Instrument</tt><big>(</big><em>experiment</em>, <em>name='Abstract instrument'</em>, <em>spec=None</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument" title="Permalink to this definition">¶</a></dt>
+<dd><p>An <cite>Instrument</cite> is an object-oriented software representation of a
+physical instrument.</p>
+<p>The <cite>Instrument</cite> class essentially provides an interface (in the 
+technical, computer science sense) which all instruments should implement. 
+It defines the methods and properties which all <cite>Instrument</cite> subclasses 
+are expected to provide, and it should be overridden for each instrument 
+model.</p>
+<p>Since an instrument generally defines what operations it is able to carry
+out, subclasses of <cite>Instrument</cite> should implement the <cite>getActions</cite> method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The <cite>Experiment</cite> object which owns this instrument.</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the instrument.</p>
+</div></blockquote>
+<p><strong>spec</strong> : list of InstrumentParameter</p>
+<blockquote class="last">
+<div><p>A list of instances of <cite>InstrumentParameter</cite> specifying the information
+necessary for the instrument to be used and referenced. This should
+include, for example, the VISA address of the instrument, if
+applicable. If <cite>None</cite>, the default values will be used.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.instrument.Instrument.finalize">
+<tt class="descname">finalize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Release control of the instrument.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.Instrument.getAction">
+<tt class="descname">getAction</tt><big>(</big><em>name</em>, <em>instantiate=True</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.getAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.getAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return either the action tuple or object with the given name.</p>
+<p>Scan through the list of actions implemented by the instrument to find
+one which has the specified name, and return either the <cite>ActionSpec</cite>
+or an <cite>Action</cite> instance associated with it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>A string specifying the name which identifies the desired action.</p>
+</div></blockquote>
+<p><strong>instantiate</strong> : bool</p>
+<blockquote>
+<div><p>Whether to create an instance of the action. If <cite>False</cite>, the
+<cite>ActionSpec</cite> tuple will be returned instead of an <cite>Action</cite> object.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>ActionSpec or Action</strong> :</p>
+<blockquote class="last">
+<div><p>The <cite>ActionSpec</cite> (if <cite>instantiate</cite> is <cite>False</cite>) or <cite>Action</cite> (if
+<cite>instantiate</cite> is <cite>True) specified by `name</cite>, or <cite>None</cite> if <cite>name</cite>
+cannot be found.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.Instrument.getActions">
+<tt class="descname">getActions</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.getActions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.getActions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of <cite>Action</cite> tuples implemented by the instrument.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="src.core.instrument.Instrument.getDefaultName">
+<em class="property">classmethod </em><tt class="descname">getDefaultName</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.getDefaultName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.getDefaultName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a default name for the instrument.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.Instrument.getEqualEnoughAction">
+<tt class="descname">getEqualEnoughAction</tt><big>(</big><em>compAction</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.getEqualEnoughAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.getEqualEnoughAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an <cite>Action</cite> which is &#8216;the same as&#8217; compAction.</p>
+<p>Two actions are &#8220;the same&#8221; if they have the same description and the 
+same parameters. Parameters are &#8220;the same&#8221; if they have the same
+name, description, and format string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.Instrument.getExperiment">
+<tt class="descname">getExperiment</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.getExperiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.getExperiment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the experiment which owns this instrument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>Experiment</strong> :</p>
+<blockquote class="last">
+<div><p>The <cite>Experiment</cite> object of which this instrument is part.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.Instrument.getInformation">
+<tt class="descname">getInformation</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.getInformation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.getInformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the information string describing this instrument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>The information string for this instrument.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.Instrument.getName">
+<tt class="descname">getName</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.getName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.getName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the user-specified name of this instrument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>The name of the instrument.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="src.core.instrument.Instrument.getRequiredParameters">
+<em class="property">classmethod </em><tt class="descname">getRequiredParameters</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.getRequiredParameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.getRequiredParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a template for the specification of the instrument.</p>
+<p>The specification indicates which parameters must be defined for the
+instrument to work. This should be overridden to indicate the 
+parameters required for specific instruments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of InstrumentParameter</strong> :</p>
+<blockquote class="last">
+<div><p>A list of <cite>InstrumentParameter</cite> objects indicating what 
+information must be supplied to configure the instrument.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.Instrument.getSpecification">
+<tt class="descname">getSpecification</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.getSpecification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.getSpecification" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the specification of the instrument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of InstrumentParameter</strong> :</p>
+<blockquote class="last">
+<div><p>A list of <cite>InstrumentParameters</cite> indicating the information
+characterizing the instrument.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.Instrument.getStatusMonitor">
+<tt class="descname">getStatusMonitor</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.getStatusMonitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.getStatusMonitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the status monitor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>StatusMonitor</strong> :</p>
+<blockquote class="last">
+<div><p>The <cite>StatusMonitor</cite> object for this instrument.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.Instrument.getXML">
+<tt class="descname">getXML</tt><big>(</big><em>indent=0</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.getXML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.getXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an XML string representing the instrument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>A string containing XML data representing all of the data related
+to the instrument, possibly useful as an alternative to pickle.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.Instrument.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare the instrument for use.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="src.core.instrument.Instrument.isSingleton">
+<em class="property">classmethod </em><tt class="descname">isSingleton</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.isSingleton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.isSingleton" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether at most one instance of the instrument may exist.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether only zero or one instance of the instrument may exist.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.Instrument.setExperiment">
+<tt class="descname">setExperiment</tt><big>(</big><em>experiment</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.setExperiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.setExperiment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the experiment which owns this instrument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>experiment</strong> : Experiment</p>
+<blockquote class="last">
+<div><p>The <cite>Experiment</cite> object of which this instrument is part.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.Instrument.setName">
+<tt class="descname">setName</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.setName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.setName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the name of the instrument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote class="last">
+<div><p>The name of the instrument.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.Instrument.setSpecification">
+<tt class="descname">setSpecification</tt><big>(</big><em>newSpec</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.setSpecification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.setSpecification" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the specification of the instrument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>newSpec</strong> : list of InstrumentParameter</p>
+<blockquote class="last">
+<div><p>A list of <cite>InstrumentParameters</cite> indicating the information
+characterizing the instrument.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.Instrument.setStatusMonitor">
+<tt class="descname">setStatusMonitor</tt><big>(</big><em>statusMonitor</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.setStatusMonitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.setStatusMonitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the status monitor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>statusMonitor</strong> : StatusMonitor</p>
+<blockquote class="last">
+<div><p>The new <cite>StatusMonitor</cite> object for this instrument.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.Instrument.waitWhilePaused">
+<tt class="descname">waitWhilePaused</tt><big>(</big><em>obeyPause=True</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Instrument.waitWhilePaused"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Instrument.waitWhilePaused" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait until the experiment is no longer paused.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="instrumentparameter">
+<h3>InstrumentParameter<a class="headerlink" href="#instrumentparameter" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.instrument.InstrumentParameter">
+<em class="property">class </em><tt class="descclassname">src.core.instrument.</tt><tt class="descname">InstrumentParameter</tt><big>(</big><em>description</em>, <em>value=''</em>, <em>allowed=None</em>, <em>formatString='%s'</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#InstrumentParameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.InstrumentParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>A parameter for characterizing an instrument.</p>
+<p>Each <cite>Instrument</cite> object must specify what information is necessary to
+initially configure itself. For example, in order to communicate with the
+computer, an <cite>Instrument</cite> representing any GPIB instrument must have
+a VISA address, so that <cite>Instrument</cite> should require a <cite>Parameter</cite> object
+corresponding to said address.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>description</strong> : str</p>
+<blockquote>
+<div><p>A string indicating what the parameter is, so that the software can
+prompt the user for a value in an understandable way.</p>
+</div></blockquote>
+<p><strong>value</strong> : str or int or float</p>
+<blockquote>
+<div><p>The value of the parameter. Since parameters are initially defined
+at compile time, they are defined with a <em>default</em> value. This can
+later be changed.</p>
+</div></blockquote>
+<p><strong>allowed</strong> : list or function or None</p>
+<blockquote>
+<div><p>Information to indicate what values are permitted for the parameter.
+If <cite>allowed</cite> is <cite>None</cite>, any value will be accepted (assuming, of
+course, that it can be typecast into the form indicated by 
+<cite>formatString</cite>). If it is a function (or a method), the function
+will be evaluated and returned every time the <cite>allowed</cite> property is
+queried. Using a function would be useful for getting a list of
+VISA addresses seen by the computer; a simple list would not be
+good, since instruments can be connected or disconnected, which would
+change the values.</p>
+</div></blockquote>
+<p><strong>formatString</strong> : str</p>
+<blockquote class="last">
+<div><p>A string indicating how the value should be formatted. An example
+could be &#8216;%.6e&#8217; for an exponential value with six digits after the
+decimal. Note that &#8216;%s&#8217; (a simple string) is the only value which
+makes sense if <cite>allowed</cite> is not <cite>None</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="attribute">
+<dt id="src.core.instrument.InstrumentParameter.allowed">
+<tt class="descname">allowed</tt><a class="reference internal" href="_modules/src/core/instrument.html#InstrumentParameter.allowed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.InstrumentParameter.allowed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the allowed values for the parameter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of str or None</strong> :</p>
+<blockquote class="last">
+<div><p>The allowed values for the parameter. If any value is accepted,
+then <cite>None</cite> is returned. Otherwise, the returned value will be
+a list of strings.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.core.instrument.InstrumentParameter.description">
+<tt class="descname">description</tt><a class="reference internal" href="_modules/src/core/instrument.html#InstrumentParameter.description"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.InstrumentParameter.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the description of the instrument parameter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>The description of the instrument parameter.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.InstrumentParameter.getXML">
+<tt class="descname">getXML</tt><big>(</big><em>indent=0</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#InstrumentParameter.getXML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.InstrumentParameter.getXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an XML string representing the parameter.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.core.instrument.InstrumentParameter.value">
+<tt class="descname">value</tt><a class="reference internal" href="_modules/src/core/instrument.html#InstrumentParameter.value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.InstrumentParameter.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the value of the instrument parameter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str or int or float</strong> :</p>
+<blockquote class="last">
+<div><p>The value of the instrument parameter. The value will be of the
+proper type. For example, if the parameter represents a lock-in&#8217;s
+frequency, the value will be a float.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="controller">
+<h3>Controller<a class="headerlink" href="#controller" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.instrument.Controller">
+<em class="property">class </em><tt class="descclassname">src.core.instrument.</tt><tt class="descname">Controller</tt><big>(</big><em>group=None</em>, <em>target=None</em>, <em>name=None</em>, <em>args=()</em>, <em>kwargs=None</em>, <em>verbose=None</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Controller"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Controller" title="Permalink to this definition">¶</a></dt>
+<dd><p>A base class for instrument controllers.</p>
+<p>Every subclass must implement the <cite>getInstrumentClassName</cite> class method,
+which should return a string indicating the name of the class of the
+instrument controlled by the <cite>Controller</cite> subclass.</p>
+<p class="rubric">Methods</p>
+<dl class="classmethod">
+<dt id="src.core.instrument.Controller.getInstrumentClassName">
+<em class="property">classmethod </em><tt class="descname">getInstrumentClassName</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Controller.getInstrumentClassName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Controller.getInstrumentClassName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the class name of the instrument managed by this controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>The name of the class of the instrument controlled by this object.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="src.core.instrument.Controller.isSingleton">
+<em class="property">classmethod </em><tt class="descname">isSingleton</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Controller.isSingleton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Controller.isSingleton" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether at most one instance of the controller may exist.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether only zero or one instance of the controller may exist.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="system">
+<h3>System<a class="headerlink" href="#system" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.instrument.System">
+<em class="property">class </em><tt class="descclassname">src.core.instrument.</tt><tt class="descname">System</tt><big>(</big><em>experiment</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#System"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.System" title="Permalink to this definition">¶</a></dt>
+<dd><p>A software representation of the computer.</p>
+<p>The <cite>System</cite> instrument carries out a host of general-purpose operations
+including inserting time delays, setting filenames, and performing
+calculations.</p>
+<p>It also provides access to a series of loop types for performing a
+single action, or a set of actions, multiple times.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.instrument.System.calculate">
+<tt class="descname">calculate</tt><big>(</big><em>expr</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#System.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.System.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numerically evaluate an expression.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>expr</strong> : str</p>
+<blockquote>
+<div><p>A string which, when constants, parameters, column data, and
+standard mathematical functions have been substituted into it,
+represents a mathematical expression that can be evaluated to
+yield a floating-point number.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The result of evaluating the input expression.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.System.finalize">
+<tt class="descname">finalize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#System.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.System.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalize the instrument</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.System.getActions">
+<tt class="descname">getActions</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#System.getActions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.System.getActions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of supported actions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.System.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#System.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.System.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the instrument.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.System.setFile">
+<tt class="descname">setFile</tt><big>(</big><em>folder</em>, <em>filebase</em>, <em>scan</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#System.setFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.System.setFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the files to which the data will be stored.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>folder</strong> : str</p>
+<blockquote>
+<div><p>The folder into which the file will be saved. The folder must
+exist.</p>
+</div></blockquote>
+<p><strong>filebase</strong> : str</p>
+<blockquote>
+<div><p>The base name of the file, which is the filename without any
+leading directories or following extensions.</p>
+</div></blockquote>
+<p><strong>scan</strong> : int</p>
+<blockquote class="last">
+<div><p>A scan number to prepend to the filename. If it is a positive
+number, it will be used as-is. If it is negative, the scan
+will be chosen to be the first integer larger than all other
+scan numbers in the data folder. If it is <cite>None</cite>, no scan number
+will be prepended.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.System.setNumber">
+<tt class="descname">setNumber</tt><big>(</big><em>number</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#System.setNumber"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.System.setNumber" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value of an internal number.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.System.setStoredString">
+<tt class="descname">setStoredString</tt><big>(</big><em>string</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#System.setStoredString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.System.setStoredString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value of an internal string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.System.waitLong">
+<tt class="descname">waitLong</tt><big>(</big><em>delay</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#System.waitLong"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.System.waitLong" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pause for a specified time, updating while waiting.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>delay</strong> : float</p>
+<blockquote class="last">
+<div><p>The time to wait, in seconds.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.System.waitShort">
+<tt class="descname">waitShort</tt><big>(</big><em>delay</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#System.waitShort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.System.waitShort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pause for a specified time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>time</strong> : float</p>
+<blockquote class="last">
+<div><p>The time to wait, in seconds.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="postprocessor">
+<h3>Postprocessor<a class="headerlink" href="#postprocessor" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.instrument.Postprocessor">
+<em class="property">class </em><tt class="descclassname">src.core.instrument.</tt><tt class="descname">Postprocessor</tt><big>(</big><em>experiment</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Postprocessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Postprocessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>An instrument for performing post-experiment actions and calculations.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.instrument.Postprocessor.loadPostprocessors">
+<tt class="descname">loadPostprocessors</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Postprocessor.loadPostprocessors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Postprocessor.loadPostprocessors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search in the default locations to find postprocessor methods.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.instrument.Postprocessor.splitFile">
+<tt class="descname">splitFile</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#Postprocessor.splitFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.Postprocessor.splitFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>split files</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.core.instrument.getVisaAddresses">
+<tt class="descclassname">src.core.instrument.</tt><tt class="descname">getVisaAddresses</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#getVisaAddresses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.getVisaAddresses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of available VISA addresses.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of str</strong> :</p>
+<blockquote class="last">
+<div><p>A list of strings representing the VISA addresses which the
+VISA controller recognizes as having an associated instrument
+attached.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.core.instrument.generateFilenameA">
+<tt class="descclassname">src.core.instrument.</tt><tt class="descname">generateFilenameA</tt><big>(</big><em>folder</em>, <em>baseName</em>, <em>scan=-1</em>, <em>noOverwrite=True</em><big>)</big><a class="reference internal" href="_modules/src/core/instrument.html#generateFilenameA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.instrument.generateFilenameA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a filename, applying the desired modifications.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>folder</strong> : str</p>
+<blockquote>
+<div><p>The path to the folder into which data will be saved.</p>
+</div></blockquote>
+<p><strong>baseName</strong> : str</p>
+<blockquote>
+<div><p>The name, relative to <cite>folder</cite>, which should be used for the data
+files. If it does not include an extension, &#8221;.xdat&#8221; will be used.</p>
+</div></blockquote>
+<p><strong>scan</strong> : int</p>
+<blockquote>
+<div><p>If positive, <cite>scan</cite> will be interpreted as the scan number for the
+files. If it is negative, the next scan number will be chosen
+automatically. If it is <cite>None</cite>, no scan number will be prepended
+to the filenames. (default = -1)</p>
+</div></blockquote>
+<p><strong>noOverwrite</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether to append numbers to the end of the name to prevent over-
+writing data. (default = <cite>True</cite>)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>instrument</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#instrument">Instrument</a></li>
+<li><a class="reference internal" href="#instrumentparameter">InstrumentParameter</a></li>
+<li><a class="reference internal" href="#controller">Controller</a></li>
+<li><a class="reference internal" href="#system">System</a></li>
+<li><a class="reference internal" href="#postprocessor">Postprocessor</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_core.html"
+                        title="previous chapter">The <cite>core</cite> package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_core_action.html"
+                        title="next chapter">The <cite>action</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_core_instrument.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_core_action.html" title="The action module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_core.html" title="The core package"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_core.html" >The <cite>core</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

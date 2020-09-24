@@ -1,0 +1,481 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The path_tools module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The tools package" href="api_tools.html" />
+    <link rel="next" title="The instruments package" href="api_instruments.html" />
+    <link rel="prev" title="The instrospection module" href="api_tools_instrospection.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments.html" title="The instruments package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_tools_instrospection.html" title="The instrospection module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_tools.html" accesskey="U">The <cite>tools</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.tools.path_tools">
+<span id="the-path-tools-module"></span><h1>The <cite>path_tools</cite> module<a class="headerlink" href="#module-src.tools.path_tools" title="Permalink to this headline">¶</a></h1>
+<p>A set of tools for managing paths.</p>
+<p>The <cite>path_tools</cite> module provides auxiliary methods for converting between 
+different path names. It&#8217;s main function is to convert path names indicated
+relative to the Transport directory to absolute path names.</p>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.tools.path_tools.flatten">
+<tt class="descclassname">src.tools.path_tools.</tt><tt class="descname">flatten</tt><big>(</big><em>nested</em><big>)</big><a class="reference internal" href="_modules/src/tools/path_tools.html#flatten"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.path_tools.flatten" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a nested list and returns a flattened list. The output is always a
+single-level list, and the input can be a tuple, a list, a string, an 
+uncombined sequence of strings, or any nested combination of these.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>nested</strong> : sequence</p>
+<blockquote>
+<div><p>A (possibly) nested sequence of strings. It can be entered as a list,
+a single string, a tuple, or simply a comma-separated series of
+arguments.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list</strong> :</p>
+<blockquote class="last">
+<div><p>A single-level list of the same elements.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.path_tools.unrel">
+<tt class="descclassname">src.tools.path_tools.</tt><tt class="descname">unrel</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/src/tools/path_tools.html#unrel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.path_tools.unrel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Expand a relative path into an absolute path.</p>
+<p>Merges the components in args (which may be a list, a tuple, or simply a
+comma-separated series) and assembles a full path, assuming they are paths
+relative to the project root.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>args</strong> : sequence</p>
+<blockquote>
+<div><p>A (possibly) nested sequence of strings representing path elements,
+relative to the root of the Transport project tree. It can be entered 
+as a list, a single string, a tuple, or simply a comma-separated series 
+of arguments.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>The absolute path of the specified file.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.path_tools.rel">
+<tt class="descclassname">src.tools.path_tools.</tt><tt class="descname">rel</tt><big>(</big><em>path</em>, <em>asList=False</em><big>)</big><a class="reference internal" href="_modules/src/tools/path_tools.html#rel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.path_tools.rel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert an absolute path to one relative to the project home.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>path</strong> : str</p>
+<blockquote>
+<div><p>The absolute path to convert to a relative path.</p>
+</div></blockquote>
+<p><strong>asList</strong> : bool</p>
+<blockquote>
+<div><p>Whether to return the result as a list. If <cite>False</cite>, the path will be
+returned as a string. The default is <cite>False</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str or list(str)</strong> :</p>
+<blockquote class="last">
+<div><p>The path relative to the project home. If <cite>asList</cite> is <cite>True</cite>, the result
+is a list of path components. If it is <cite>False</cite>, the result is a relative
+path string. If <cite>path</cite> is not a child of the project home, <cite>None</cite> is
+returned.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.path_tools.pathToImportString">
+<tt class="descclassname">src.tools.path_tools.</tt><tt class="descname">pathToImportString</tt><big>(</big><em>path</em>, <em>isRelative=True</em>, <em>importItem=None</em>, <em>importFrom=True</em><big>)</big><a class="reference internal" href="_modules/src/tools/path_tools.html#pathToImportString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.path_tools.pathToImportString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a path to a string suitable for importing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>path</strong> : str</p>
+<blockquote>
+<div><p>The path of a python module.</p>
+</div></blockquote>
+<p><strong>isRelative</strong> : bool</p>
+<blockquote>
+<div><p>Whether <cite>path</cite> is relative to the project home. If <cite>False</cite>, <cite>path</cite> will
+be taken to be an absolute path. The default is <cite>True</cite>.</p>
+</div></blockquote>
+<p><strong>importItem</strong> : str</p>
+<blockquote>
+<div><p>The name of the item to be imported.</p>
+</div></blockquote>
+<p><strong>importFrom</strong> : bool</p>
+<blockquote>
+<div><p>If <cite>importItem</cite> is <cite>None</cite>: Whether the import string should be of the 
+form <tt class="docutils literal"><span class="pre">from</span> <span class="pre">[package]</span> <span class="pre">import</span> <span class="pre">[module]</span></tt>. If <cite>False</cite>, the import string 
+will be of the form <tt class="docutils literal"><span class="pre">import</span> <span class="pre">[package].[module]</span></tt>.</p>
+<p>If <cite>importItem</cite> is <strong>not</strong> <cite>None</cite>: whether the import string should be
+of the form <tt class="docutils literal"><span class="pre">from</span> <span class="pre">[package].[module]</span> <span class="pre">import</span> <span class="pre">[importItem]</span></tt>. If <cite>False</cite>,
+the import string will be of the form 
+<tt class="docutils literal"><span class="pre">import</span> <span class="pre">[package].[module].[importItem]</span></tt>.</p>
+<p>The default is <cite>True</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>tuple (str, str)</strong> :</p>
+<blockquote class="last">
+<div><p>A two element tuple where the first element is a string containing
+the requested components separated by periods, and the second is a
+string which can be passed to <cite>exec</cite> to actually perform the import.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.path_tools.normalizePath">
+<tt class="descclassname">src.tools.path_tools.</tt><tt class="descname">normalizePath</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="_modules/src/tools/path_tools.html#normalizePath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.path_tools.normalizePath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace all backslashes with front-slashes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>path</strong> : str</p>
+<blockquote>
+<div><p>A file path to normalize.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>The path with all front-slashes.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.path_tools.splitPath">
+<tt class="descclassname">src.tools.path_tools.</tt><tt class="descname">splitPath</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="_modules/src/tools/path_tools.html#splitPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.path_tools.splitPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the path split into its components.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>path</strong> : str</p>
+<blockquote>
+<div><p>A file path.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of str</strong> :</p>
+<blockquote class="last">
+<div><p>A list of strings representing the components of <cite>path</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.path_tools.lsAbsolute">
+<tt class="descclassname">src.tools.path_tools.</tt><tt class="descname">lsAbsolute</tt><big>(</big><em>directory</em>, <em>filesOnly=False</em><big>)</big><a class="reference internal" href="_modules/src/tools/path_tools.html#lsAbsolute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.path_tools.lsAbsolute" title="Permalink to this definition">¶</a></dt>
+<dd><p>List the contents of a directory specified by an absolute path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>directory</strong> : str</p>
+<blockquote>
+<div><p>The absolute path of the directory to list.</p>
+</div></blockquote>
+<p><strong>filesOnly</strong> : bool</p>
+<blockquote>
+<div><p>Whether to ignore subdirectories of <cite>directory</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of str</strong> :</p>
+<blockquote class="last">
+<div><p>The contents of <cite>directory</cite> as a list of strings.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.path_tools.ls">
+<tt class="descclassname">src.tools.path_tools.</tt><tt class="descname">ls</tt><big>(</big><em>directory</em>, <em>filesOnly=False</em><big>)</big><a class="reference internal" href="_modules/src/tools/path_tools.html#ls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.path_tools.ls" title="Permalink to this definition">¶</a></dt>
+<dd><p>List the contents of a directory specified relative to the project home.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>directory</strong> : str</p>
+<blockquote>
+<div><p>The relative (to the project home) path of the directory to list.</p>
+</div></blockquote>
+<p><strong>filesOnly</strong> : bool</p>
+<blockquote>
+<div><p>Whether to ignore subdirectories of <cite>directory</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list(str)</strong> :</p>
+<blockquote class="last">
+<div><p>The contents of <cite>directory</cite> as a list of strings.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.path_tools.getNextScan">
+<tt class="descclassname">src.tools.path_tools.</tt><tt class="descname">getNextScan</tt><big>(</big><em>directory</em><big>)</big><a class="reference internal" href="_modules/src/tools/path_tools.html#getNextScan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.path_tools.getNextScan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the next scan number.</p>
+<p>Determine the next unused scan number, assuming that scans are indicated
+by &#8216;sNNN&#8217; or &#8216;sNNNN&#8217;, where N is a digit.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>directory</strong> : str</p>
+<blockquote>
+<div><p>The absolute path of the directory of data files.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>A string representing the next scan number. It&#8217;s format is &#8220;sNNN&#8221;,
+where N is an integer.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.path_tools.appendDigitsAsNecessary">
+<tt class="descclassname">src.tools.path_tools.</tt><tt class="descname">appendDigitsAsNecessary</tt><big>(</big><em>folder</em>, <em>basename</em>, <em>extension='xdat'</em><big>)</big><a class="reference internal" href="_modules/src/tools/path_tools.html#appendDigitsAsNecessary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.path_tools.appendDigitsAsNecessary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append digits to avoid filename clashes.</p>
+<p>Append incrementally larger digits to the name of a file until the name
+does not collide with existing files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>folder</strong> : str</p>
+<blockquote>
+<div><p>The folder in which the data file will be saved. It should <strong>not</strong>
+include a trailing slash.</p>
+</div></blockquote>
+<p><strong>basename</strong> : str</p>
+<blockquote>
+<div><p>The base name of the data file. It should include a scan number, if
+applicable, but it should <strong>not</strong> include an extension.</p>
+</div></blockquote>
+<p><strong>extension</strong> : str</p>
+<blockquote>
+<div><p>The intended extension of the filename. It should not include a
+leading period.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>The base name for the data file with appropriate digits added and
+no extension.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.path_tools.getFilesPostprocessor">
+<tt class="descclassname">src.tools.path_tools.</tt><tt class="descname">getFilesPostprocessor</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/path_tools.html#getFilesPostprocessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.path_tools.getFilesPostprocessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dictionary containing data about postprocessor scripts.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>dict</strong> :</p>
+<blockquote class="last">
+<div><p>A dictionary in which the keys are strings representing an absolute
+filename without an extension. The value for each key is a dictionary
+with three keys: &#8216;py&#8217;, &#8216;pyc&#8217;, &#8216;pyo&#8217;. Each of the values is a <cite>bool</cite>
+specifying whether the base file with the corresponding extension 
+exists.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.path_tools.createHomePathOld">
+<tt class="descclassname">src.tools.path_tools.</tt><tt class="descname">createHomePathOld</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/path_tools.html#createHomePathOld"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.path_tools.createHomePathOld" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the home path the old way if necessary.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.path_tools.createHomePath">
+<tt class="descclassname">src.tools.path_tools.</tt><tt class="descname">createHomePath</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/path_tools.html#createHomePath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.path_tools.createHomePath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the home path if necessary.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>path_tools</cite> module</a><ul>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_tools_instrospection.html"
+                        title="previous chapter">The <cite>instrospection</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_instruments.html"
+                        title="next chapter">The <cite>instruments</cite> package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_tools_path_tools.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments.html" title="The instruments package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_tools_instrospection.html" title="The instrospection module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_tools.html" >The <cite>tools</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

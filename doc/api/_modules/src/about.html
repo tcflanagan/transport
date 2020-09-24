@@ -1,0 +1,294 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.about &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.about</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Basic information about the program and changes to it.&quot;&quot;&quot;</span>
+
+<span class="n">APP_NAME</span> <span class="o">=</span> <span class="s">&#39;Transport&#39;</span>
+<span class="n">APP_FOLDER</span> <span class="o">=</span> <span class="s">&#39;Transport1&#39;</span>
+<span class="n">DATA_FOLDER</span> <span class="o">=</span> <span class="s">&#39;transport&#39;</span>
+
+<span class="n">VERSIONS</span> <span class="o">=</span> <span class="p">[[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Changed how file extensions work---now using parameters &#39;</span>
+              <span class="s">&#39;defined in settings.py.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Added classes for handling getting run-time information from &#39;</span>
+              <span class="s">&#39;the user.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s">&#39;2014-05-30&#39;</span><span class="p">,</span> <span class="s">&#39;19:40&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Rewrote the instrument loader to use Python introspection &#39;</span>
+              <span class="s">&#39;features rather than regular expression parsing.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Removed some junk from the class hierarchy for instruments, &#39;</span>
+              <span class="s">&#39;including all abstract base classes, which were rendered &#39;</span>
+              <span class="s">&#39;superfluous by the change to proper introspection.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Modified the experiment open and save feature to use XML files &#39;</span>
+              <span class="s">&#39;instead of pickle files.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="s">&#39;2014-04-24&#39;</span><span class="p">,</span> <span class="s">&#39;11:32&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Cleaned up some code in experiment.py, removing duplication &#39;</span>
+              <span class="s">&#39;with expression/conditional evaluation and deleting methods &#39;</span>
+              <span class="s">&#39;which are never used.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Began writing a controller frame for the vector magnet.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Fixed some problems with opening and saving experiments.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s">&#39;2014-04-19&#39;</span><span class="p">,</span> <span class="s">&#39;19:45&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Created a basic system for defining postprocessor functions &#39;</span> 
+              <span class="s">&#39;and a new Action subclass to go with it.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Created a frame for displaying experiment info on request.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Fixed a bug triggered when double-clicking on the end-of-&#39;</span>
+              <span class="s">&#39;container lines in the Sequence Editor.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Wrote code for turning an experiment into XML and began &#39;</span> 
+              <span class="s">&#39;writing a script to convert it back.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Modified the method for setting experiment interaction &#39;</span>
+              <span class="s">&#39;parameters to accept only keyword arguments (eliminating the &#39;</span>
+              <span class="s">&#39;method for clearing said parameters).&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s">&#39;2014-04-07&#39;</span><span class="p">,</span> <span class="s">&#39;14:48&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Removed seconds from the changelog timestamps.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Fixed some docstrings to be in accord with recent changes.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Changed the logging system to show only a single character for&#39;</span> 
+              <span class="s">&#39;the logging level.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Wrote some summary-level docstrings for the src package.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Made oxford_common.py load visa from instrument.py rather &#39;</span>
+              <span class="s">&#39;than from pyvisa directly.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Removed the oxford_common_fake garbage.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Changed the formatting of the logging system slightly.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Significantly expanded the available lock-in amplifier &#39;</span> 
+              <span class="s">&#39;methods and actions to the point of possible usefulness.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="s">&#39;2014-03-27&#39;</span><span class="p">,</span> <span class="s">&#39;17:52&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Made it so that moving things in the SequenceFrame does not &#39;</span>
+              <span class="s">&#39;affect the clipboard.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Fixed Parameter cloning behavior so that the instantiate &#39;</span>
+              <span class="s">&#39;attribute is set to False for clones.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Fixed some silly sizing issues in the filename panel for &#39;</span>
+              <span class="s">&#39;premades.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Rewrote the versioning system to make the changelog an in-code &#39;</span>
+              <span class="s">&#39;system.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Reformatted the log file header&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Modified the SVN update system so that the message comes &#39;</span>
+              <span class="s">&#39;from the in-code changelog rather than from a dialog. The &#39;</span>
+              <span class="s">&#39;update no longer affects anything locally---it only updates &#39;</span>
+              <span class="s">&#39;the repository. It may still optionally update documentation.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Removed versioning.py.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="s">&#39;2014-03-09&#39;</span><span class="p">,</span> <span class="s">&#39;12:32&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Fixed a problem with the sizing on the while-loop dialogs.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s">&#39;2014-03-05&#39;</span><span class="p">,</span> <span class="s">&#39;09:24&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Started writing some dummy Oxford classes for testing &#39;</span>
+              <span class="s">&#39;purposes.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="s">&#39;2014-02-19&#39;</span><span class="p">,</span> <span class="s">&#39;12:00&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Made progress on single, unified configuration parser, and set &#39;</span>
+              <span class="s">&#39;it up for use in base_premade.py and configuration.py&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Made the help data be loaded on use rather than on &#39;</span>
+              <span class="s">&#39;initialization.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="s">&#39;2014-02-07&#39;</span><span class="p">,</span> <span class="s">&#39;10:33&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Got sizing working properly on the custom grid (scan) panel&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Reorganized things slightly.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s">&#39;2014-02-04&#39;</span><span class="p">,</span> <span class="s">&#39;09:18&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Added a way to interrupt manual loop actions in the &#39;</span> 
+              <span class="s">&#39;SequenceFrame&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Added a basic way to prompt for user input from the command &#39;</span>
+              <span class="s">&#39;line.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Renamed status_monitor.py to progress.py.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Put basic version information into an about.py module.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Moved file-naming stuff into appropriate modules---&#39;</span>
+              <span class="s">&#39;file_naming.py and instrument.py, under System---out of &#39;</span>
+              <span class="s">&#39;pathtools.py.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Got rid of some pointless methods regarding forcing lengths to &#39;</span>
+              <span class="s">&#39;three in path_tools.py.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Moved stability checkers from general.py to stability.py.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="s">&#39;2014-01-27&#39;</span><span class="p">,</span> <span class="s">&#39;15:41&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Minor changes to the organization, moving all development-&#39;</span>
+              <span class="s">&#39;related things into a separate dev package.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="s">&#39;2014-01-23&#39;</span><span class="p">,</span> <span class="s">&#39;11:31&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Began writing a new scrolled grid panel.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="s">&#39;2014-01-22&#39;</span><span class="p">,</span> <span class="s">&#39;11:31&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Finished the dialog for auto-naming files. Wrote a panel for &#39;</span>
+              <span class="s">&#39;displaying the results. Changed the auto-naming data storage to &#39;</span>
+              <span class="s">&#39;use a specialized container class.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="s">&#39;2014-01-21&#39;</span><span class="p">,</span> <span class="s">&#39;20:14&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Made minor modifications to the SVN Updater dialog.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="s">&#39;2014-01-21&#39;</span><span class="p">,</span> <span class="s">&#39;20:11&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Wrote a dialog to take parameters for generating filenames &#39;</span>
+              <span class="s">&#39;according to group customs.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s">&#39;2014-01-20&#39;</span><span class="p">,</span> <span class="s">&#39;09:06&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Fixed a bug related to disabled graphs being improperly &#39;</span>
+              <span class="s">&#39;re-enabled.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Stopped trying to save graphs when none have been defined and &#39;</span>
+              <span class="s">&#39;enabled.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Cleaned up the handling of displaying graph information &#39;</span> 
+              <span class="s">&#39;slightly, so that experiment.py can give a list of tuples &#39;</span>
+              <span class="s">&#39;consisting of graph title and enabled state.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Changed SequenceFrame to never show the extension for &#39;</span>
+              <span class="s">&#39;experiment filenames.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Got rid of unusedbutpossiblyuseful.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="s">&#39;2014-01-20&#39;</span><span class="p">,</span> <span class="s">&#39;06:29&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Changed experiment.py to do calculations using the math module &#39;</span>
+              <span class="s">&#39;rather than the numpy module; it is significantly faster.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Changed the format of log messages somewhat in experiment.py.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Recompiled the documentation.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Made other minor stylistic changes.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="s">&#39;2014-01-19&#39;</span><span class="p">,</span> <span class="s">&#39;20:25&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Refactored data saving in experiment.py, inlining stuff and &#39;</span>
+              <span class="s">&#39;switching to a list comprehension. Timed it to make sure it was &#39;</span>
+              <span class="s">&#39;in fact faster. Removed some short, single-line methods.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Experiment objects now can return only single graph objects and &#39;</span>
+              <span class="s">&#39;lists of the names of graphs, rather than full lists of graph &#39;</span>
+              <span class="s">&#39;objects.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Fixed a bug where children inserted in some ways would not be&#39;</span>
+              <span class="s">&#39;properly instantiated.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Moved the junk specific to ExperimentEditor experiments into&#39;</span>
+              <span class="s">&#39;expt_editor.py out of base_experiment.py (mostly stuff &#39;</span>
+              <span class="s">&#39;involving menus, toolbars, and copy-and-paste).&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Fixed a bug where graphs would not work when trying to run the &#39;</span>
+              <span class="s">&#39;same experiment a second time.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Made the graphs clear their extrema at the end of each run.&#39;</span><span class="p">,</span>
+              <span class="s">&#39;Made the GraphPanel toolbar work the way I wanted---buttons &#39;</span>
+              <span class="s">&#39;now are Zoom, Pan, Fit, and Toggle Updates.&#39;</span><span class="p">]],</span>
+            <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s">&#39;2014-01-13&#39;</span><span class="p">,</span> <span class="s">&#39;09:58&#39;</span><span class="p">,</span>
+             <span class="p">[</span><span class="s">&#39;Starting point (the end of version 0)&#39;</span><span class="p">]]]</span>
+
+<div class="viewcode-block" id="getVersion"><a class="viewcode-back" href="../../api_about.html#src.about.getVersion">[docs]</a><span class="k">def</span> <span class="nf">getVersion</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return a string representing the current version.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s">&#39;</span><span class="si">%d</span><span class="s">.</span><span class="si">%d</span><span class="s">.</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">VERSIONS</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="getLatestMessage"><a class="viewcode-back" href="../../api_about.html#src.about.getLatestMessage">[docs]</a><span class="k">def</span> <span class="nf">getLatestMessage</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Get a string representing the latest change information.&quot;&quot;&quot;</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">VERSIONS</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="getChangelog"><a class="viewcode-back" href="../../api_about.html#src.about.getChangelog">[docs]</a><span class="k">def</span> <span class="nf">getChangelog</span><span class="p">(</span><span class="n">lineLength</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the change log.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lineLength : int</span>
+<span class="sd">        The maximum number of characters per line in the changelog string.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        A string indicating all recorded changes to the software.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">answer</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">VERSIONS</span><span class="p">:</span>
+        <span class="n">version</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">text</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="n">major</span><span class="p">,</span> <span class="n">minor</span><span class="p">,</span> <span class="n">rev</span> <span class="o">=</span> <span class="n">version</span>
+        <span class="n">answer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;v</span><span class="si">%d</span><span class="s">.</span><span class="si">%d</span><span class="s">.</span><span class="si">%d</span><span class="s">  |  </span><span class="si">%s</span><span class="s">  |  </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> 
+                      <span class="p">(</span><span class="n">major</span><span class="p">,</span> <span class="n">minor</span><span class="p">,</span> <span class="n">rev</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">time</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+            <span class="n">logLines</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="s">&#39;  -&#39;</span>
+            <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">current</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">word</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">lineLength</span><span class="p">:</span>
+                    <span class="n">current</span> <span class="o">+=</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">word</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">logLines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
+                    <span class="n">current</span> <span class="o">=</span> <span class="s">&#39;    &#39;</span> <span class="o">+</span> <span class="n">word</span>
+            <span class="n">logLines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
+            <span class="n">answer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logLines</span><span class="p">))</span>
+        <span class="n">answer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;-&#39;</span> <span class="o">*</span> <span class="n">lineLength</span><span class="p">)</span> 
+    <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="writeChangelog"><a class="viewcode-back" href="../../api_about.html#src.about.writeChangelog">[docs]</a><span class="k">def</span> <span class="nf">writeChangelog</span><span class="p">(</span><span class="n">logFile</span><span class="p">,</span> <span class="n">lineLength</span><span class="o">=</span><span class="mi">80</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Write the change log to a file.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    logFile : str</span>
+<span class="sd">        The path to which the change log should be written.</span>
+<span class="sd">    lineLength : int</span>
+<span class="sd">        The maximum number of columns in a single line of text.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">logFile</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outputFile</span><span class="p">:</span>
+        <span class="n">outputFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">getChangelog</span><span class="p">(</span><span class="n">lineLength</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

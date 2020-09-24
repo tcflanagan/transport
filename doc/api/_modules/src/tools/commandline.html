@@ -1,0 +1,364 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.tools.commandline &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.tools.commandline</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;A collection of tools for interacting with the command line.</span>
+
+<span class="sd">Notes</span>
+<span class="sd">-----</span>
+<span class="sd">The contents of this module have not been tested in Windows.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">path_tools</span> <span class="k">as</span> <span class="n">pt</span>
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">general</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Environment&#39;</span><span class="p">]</span>
+        
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;win&#39;</span><span class="p">):</span>
+    <span class="n">WIN</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">COMMAND_LINE</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;cmd&#39;</span><span class="p">,</span> <span class="s">&#39;/k&#39;</span><span class="p">]</span>
+    <span class="n">PATH_SEP</span> <span class="o">=</span> <span class="s">&#39;;&#39;</span>
+    <span class="n">CMD_RM</span> <span class="o">=</span> <span class="s">&#39;del&#39;</span>
+    <span class="n">CMD_MV</span> <span class="o">=</span> <span class="s">&#39;move&#39;</span>
+    <span class="n">CMD_CP</span> <span class="o">=</span> <span class="s">&#39;copy&#39;</span>
+<span class="c">#     PATH_SET = &#39;set %(name)s=%(value)s&#39;</span>
+<span class="c">#     PATH_EXTEND_START = &#39;set %(name)s=%%%(name)s%%;%(value)s&#39;</span>
+    <span class="c">#PATH_READ = &#39;echo %(name)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">WIN</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">COMMAND_LINE</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/bin/bash&#39;</span><span class="p">]</span>
+    <span class="n">PATH_SEP</span> <span class="o">=</span> <span class="s">&#39;:&#39;</span>
+    <span class="n">CMD_RM</span> <span class="o">=</span> <span class="s">&#39;rm&#39;</span>
+    <span class="n">CMD_MV</span> <span class="o">=</span> <span class="s">&#39;mv&#39;</span>
+    <span class="n">CMD_CP</span> <span class="o">=</span> <span class="s">&#39;cp&#39;</span>
+<span class="c">#     PATH_SET = &#39;export %(name)s=%(value)s&#39;</span>
+<span class="c">#     PATH_EXTEND_END = &#39;export %(name)s=%(value)s:$%(name)s&#39;</span>
+    <span class="n">PATH_READ</span> <span class="o">=</span> <span class="s">&#39;echo $</span><span class="si">%(name)s</span><span class="s">&#39;</span>
+    
+<div class="viewcode-block" id="Environment"><a class="viewcode-back" href="../../../api_tools_commandline.html#src.tools.commandline.Environment">[docs]</a><span class="k">class</span> <span class="nc">Environment</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A class representing a shell session.</span>
+<span class="sd">    </span>
+<span class="sd">    In its present implementation, this class can only be expected to work</span>
+<span class="sd">    properly in Linux.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_env</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cwd</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span> <span class="o">=</span> <span class="p">[]</span>
+            
+<div class="viewcode-block" id="Environment.extendPath"><a class="viewcode-back" href="../../../api_tools_commandline.html#src.tools.commandline.Environment.extendPath">[docs]</a>    <span class="k">def</span> <span class="nf">extendPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">forceReplace</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extend a path-like environment variable.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            The name of the environment variable to extend. In this application,</span>
+<span class="sd">            it will often be &quot;PYTHONPATH&quot;.</span>
+<span class="sd">        value : str</span>
+<span class="sd">            The value to append to the path.</span>
+<span class="sd">        start : bool</span>
+<span class="sd">            Whether to prepend the new component to the variable. If `False`, </span>
+<span class="sd">            the new component will be appended.</span>
+<span class="sd">        forceReplace : bool</span>
+<span class="sd">            Whether to change the variable if it already has a value set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">forceReplace</span><span class="p">:</span>
+            <span class="n">oldval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">start</span><span class="p">:</span>
+                <span class="n">newval</span> <span class="o">=</span> <span class="n">PATH_SEP</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">value</span><span class="p">,</span> <span class="n">oldval</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">newval</span> <span class="o">=</span> <span class="n">PATH_SEP</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">oldval</span><span class="p">,</span> <span class="n">value</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">newval</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">newval</span>
+        <span class="k">return</span> <span class="n">newval</span>
+    </div>
+<div class="viewcode-block" id="Environment.setPath"><a class="viewcode-back" href="../../../api_tools_commandline.html#src.tools.commandline.Environment.setPath">[docs]</a>    <span class="k">def</span> <span class="nf">setPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set a path-like variable.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            The name of the environment variable to extend. In this application,</span>
+<span class="sd">            it will often be &quot;PYTHONPATH&quot;.</span>
+<span class="sd">        value : str</span>
+<span class="sd">            The value to append to the path.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extendPath</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span>
+        </div>
+<div class="viewcode-block" id="Environment.changeDirectory"><a class="viewcode-back" href="../../../api_tools_commandline.html#src.tools.commandline.Environment.changeDirectory">[docs]</a>    <span class="k">def</span> <span class="nf">changeDirectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Change the working directory.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        directory : str</span>
+<span class="sd">            The new working directory as a string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cwd</span> <span class="o">=</span> <span class="n">directory</span>
+        </div>
+<div class="viewcode-block" id="Environment.removeDirectory"><a class="viewcode-back" href="../../../api_tools_commandline.html#src.tools.commandline.Environment.removeDirectory">[docs]</a>    <span class="k">def</span> <span class="nf">removeDirectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove a directory.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        directory : str</span>
+<span class="sd">            The path of the directory to remove.</span>
+<span class="sd">        recursive : bool</span>
+<span class="sd">            Whether to recursively remove all sub-materials.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">opts</span> <span class="o">=</span> <span class="s">&#39; -f &#39;</span>
+        <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+            <span class="n">opts</span> <span class="o">=</span> <span class="s">&#39; -Rf &#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">CMD_RM</span> <span class="o">+</span> <span class="n">opts</span> <span class="o">+</span> <span class="n">directory</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="Environment.removeDirectoryContents"><a class="viewcode-back" href="../../../api_tools_commandline.html#src.tools.commandline.Environment.removeDirectoryContents">[docs]</a>    <span class="k">def</span> <span class="nf">removeDirectoryContents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span> <span class="n">filesOnly</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> 
+                                <span class="n">ignoreHidden</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove the contents of a directory.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        directory : str</span>
+<span class="sd">            The path of the directory whose contents should be removed.</span>
+<span class="sd">        filesOnly : bool</span>
+<span class="sd">            Whether to delete only regular files (i.e. ignore subfolders). The</span>
+<span class="sd">            default is `True`.</span>
+<span class="sd">        ignoreHidden : bool</span>
+<span class="sd">            Whether to ignore hidden files and folders. The default is `True`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;ls -a </span><span class="si">%s</span><span class="s">&#39;</span>
+        <span class="n">contents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">command</span> <span class="o">%</span> <span class="n">directory</span><span class="p">)</span>
+        <span class="n">contentsList</span> <span class="o">=</span> <span class="n">general</span><span class="o">.</span><span class="n">multilineStringToList</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">contentsList</span><span class="p">:</span>
+            <span class="n">contentsList</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&#39;..&#39;</span> <span class="ow">in</span> <span class="n">contentsList</span><span class="p">:</span>
+            <span class="n">contentsList</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;..&#39;</span><span class="p">)</span>
+        <span class="n">newList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">contentsList</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">ignoreHidden</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">item</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">):</span>
+                <span class="n">newList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">item</span><span class="p">))</span>
+                
+        <span class="k">if</span> <span class="n">filesOnly</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">newList</span><span class="p">:</span>
+                <span class="n">itemtest</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">itemtest</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">removeDirectoryContents</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">filesOnly</span><span class="p">,</span> <span class="n">ignoreHidden</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">itemtest</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">print</span> <span class="s">&#39;unknown: &#39;</span> <span class="o">+</span> <span class="n">item</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">newList</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">removeDirectory</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+            
+            </div>
+<div class="viewcode-block" id="Environment.remove"><a class="viewcode-back" href="../../../api_tools_commandline.html#src.tools.commandline.Environment.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileName</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove a regular file.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fileName : str</span>
+<span class="sd">            The path of the file to delete.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">CMD_RM</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">fileName</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="Environment.move"><a class="viewcode-back" href="../../../api_tools_commandline.html#src.tools.commandline.Environment.move">[docs]</a>    <span class="k">def</span> <span class="nf">move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Move a file or folder.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        source : str</span>
+<span class="sd">            The path of the file or folder to move.</span>
+<span class="sd">        target : str</span>
+<span class="sd">            Where the file or folder should be moved.</span>
+<span class="sd">        force : bool</span>
+<span class="sd">            Whether to overwrite files without prompting or failing. The default</span>
+<span class="sd">            is `False`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">force</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;mv -f </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;mv </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">command</span> <span class="o">%</span> <span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span>
+    </div>
+<div class="viewcode-block" id="Environment.moveDirectoryContents"><a class="viewcode-back" href="../../../api_tools_commandline.html#src.tools.commandline.Environment.moveDirectoryContents">[docs]</a>    <span class="k">def</span> <span class="nf">moveDirectoryContents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Move the contents of a directory from one location to another.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        source : str</span>
+<span class="sd">            The path of the folder whose contents should be moved.</span>
+<span class="sd">        target : str</span>
+<span class="sd">            The path of the folder into which the files should be moved.</span>
+<span class="sd">        force : bool</span>
+<span class="sd">            Whether to automatically overwrite file conflicts. The default is</span>
+<span class="sd">            `False`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">source</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">source</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">):</span>
+            <span class="n">source</span> <span class="o">+=</span> <span class="s">&#39;*&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">source</span> <span class="o">+=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s">&#39;*&#39;</span>
+        <span class="k">if</span> <span class="n">force</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;mv -f </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;mv </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">command</span> <span class="o">%</span> <span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span>
+            
+        </div>
+<div class="viewcode-block" id="Environment.copy"><a class="viewcode-back" href="../../../api_tools_commandline.html#src.tools.commandline.Environment.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Copy a file or folder.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        source : str</span>
+<span class="sd">            The path of the file or folder to copy.</span>
+<span class="sd">        target : str</span>
+<span class="sd">            The path to which the file should be copied.</span>
+<span class="sd">        recursive : bool</span>
+<span class="sd">            If `source` is a folder, whether to copy all of its contents</span>
+<span class="sd">            recursively.</span>
+<span class="sd">            </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        If `recursive` is not set and `source` is a folder with contents, the</span>
+<span class="sd">        operation will fail.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;cp -R </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;cp </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">command</span> <span class="o">%</span> <span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span>
+    </div>
+<div class="viewcode-block" id="Environment.communicate"><a class="viewcode-back" href="../../../api_tools_commandline.html#src.tools.commandline.Environment.communicate">[docs]</a>    <span class="k">def</span> <span class="nf">communicate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Send a command and read the response.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        command : str</span>
+<span class="sd">            The command to execute.</span>
+<span class="sd">        shell : bool</span>
+<span class="sd">            Whether to run in the system shell.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The standard output (STDOUT) for the process.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="n">command</span><span class="p">,</span>
+                                         <span class="n">cwd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cwd</span><span class="p">,</span>
+                                         <span class="n">env</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="p">,</span>
+                                         <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span>
+                                         <span class="n">shell</span> <span class="o">=</span> <span class="n">shell</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+    </div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Environment.isWindows"><a class="viewcode-back" href="../../../api_tools_commandline.html#src.tools.commandline.Environment.isWindows">[docs]</a>    <span class="k">def</span> <span class="nf">isWindows</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Determine whether the operating system is Windows.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">WIN</span>
+
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">ENV</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">()</span>
+    <span class="n">ENV</span><span class="o">.</span><span class="n">changeDirectory</span><span class="p">(</span><span class="s">&#39;/home/thomas/Documents/Projects/Transport/&#39;</span><span class="p">)</span>
+    <span class="k">print</span> <span class="n">ENV</span><span class="o">.</span><span class="n">removeDirectoryContents</span><span class="p">(</span><span class="s">&#39;doc/htmlhelp&#39;</span><span class="p">)</span>
+    <span class="c">#print e.communicate(&#39;svn log&#39;)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

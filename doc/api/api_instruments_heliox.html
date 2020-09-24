@@ -1,0 +1,813 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The heliox module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The instruments package" href="api_instruments.html" />
+    <link rel="next" title="The hp34420a module" href="api_instruments_hp34420a.html" />
+    <link rel="prev" title="The srs830 module" href="api_instruments_srs830.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_hp34420a.html" title="The hp34420a module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_srs830.html" title="The srs830 module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" accesskey="U">The <cite>instruments</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.instruments.heliox">
+<span id="the-heliox-module"></span><h1>The <cite>heliox</cite> module<a class="headerlink" href="#module-src.instruments.heliox" title="Permalink to this headline">¶</a></h1>
+<p>A software representation of the Oxford Heliox 3He insert.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="heliox">
+<h3>Heliox<a class="headerlink" href="#heliox" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.instruments.heliox.Heliox">
+<em class="property">class </em><tt class="descclassname">src.instruments.heliox.</tt><tt class="descname">Heliox</tt><big>(</big><em>experiment</em>, <em>name='Heliox'</em>, <em>spec=None</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Heliox 3He insert.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.directGetField">
+<tt class="descname">directGetField</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.directGetField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.directGetField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the magnetic field from the power supply.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The magnetic field in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.directGetFieldRampRate">
+<tt class="descname">directGetFieldRampRate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.directGetFieldRampRate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.directGetFieldRampRate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the magnetic field sweep rate directly from the power supply.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The magnetic field ramp rate in Tesla/min.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.directGetFieldSetpoint">
+<tt class="descname">directGetFieldSetpoint</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.directGetFieldSetpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.directGetFieldSetpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the field setpoint from the power supply.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The magnetic field setpoint in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.directGetPID">
+<tt class="descname">directGetPID</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.directGetPID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.directGetPID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the PID values from the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>tuple of float</strong> :</p>
+<blockquote class="last">
+<div><p>The proportional, integral, and derivative constants for the
+temperature controller as floats in a tuple.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.directGetSampleTemperatures">
+<tt class="descname">directGetSampleTemperatures</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.directGetSampleTemperatures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.directGetSampleTemperatures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the sample temperatures from the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>tuple of float</strong> :</p>
+<blockquote class="last">
+<div><p>A 2-tuple consisting of the low and high sample temperatures (i.e.
+all temperatures except that of the sorb).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.directGetTemperatureHigh">
+<tt class="descname">directGetTemperatureHigh</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.directGetTemperatureHigh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.directGetTemperatureHigh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the sample-high temperature from the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The sample-high temperature in Kelvin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.directGetTemperatureLow">
+<tt class="descname">directGetTemperatureLow</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.directGetTemperatureLow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.directGetTemperatureLow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the sample-low temperature from the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The sample-low temperature in Kelvin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.directGetTemperatureSorb">
+<tt class="descname">directGetTemperatureSorb</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.directGetTemperatureSorb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.directGetTemperatureSorb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the sorb temperature from the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The sorb temperature in Kelvin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.directGetTemperatures">
+<tt class="descname">directGetTemperatures</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.directGetTemperatures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.directGetTemperatures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the temperatures measured on all three sensors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>tuple of float</strong> :</p>
+<blockquote class="last">
+<div><p>A tuple consisting of the sorb temperature, the sample-low
+temperature, and the sample-high temperature expressed as floats.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.finalize">
+<tt class="descname">finalize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalize the Oxford Heliox.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.getActions">
+<tt class="descname">getActions</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.getActions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.getActions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of supported actions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.getField">
+<tt class="descname">getField</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.getField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.getField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the magnetic field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The magnetic field in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.getFieldRampRate">
+<tt class="descname">getFieldRampRate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.getFieldRampRate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.getFieldRampRate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the magnetic field sweep rate.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The magnetic field ramp rate in Tesla/min.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.getFieldSetpoint">
+<tt class="descname">getFieldSetpoint</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.getFieldSetpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.getFieldSetpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the magnetic field setpoint.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The magnetic field setpoint in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.getInformation">
+<tt class="descname">getInformation</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.getInformation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.getInformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the Heliox&#8217;s information string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.getPID">
+<tt class="descname">getPID</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.getPID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.getPID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the PID values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>tuple of float</strong> :</p>
+<blockquote class="last">
+<div><p>The proportional, integral, and derivative constants for the
+temperature controller as floats in a tuple.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.getSampleTemperatures">
+<tt class="descname">getSampleTemperatures</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.getSampleTemperatures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.getSampleTemperatures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the sample temperatures.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>tuple of float</strong> :</p>
+<blockquote class="last">
+<div><p>A 2-tuple consisting of the low and high sample temperatures (i.e.
+all temperatures except that of the sorb).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.getTemperature">
+<tt class="descname">getTemperature</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.getTemperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.getTemperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the temperature (a weighted average of the sample temperatures).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The sample temperature.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.getTemperatureHigh">
+<tt class="descname">getTemperatureHigh</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.getTemperatureHigh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.getTemperatureHigh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the sample-high temperature.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The sample-high temperature in Kelvin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.getTemperatureLow">
+<tt class="descname">getTemperatureLow</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.getTemperatureLow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.getTemperatureLow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the sample-low temperature.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The sorb temperature in Kelvin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.getTemperatureSorb">
+<tt class="descname">getTemperatureSorb</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.getTemperatureSorb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.getTemperatureSorb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the sorb temperature.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The sorb temperature in Kelvin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.getTemperatures">
+<tt class="descname">getTemperatures</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.getTemperatures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.getTemperatures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the temperatures measured on all three sensors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>tuple of float</strong> :</p>
+<blockquote class="last">
+<div><p>A tuple consisting of the sorb temperature, the sample-low
+temperature, and the sample-high temperature expressed as floats.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the Oxford Heliox.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="src.instruments.heliox.Heliox.isSingleton">
+<em class="property">classmethod </em><tt class="descname">isSingleton</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.isSingleton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.isSingleton" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether at most one instance of the instrument may exist.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether only zero or one instance of the instrument may exist.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.setField">
+<tt class="descname">setField</tt><big>(</big><em>field</em>, <em>block='yes'</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.setField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.setField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnetic field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>field</strong> : float</p>
+<blockquote>
+<div><p>The magnetic field in Tesla.</p>
+</div></blockquote>
+<p><strong>wait</strong> : str</p>
+<blockquote class="last">
+<div><p>A string of either &#8216;wait&#8217; or &#8216;proceed&#8217; to determine whether to
+wait for the field to reach the target.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.setFieldNoWait">
+<tt class="descname">setFieldNoWait</tt><big>(</big><em>field</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.setFieldNoWait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.setFieldNoWait" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the target magnetic field and return.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>field</strong> : float</p>
+<blockquote class="last">
+<div><p>The target magnetic field in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.setFieldRampRate">
+<tt class="descname">setFieldRampRate</tt><big>(</big><em>rampRate</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.setFieldRampRate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.setFieldRampRate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnetic field ramp rate.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>rampRate</strong> : float</p>
+<blockquote class="last">
+<div><p>The desired magnetic field ramp rate in Tesla/min.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.setMode">
+<tt class="descname">setMode</tt><big>(</big><em>newMode</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.setMode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.setMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Heliox reading mode.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>newMode</strong> : int</p>
+<blockquote class="last">
+<div><p>An integer (MODE_DIRECT or MODE_THROUGH_MONITOR) to specify the
+reading mode. If it is MODE_DIRECT, all data come directly from
+the temperature controller. If it is MODE_THROUGH_MONITOR, only
+the temperature monitor triggers direct readings from the 
+controller, and other requests from data receive the most recent
+readings so triggered.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.setPID">
+<tt class="descname">setPID</tt><big>(</big><em>newP</em>, <em>newI</em>, <em>newD=0.0</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.setPID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.setPID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the PID values for the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>newP</strong> : float</p>
+<blockquote>
+<div><p>The proportional band in Kelvin, to a resolution of 0.001 K.</p>
+</div></blockquote>
+<p><strong>newI</strong> : float</p>
+<blockquote>
+<div><p>The integral action time in minutes. Values between 0 and
+140 minutes (inclusive), in steps of 0.1 minutes, are accepted.</p>
+</div></blockquote>
+<p><strong>newD</strong> : float</p>
+<blockquote class="last">
+<div><p>The derivative action time in minutes. The allowed range is
+0 to 273 minutes. The default is 0.0.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.setTemperature">
+<tt class="descname">setTemperature</tt><big>(</big><em>target</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.setTemperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.setTemperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the temperature intelligently.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>target</strong> : float</p>
+<blockquote class="last">
+<div><p>The temperature setpoint.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.setTemperatureHigh">
+<tt class="descname">setTemperatureHigh</tt><big>(</big><em>temperature</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.setTemperatureHigh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.setTemperatureHigh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the target for the high-temperature sensor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>temperature</strong> : float</p>
+<blockquote class="last">
+<div><p>The target temperature in Kelvin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.setTemperatureLow">
+<tt class="descname">setTemperatureLow</tt><big>(</big><em>temperature</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.setTemperatureLow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.setTemperatureLow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the target for the low-temperature sensor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>temperature</strong> : float</p>
+<blockquote class="last">
+<div><p>The target temperature in Kelvin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.Heliox.setTemperatureSorb">
+<tt class="descname">setTemperatureSorb</tt><big>(</big><em>temperature</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#Heliox.setTemperatureSorb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.Heliox.setTemperatureSorb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the target for the sorb-temperature sensor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>temperature</strong> : float</p>
+<blockquote class="last">
+<div><p>The target temperature in Kelvin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="helioxdummy">
+<h3>HelioxDummy<a class="headerlink" href="#helioxdummy" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.instruments.heliox.HelioxDummy">
+<em class="property">class </em><tt class="descclassname">src.instruments.heliox.</tt><tt class="descname">HelioxDummy</tt><a class="reference internal" href="_modules/src/instruments/heliox.html#HelioxDummy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.HelioxDummy" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dummy class for testing Heliox updating</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.instruments.heliox.HelioxDummy.directGetField">
+<tt class="descname">directGetField</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#HelioxDummy.directGetField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.HelioxDummy.directGetField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dummy...read field from file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.HelioxDummy.directGetTemperatures">
+<tt class="descname">directGetTemperatures</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#HelioxDummy.directGetTemperatures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.HelioxDummy.directGetTemperatures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dummy...read temperature from file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.HelioxDummy.getFieldRampRate">
+<tt class="descname">getFieldRampRate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#HelioxDummy.getFieldRampRate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.HelioxDummy.getFieldRampRate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dummy...read ramp rate from file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.HelioxDummy.getFieldSetpoint">
+<tt class="descname">getFieldSetpoint</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#HelioxDummy.getFieldSetpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.HelioxDummy.getFieldSetpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dummy...read field setpoint from file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.HelioxDummy.getPID">
+<tt class="descname">getPID</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#HelioxDummy.getPID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.HelioxDummy.getPID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dummy...read PID from file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.HelioxDummy.getTemperature">
+<tt class="descname">getTemperature</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#HelioxDummy.getTemperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.HelioxDummy.getTemperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the temperature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.HelioxDummy.setField">
+<tt class="descname">setField</tt><big>(</big><em>field</em>, <em>action='wait'</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#HelioxDummy.setField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.HelioxDummy.setField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnetic field.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.HelioxDummy.setFieldRampRate">
+<tt class="descname">setFieldRampRate</tt><big>(</big><em>rampRate</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#HelioxDummy.setFieldRampRate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.HelioxDummy.setFieldRampRate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnetic field ramp rate.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.HelioxDummy.setPID">
+<tt class="descname">setPID</tt><big>(</big><em>newP</em>, <em>newI</em>, <em>newD</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#HelioxDummy.setPID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.HelioxDummy.setPID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the PID values for the temperature controller.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.HelioxDummy.setTemperature">
+<tt class="descname">setTemperature</tt><big>(</big><em>temperature</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#HelioxDummy.setTemperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.HelioxDummy.setTemperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the sample temperature using the automatic algorithm.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.HelioxDummy.setTemperatureSampleHigh">
+<tt class="descname">setTemperatureSampleHigh</tt><big>(</big><em>temperature</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#HelioxDummy.setTemperatureSampleHigh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.HelioxDummy.setTemperatureSampleHigh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the sample-high temperature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.HelioxDummy.setTemperatureSampleLow">
+<tt class="descname">setTemperatureSampleLow</tt><big>(</big><em>temperature</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#HelioxDummy.setTemperatureSampleLow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.HelioxDummy.setTemperatureSampleLow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the sample-low temperature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.heliox.HelioxDummy.setTemperatureSorb">
+<tt class="descname">setTemperatureSorb</tt><big>(</big><em>temperature</em><big>)</big><a class="reference internal" href="_modules/src/instruments/heliox.html#HelioxDummy.setTemperatureSorb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.heliox.HelioxDummy.setTemperatureSorb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the sorb temperature.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>heliox</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#heliox">Heliox</a></li>
+<li><a class="reference internal" href="#helioxdummy">HelioxDummy</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_instruments_srs830.html"
+                        title="previous chapter">The <cite>srs830</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_instruments_hp34420a.html"
+                        title="next chapter">The <cite>hp34420a</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_instruments_heliox.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_hp34420a.html" title="The hp34420a module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_srs830.html" title="The srs830 module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" >The <cite>instruments</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

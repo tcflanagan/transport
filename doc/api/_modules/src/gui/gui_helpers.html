@@ -1,0 +1,1511 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.gui.gui_helpers &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.gui.gui_helpers</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Classes and functions to facilitate general wx actions.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">wx</span>
+<span class="kn">from</span> <span class="nn">wx.lib.wordwrap</span> <span class="kn">import</span> <span class="n">wordwrap</span> <span class="k">as</span> <span class="n">wxwrap</span>
+<span class="kn">from</span> <span class="nn">wx.lib.mixins.listctrl</span> <span class="kn">import</span> <span class="n">ListCtrlAutoWidthMixin</span>
+<span class="kn">from</span> <span class="nn">wx.lib.mixins.listctrl</span> <span class="kn">import</span> <span class="n">TextEditMixin</span>
+<span class="kn">from</span> <span class="nn">src.gui</span> <span class="kn">import</span> <span class="n">images</span> <span class="k">as</span> <span class="n">img</span>
+
+<span class="n">_LIST_BOX_OPTS</span> <span class="o">=</span> <span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">LC_ALIGN_LEFT</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">LC_REPORT</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">LC_NO_HEADER</span> <span class="o">|</span>
+                       <span class="n">wx</span><span class="o">.</span><span class="n">LC_SINGLE_SEL</span><span class="p">)</span>
+
+<span class="n">_MIN_WIDTH</span> <span class="o">=</span> <span class="mi">500</span>
+
+
+<span class="c">#===============================================================================</span>
+<span class="c">#</span>
+<span class="c">#                                                                CUSTOM CONTROLS</span>
+<span class="c">#</span>
+<span class="c">#===============================================================================</span>
+
+<span class="k">class</span> <span class="nc">ListBox</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ListCtrl</span><span class="p">,</span> <span class="n">ListCtrlAutoWidthMixin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A simple, single-column list control.</span>
+<span class="sd">    </span>
+<span class="sd">    This class is basically a wxListBox, except that it process more events.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The panel or frame which contains this control.</span>
+<span class="sd">    wxId : int</span>
+<span class="sd">        The ID of the control.</span>
+<span class="sd">    items : list of str</span>
+<span class="sd">        The initial contents of the control.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">wxId</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">items</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+                 <span class="n">style</span><span class="o">=</span><span class="n">_LIST_BOX_OPTS</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ListBox</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wxId</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="n">ListCtrlAutoWidthMixin</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">items</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setItems</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">InsertColumn</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">setItems</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">items</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the items in the list.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        items : list of str</span>
+<span class="sd">            The strings which should make up the list.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DeleteAllItems</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">items</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">InsertStringItem</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+   
+    <span class="k">def</span> <span class="nf">setSelection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Select an item.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The index of the row to select.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Focus</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">getSelection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the index of the selected item.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            The index of the selected item.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetFocusedItem</span><span class="p">()</span>
+
+
+<span class="k">class</span> <span class="nc">StaticListCtrl</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ListCtrl</span><span class="p">,</span> <span class="n">ListCtrlAutoWidthMixin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An auto-sizing table.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The panel or frame which contains this control.</span>
+<span class="sd">    wxId : int</span>
+<span class="sd">        The ID of the control.</span>
+<span class="sd">    headers : list of str</span>
+<span class="sd">        A list of strings to serve as the headers for the columns (the length</span>
+<span class="sd">        of the list determines the number of columns). If `None` (the default), </span>
+<span class="sd">        the table will contain a single, unlabeled column.</span>
+<span class="sd">    listFormat : int or list of int</span>
+<span class="sd">        Flags to indicate the formatting of the columns. If the input is a</span>
+<span class="sd">        list, each element will be applied to a different column.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">wxId</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+                 <span class="n">listFormat</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">LIST_FORMAT_RIGHT</span><span class="p">):</span>
+        <span class="n">wx</span><span class="o">.</span><span class="n">ListCtrl</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">wxId</span><span class="p">,</span> 
+                             <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">LC_REPORT</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">BORDER_SIMPLE</span><span class="p">)</span>
+        <span class="n">ListCtrlAutoWidthMixin</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">headers</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__headers</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__headers</span> <span class="o">=</span> <span class="n">headers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__widthFactor</span> <span class="o">=</span> <span class="mf">0.97</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__headers</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">listFormat</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__format</span> <span class="o">=</span> <span class="n">listFormat</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__format</span> <span class="o">=</span> <span class="p">[</span><span class="n">listFormat</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__headers</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_createColumns</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">InsertStringItem</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_SIZE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onSize</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_createColumns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create the column headers.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">info</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__headers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__format</span><span class="p">)):</span>
+            <span class="n">title</span><span class="p">,</span> <span class="n">columnFormat</span> <span class="o">=</span> <span class="n">info</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">InsertColumn</span><span class="p">(</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">columnFormat</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">setValues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the data stored in the table.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : list of tuple of str</span>
+<span class="sd">            A list of tuples of strings. Each tuple gets a row,</span>
+<span class="sd">            and each string goes into its own column within the row.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ClearAll</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_createColumns</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">getData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the data stored in the table.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of tuple of str</span>
+<span class="sd">            A list of tuples of strings. Each tuple represents a single row.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dat</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetItemCount</span><span class="p">()):</span>
+            <span class="n">currentRow</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__headers</span><span class="p">)):</span>
+                <span class="n">currentRow</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetItem</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span><span class="o">.</span><span class="n">GetText</span><span class="p">())</span>
+            <span class="n">dat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">currentRow</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">dat</span>
+
+    <span class="k">def</span> <span class="nf">moveRowUp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Move the indexed row up one position.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The index of the row to move.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">movingData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">removeRow</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">InsertStringItem</span><span class="p">(</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">movingData</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">columnIndex</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">movingData</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetStringItem</span><span class="p">(</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnIndex</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">moveRowDown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Move the indicated row down one position.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The position of the row which should be moved down.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">numItems</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetItemCount</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="n">numItems</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">movingData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">removeRow</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">InsertStringItem</span><span class="p">(</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">movingData</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">columnIndex</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">movingData</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetStringItem</span><span class="p">(</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnIndex</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+                
+    <span class="k">def</span> <span class="nf">addRow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newData</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a new item to the end of the table.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newData : tuple of str</span>
+<span class="sd">            A tuple with one element for each column to be added to the end of</span>
+<span class="sd">            the list.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            The number of rows after the addition has taken place.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Append</span><span class="p">(</span><span class="n">newData</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetItemCount</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">insertRow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">newData</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Insert an item at the specified index.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The position at which to insert the new row.</span>
+<span class="sd">        newData : tuple of str</span>
+<span class="sd">            The row data to insert into the table.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            The number of rows after the addition has taken place.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">InsertStringItem</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">newData</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">column</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">newData</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetStringItem</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">column</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetItemCount</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">removeRow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove the selected row from the table.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index</span>
+<span class="sd">            The position of the row to remove.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of str</span>
+<span class="sd">            The data from the row which was removed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rowData</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">columnIndex</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__headers</span><span class="p">)):</span>
+            <span class="n">rowData</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetItem</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">columnIndex</span><span class="p">)</span><span class="o">.</span><span class="n">GetText</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DeleteItem</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rowData</span>
+            
+    <span class="k">def</span> <span class="nf">getRowData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the data from one row of the table.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The index of the row whose data should be returned.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of str</span>
+<span class="sd">            A list of strings containing the data from the specified row.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetColumnCount</span><span class="p">()):</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetItem</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span><span class="o">.</span><span class="n">GetText</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">output</span>
+        
+    <span class="k">def</span> <span class="nf">_onSize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;On resize events, automatically adjust all column widths.&quot;&quot;&quot;</span>
+        <span class="n">colwidth</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">GetSize</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">__widthFactor</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__headers</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetColumnWidth</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">colwidth</span><span class="p">)</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">Skip</span><span class="p">()</span>
+
+
+<span class="k">class</span> <span class="nc">ListCtrl</span><span class="p">(</span><span class="n">StaticListCtrl</span><span class="p">,</span> <span class="n">TextEditMixin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An editable, auto-sizing table.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The panel or frame which contains this control.</span>
+<span class="sd">    wxId : int</span>
+<span class="sd">        The ID of the control.</span>
+<span class="sd">    headers : list of str</span>
+<span class="sd">        A list of strings to serve as the headers for the columns (the length</span>
+<span class="sd">        of the list determines the number of columns). If `None` (the default), </span>
+<span class="sd">        the table will contain a single, unlabeled column.</span>
+<span class="sd">    listFormat : int</span>
+<span class="sd">        Flags to indicate the formatting of the columns.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">wxId</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+                 <span class="n">listFormat</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">LIST_FORMAT_RIGHT</span><span class="p">):</span>
+        <span class="n">StaticListCtrl</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">wxId</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">listFormat</span><span class="p">)</span>
+        <span class="n">TextEditMixin</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="KeyValListCtrl"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.KeyValListCtrl">[docs]</a><span class="k">class</span> <span class="nc">KeyValListCtrl</span><span class="p">(</span><span class="n">StaticListCtrl</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A list control for managing typed key-value pairs.</span>
+<span class="sd">     </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The panel or frame which contains this control.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+     
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="n">StaticListCtrl</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> 
+                                <span class="n">headers</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Name&#39;</span><span class="p">,</span> <span class="s">&#39;Default value&#39;</span><span class="p">,</span> <span class="s">&#39;Type&#39;</span><span class="p">],</span>
+                                <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">LIST_FORMAT_LEFT</span><span class="p">)</span>        
+
+
+<span class="c">#===============================================================================</span>
+<span class="c"># </span>
+<span class="c">#                                                           ABSTRACT BASE DIALOG</span>
+<span class="c">#</span>
+<span class="c">#===============================================================================</span>
+</div>
+<div class="viewcode-block" id="BaseDialog"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.BaseDialog">[docs]</a><span class="k">class</span> <span class="nc">BaseDialog</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Dialog</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A base class to be extended by dialogs.</span>
+<span class="sd">    </span>
+<span class="sd">    Note: it is important to call this class&#39;s `finish` method after all</span>
+<span class="sd">    components have been added.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The panel or frame which spawns this dialog.</span>
+<span class="sd">    wxId : int</span>
+<span class="sd">        The wxPython identification number for this dialog.</span>
+<span class="sd">    title : str</span>
+<span class="sd">        The title to display in the dialog&#39;s title bar.</span>
+<span class="sd">    info : tuple of str</span>
+<span class="sd">        A tuple of strings. The first is the title of the info bar, and the</span>
+<span class="sd">        second is the text of the info bar. The info bar will not be displayed</span>
+<span class="sd">        if `infoBar` is `None`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">ABCMeta</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">wxId</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;Dialog&#39;</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">minWidth</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BaseDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wxId</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetTitle</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">=</span> <span class="n">info</span>
+        <span class="k">if</span> <span class="n">minWidth</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">minWidth</span> <span class="o">=</span> <span class="n">_MIN_WIDTH</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">minWidth</span> <span class="o">=</span> <span class="n">minWidth</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__infoBar</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__infoBar</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticLine</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+            
+        
+<div class="viewcode-block" id="BaseDialog.setPanel"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.BaseDialog.setPanel">[docs]</a>    <span class="k">def</span> <span class="nf">setPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">panel</span><span class="p">,</span> <span class="n">proportion</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Finish laying out the panel.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">proportion</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">border</span><span class="p">)</span>
+        
+        <span class="n">buttonpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="n">buttonsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">buttonpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">buttonsizer</span><span class="p">)</span>
+        
+        <span class="n">okButton</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">buttonpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">,</span> <span class="s">&#39;OK&#39;</span><span class="p">)</span>
+        <span class="n">cancelButton</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">buttonpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_CANCEL</span><span class="p">,</span> <span class="s">&#39;Cancel&#39;</span><span class="p">)</span>
+        <span class="n">buttonsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">cancelButton</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">buttonsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">okButton</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        
+        <span class="n">okButton</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onClose</span><span class="p">)</span>
+        <span class="n">cancelButton</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onClose</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_CLOSE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onClose</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">buttonpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizeHints</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minWidth</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sizer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Fit</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">newText</span> <span class="o">=</span> <span class="n">wxwrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetSizeTuple</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> 
+                             <span class="n">wx</span><span class="o">.</span><span class="n">ClientDC</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__infoBar</span><span class="p">),</span> <span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__infoBar</span><span class="o">.</span><span class="n">SetLabel</span><span class="p">(</span><span class="n">newText</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Fit</span><span class="p">()</span>
+    </div>
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="BaseDialog.update"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.BaseDialog.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update whatever objects this dialog is supposed to modify.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether the attempt to update the appropriate objects was</span>
+<span class="sd">            successful.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    </div>
+    <span class="k">def</span> <span class="nf">_onClose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update objects, and, if successful, close the dialog.&quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">GetId</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">EndModal</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Destroy</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">EndModal</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Destroy</span><span class="p">()</span>
+        
+<span class="c"># class InfoBar(wx.Panel):</span>
+<span class="c">#     &quot;&quot;&quot;A bar for displaying information about the purpose of the dialog.</span>
+<span class="c">#     </span>
+<span class="c">#     Parameters</span>
+<span class="c">#     ----------</span>
+<span class="c">#     parent : wxWindow</span>
+<span class="c">#         The panel or frame which contains this bar.</span>
+<span class="c">#     title : str</span>
+<span class="c">#         The title of the information bar.</span>
+<span class="c">#     string : str</span>
+<span class="c">#         The information string to display.</span>
+<span class="c">#     icon : wxIcon</span>
+<span class="c">#         The icon to display to the left of the string.</span>
+<span class="c">#     &quot;&quot;&quot;</span>
+<span class="c">#     </span>
+<span class="c">#     leftBorder = 20</span>
+<span class="c">#     rightBorder = 30</span>
+<span class="c"># </span>
+<span class="c">#     def __init__(self, parent, title, string, minWidth=None):</span>
+<span class="c">#         super(InfoBar, self).__init__(parent, wx.ID_ANY)</span>
+<span class="c">#         titleFont = wx.Font(11, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_ITALIC,</span>
+<span class="c">#                             wx.FONTWEIGHT_BOLD)</span>
+<span class="c">#         infoFont = wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL,</span>
+<span class="c">#                            wx.FONTWEIGHT_NORMAL)</span>
+<span class="c">#         self.info = string</span>
+<span class="c">#         if minWidth is None:</span>
+<span class="c">#             self.minWidth = _MIN_WIDTH</span>
+<span class="c">#         else:</span>
+<span class="c">#             self.minWidth = minWidth</span>
+<span class="c">#         self.SetSizeHints(self.minWidth-5, -1, self.minWidth-5, -1)</span>
+<span class="c">#         </span>
+<span class="c">#         self.SetBackgroundColour(wx.WHITE)</span>
+<span class="c">#         </span>
+<span class="c">#         sizer = wx.BoxSizer(wx.HORIZONTAL)</span>
+<span class="c">#                 </span>
+<span class="c">#         rightpanel = wx.Panel(self, wx.ID_ANY)</span>
+<span class="c">#         rightsizer = wx.BoxSizer(wx.VERTICAL)</span>
+<span class="c">#         rightpanel.SetSizer(rightsizer)</span>
+<span class="c">#         rightpanel.SetBackgroundColour(wx.WHITE)</span>
+<span class="c">#         </span>
+<span class="c">#         titleText = wx.StaticText(rightpanel, wx.ID_ANY, label=title)</span>
+<span class="c">#         titleText.SetFont(titleFont)</span>
+<span class="c">#         </span>
+<span class="c">#         self.infopanel = wx.Panel(rightpanel, wx.ID_ANY)</span>
+<span class="c">#         infosizer = wx.BoxSizer(wx.HORIZONTAL)</span>
+<span class="c">#         self.infopanel.SetSizer(infosizer)</span>
+<span class="c">#         self.infopanel.SetBackgroundColour(wx.WHITE)</span>
+<span class="c">#         </span>
+<span class="c">#         self.infoText = StaticWrapText(self.infopanel, label=string)</span>
+<span class="c">#         infosizer.AddSpacer(10)</span>
+<span class="c">#         infosizer.Add(self.infoText, 1, wx.EXPAND|wx.ALL, 5)</span>
+<span class="c"># </span>
+<span class="c">#         self.infoText.setFont(infoFont)</span>
+<span class="c">#         </span>
+<span class="c">#         rightsizer.AddSpacer(5)</span>
+<span class="c">#         rightsizer.Add(titleText, 0, wx.EXPAND|wx.LEFT, 5)</span>
+<span class="c">#         rightsizer.AddSpacer(5)</span>
+<span class="c">#         rightsizer.Add(self.infopanel, 0, wx.EXPAND|wx.LEFT, InfoBar.leftBorder)</span>
+<span class="c">#         rightsizer.AddSpacer(5)</span>
+<span class="c">#         </span>
+<span class="c">#         sizer.Add(rightpanel, 1, wx.EXPAND)</span>
+<span class="c">#         </span>
+<span class="c">#         self.SetSizer(sizer)</span>
+<span class="c">#         sizer.Fit(self)</span>
+<span class="c"># </span>
+<span class="c"># class StaticWrapText(wx.PyControl):</span>
+<span class="c">#     &quot;&quot;&quot;An auto-word-wrapping text label.&quot;&quot;&quot;</span>
+<span class="c">#     </span>
+<span class="c">#     def __init__(self, parent, wxId=wx.ID_ANY, label=&#39;&#39;, pos=wx.DefaultPosition,</span>
+<span class="c">#                  size=wx.DefaultSize, style=wx.NO_BORDER):</span>
+<span class="c">#         super(StaticWrapText, self).__init__(parent, wxId, pos, size, style)</span>
+<span class="c">#         self.statictext = wx.StaticText(self, wx.ID_ANY, label, style=style)</span>
+<span class="c">#         self.wraplabel = label</span>
+<span class="c">#         self.SetBackgroundColour(wx.WHITE)</span>
+<span class="c">#         </span>
+<span class="c">#     def wrap(self):</span>
+<span class="c">#         &quot;&quot;&quot;Wrap the label text based on the size of the control.&quot;&quot;&quot;</span>
+<span class="c">#         self.Freeze()</span>
+<span class="c">#         self.statictext.SetLabel(self.wraplabel)</span>
+<span class="c">#         self.statictext.Wrap(self.GetSize().width)</span>
+<span class="c">#         self.Thaw()</span>
+<span class="c">#     </span>
+<span class="c">#     # pylint: disable=W0221</span>
+<span class="c">#     def DoGetBestSize(self):</span>
+<span class="c">#         &quot;&quot;&quot;Get the best size.&quot;&quot;&quot;</span>
+<span class="c">#         self.wrap()</span>
+<span class="c">#         self.SetSize(self.statictext.GetSize())</span>
+<span class="c">#         return self.GetSize()</span>
+<span class="c">#     # pylint: enable=W0221</span>
+<span class="c"># </span>
+<span class="c">#     def setFont(self, newFont):</span>
+<span class="c">#         &quot;&quot;&quot;Set the font of the label.&quot;&quot;&quot;</span>
+<span class="c">#         self.statictext.SetFont(newFont)</span>
+        
+
+<span class="c">#===============================================================================</span>
+<span class="c"># </span>
+<span class="c">#                                                                 SPECIAL PANELS</span>
+<span class="c">#</span>
+<span class="c">#===============================================================================</span>
+
+
+<span class="c"># General-purpose panel --------------------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="Panel"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.Panel">[docs]</a><span class="k">class</span> <span class="nc">Panel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A panel subclass which builds in sizer support.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameter</span>
+<span class="sd">    ---------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The panel or frame which contains this panel.</span>
+<span class="sd">    sizerType : str</span>
+<span class="sd">        The type of the sizer for the panel. It may be &#39;vertical&#39; (the default)</span>
+<span class="sd">        or &#39;horizontal&#39;, in which case a wxBoxSizer will be used, or &#39;flex_grid&#39;</span>
+<span class="sd">        or &#39;grid&#39;.</span>
+<span class="sd">    label : str</span>
+<span class="sd">        The string to go in the panel&#39;s static box frame. If `None`, no</span>
+<span class="sd">        static box will be displayed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">labelOptions</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">sizerType</span><span class="o">=</span><span class="s">&#39;vertical&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+                 <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new panel.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Panel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>       
+        
+        <span class="k">if</span> <span class="s">&#39;extraBorder&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">extraBorder</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;extraBorder&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">extraBorder</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="s">&#39;panelStyle&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">panelStyle</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;panelStyle&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">panelStyle</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="s">&#39;scrolling&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">scrolling</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;scrolling&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">panel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ScrolledWindow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">panelStyle</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">scrolling</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="o">.</span><span class="n">SetScrollbars</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">panel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">panelStyle</span><span class="p">)</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">sizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__setSizer</span><span class="p">(</span><span class="n">sizerType</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">mainsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+            <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">extraBorder</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">mainsizer</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+            <span class="n">staticsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBoxSizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+            <span class="n">staticsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">extraBorder</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">staticsizer</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__setSizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sizerType</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create the appropriate sizer</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sizerType : str</span>
+<span class="sd">            The type of the sizer for the panel. It may be &#39;vertical&#39; (the </span>
+<span class="sd">            default) or &#39;horizontal&#39;, in which case a wxBoxSizer will be used, </span>
+<span class="sd">            or &#39;flex_grid&#39; or &#39;grid&#39;, which are self-explanatory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sizerType</span> <span class="o">==</span> <span class="s">&#39;horizontal&#39;</span><span class="p">:</span>
+            <span class="n">sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">sizerType</span> <span class="o">==</span> <span class="s">&#39;flex_grid&#39;</span><span class="p">:</span>
+            <span class="n">sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">FlexGridSizer</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">sizerType</span> <span class="o">==</span> <span class="s">&#39;grid&#39;</span><span class="p">:</span>
+            <span class="n">sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">GridSizer</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">sizer</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sizer</span>
+        
+<div class="viewcode-block" id="Panel.setLabel"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.Panel.setLabel">[docs]</a>    <span class="k">def</span> <span class="nf">setLabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newLabel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the label for the border.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newLabel : str</span>
+<span class="sd">            The new label for the panel&#39;s border.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="o">.</span><span class="n">SetLabel</span><span class="p">(</span><span class="n">newLabel</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        </div>
+<div class="viewcode-block" id="Panel.add"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.Panel.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add an item to the panel&#39;s sizer.</span>
+<span class="sd">        </span>
+<span class="sd">        All extra arguments are passed to the `sizer.Add` method.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        item : wxWindow</span>
+<span class="sd">            The control to add to the panel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">Reparent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="Panel.addLabel"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.Panel.addLabel">[docs]</a>    <span class="k">def</span> <span class="nf">addLabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">flag</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a text label to the control using default options.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        text : str</span>
+<span class="sd">            The text of the label to add.</span>
+<span class="sd">        border : int</span>
+<span class="sd">            The width in pixels of the border which will surround the new</span>
+<span class="sd">            text label.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        wxStaticText</span>
+<span class="sd">            The added text label.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">flag</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">flag</span> <span class="o">=</span> <span class="n">Panel</span><span class="o">.</span><span class="n">labelOptions</span>
+        <span class="n">staticText</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">staticText</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">flag</span><span class="p">,</span> <span class="n">border</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">staticText</span>
+    </div>
+<div class="viewcode-block" id="Panel.addLabeledText"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.Panel.addLabeledText">[docs]</a>    <span class="k">def</span> <span class="nf">addLabeledText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">initialValue</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                       <span class="n">defocusHandler</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a label and a text control.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        label : str</span>
+<span class="sd">            The text to label the text control.</span>
+<span class="sd">        initialValue : str</span>
+<span class="sd">            The initial value of the text control.</span>
+<span class="sd">        border : int</span>
+<span class="sd">            The width in pixels of the border which will surround both the</span>
+<span class="sd">            new label and the new text control.</span>
+<span class="sd">        style : int</span>
+<span class="sd">            The style (in terms of `wx` constants) of the text control.</span>
+<span class="sd">        defocusHandler : method</span>
+<span class="sd">            The method to execute when the text control loses focus.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        wxTextCtrl</span>
+<span class="sd">            The text control which has been created and added to the panel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">staticText</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+        <span class="n">textCtrl</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">initialValue</span><span class="p">,</span>
+                               <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">defocusHandler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">textCtrl</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_KILL_FOCUS</span><span class="p">,</span> <span class="n">defocusHandler</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">staticText</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Panel</span><span class="o">.</span><span class="n">labelOptions</span><span class="p">,</span> <span class="n">border</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">textCtrl</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">textCtrl</span>
+    </div>
+<div class="viewcode-block" id="Panel.addLabeledComboBox"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.Panel.addLabeledComboBox">[docs]</a>    <span class="k">def</span> <span class="nf">addLabeledComboBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">initialValue</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                           <span class="n">style</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">defocusHandler</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">valueHandler</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                           <span class="n">proportion</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a label and a text control.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        label : str</span>
+<span class="sd">            The text to label the combo box.</span>
+<span class="sd">        initialValue : str</span>
+<span class="sd">            The initial value of the combo box.</span>
+<span class="sd">        choices : list of str</span>
+<span class="sd">            The accepted values for the combo box.</span>
+<span class="sd">        border : int</span>
+<span class="sd">            The width in pixels of the border which will surround both the</span>
+<span class="sd">            new label and the new combo box.</span>
+<span class="sd">        style : int</span>
+<span class="sd">            The style (in terms of `wx` constants) of the combo box.</span>
+<span class="sd">        defocusHandler : method</span>
+<span class="sd">            The method to execute when the combo box loses focus.</span>
+<span class="sd">        valueHandler : method</span>
+<span class="sd">            The method to execute when the selection of the combo box changes.</span>
+<span class="sd">        proportion : int</span>
+<span class="sd">            The weighting factor for sizing the combo box.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">choices</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">choices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">staticText</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+        <span class="n">comboBox</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ComboBox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">initialValue</span><span class="p">,</span> 
+                               <span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">defocusHandler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">comboBox</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_KILL_FOCUS</span><span class="p">,</span> <span class="n">defocusHandler</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">valueHandler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">comboBox</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_COMBOBOX</span><span class="p">,</span> <span class="n">valueHandler</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">staticText</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Panel</span><span class="o">.</span><span class="n">labelOptions</span><span class="p">,</span> <span class="n">border</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">comboBox</span><span class="p">,</span> <span class="n">proportion</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">comboBox</span>
+    </div>
+<div class="viewcode-block" id="Panel.addLabeledMultiCtrl"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.Panel.addLabeledMultiCtrl">[docs]</a>    <span class="k">def</span> <span class="nf">addLabeledMultiCtrl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">initialValue</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">allowed</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                            <span class="n">border</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">defocusHandler</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a label and text controls to the panel.</span>
+<span class="sd">        </span>
+<span class="sd">        The number of controls to be added will be determined by</span>
+<span class="sd">        `initialValue`. There will be one item for each value of `initialValue`,</span>
+<span class="sd">        If the value of `allowed` at the same position as a value of</span>
+<span class="sd">        `initialValue` is a list, the created control will be a `wxComboBox`</span>
+<span class="sd">        with the listed choices available.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        label : str</span>
+<span class="sd">            The text to label the text control.</span>
+<span class="sd">        initialValue : list of str </span>
+<span class="sd">            The initial values of the text controls.</span>
+<span class="sd">        allowed : list of list of str</span>
+<span class="sd">            A list of lists of strings. Each element in the outer list</span>
+<span class="sd">            corresponds to a single control. The strings in the inner</span>
+<span class="sd">            list correspond to the allowed values for the control. If</span>
+<span class="sd">            any element of the outer list is `None`, that list item will</span>
+<span class="sd">            create a `wxTextCtrl` instead of a `wxComboBox`. </span>
+<span class="sd">        border : int</span>
+<span class="sd">            The width in pixels of the border which will surround both the</span>
+<span class="sd">            new label and the new text control.</span>
+<span class="sd">        style : int</span>
+<span class="sd">            The style (in terms of `wx` constants) of the text control.</span>
+<span class="sd">        defocusHandler : method or list of method</span>
+<span class="sd">            The method to execute when the text control loses focus. If it is</span>
+<span class="sd">            a list, the handlers will be applied sequentially to the controls</span>
+<span class="sd">            created for each element in `initialValue`. If it is a single</span>
+<span class="sd">            method, the same method will be bound to all controls.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of (wxTextCtrl or wxComboBox)</span>
+<span class="sd">            The list of text controls and combo box controls which have been </span>
+<span class="sd">            created and added to the panel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">staticText</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">defocusHandler</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">defocusHandler</span> <span class="o">=</span> <span class="p">[</span><span class="n">defocusHandler</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">initialValue</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">allowed</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">allowed</span> <span class="o">=</span> <span class="p">[</span><span class="n">allowed</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">initialValue</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">staticText</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Panel</span><span class="o">.</span><span class="n">labelOptions</span><span class="p">,</span> <span class="n">border</span><span class="p">)</span>
+        <span class="n">ctrls</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">initial</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">choices</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">initialValue</span><span class="p">,</span> <span class="n">defocusHandler</span><span class="p">,</span>
+                                             <span class="n">allowed</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">choices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">ctrl</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ComboBox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">initial</span><span class="p">,</span> 
+                                   <span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ctrl</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">initial</span><span class="p">,</span>
+                                   <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+            <span class="n">ctrls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ctrl</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">handler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">ctrl</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_KILL_FOCUS</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">ctrl</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ctrls</span>
+    </div>
+<div class="viewcode-block" id="Panel.addButton"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.Panel.addButton">[docs]</a>    <span class="k">def</span> <span class="nf">addButton</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">wxId</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span> 
+        <span class="sd">&quot;&quot;&quot;Create a new button and add it to the panel.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        label : str</span>
+<span class="sd">            The text which should go on the button.</span>
+<span class="sd">        wxId : int</span>
+<span class="sd">            The ID for the button.</span>
+<span class="sd">        border : int</span>
+<span class="sd">            The size in pixels of the border to go around the button.</span>
+<span class="sd">        handler : method</span>
+<span class="sd">            The method to execute when the button is clicked.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        wxButton</span>
+<span class="sd">            The button created by this method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">button</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="p">,</span> <span class="n">wxId</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">button</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">handler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">button</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">button</span>
+    </div>
+<div class="viewcode-block" id="Panel.addGrowableColumn"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.Panel.addGrowableColumn">[docs]</a>    <span class="k">def</span> <span class="nf">addGrowableColumn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">proportion</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Make a column growable in a flexible sizer.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The index of the column to allow to expand.</span>
+<span class="sd">        proportion : int</span>
+<span class="sd">            The weighting factor for expansion.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">function</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sizer</span><span class="p">,</span> <span class="s">&#39;AddGrowableCol&#39;</span><span class="p">)</span>
+            <span class="n">function</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">proportion</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        </div>
+<div class="viewcode-block" id="Panel.addStretchSpacer"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.Panel.addStretchSpacer">[docs]</a>    <span class="k">def</span> <span class="nf">addStretchSpacer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proportion</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a stretchable spacer to the panel.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        proportion : int</span>
+<span class="sd">            The weighting factor for expansion.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sizer</span><span class="o">.</span><span class="n">AddStretchSpacer</span><span class="p">(</span><span class="n">proportion</span><span class="p">)</span>
+
+
+<span class="c"># Scan configuration panel -----------------------------------------------------</span>
+</div></div>
+<div class="viewcode-block" id="ScanPanel"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.ScanPanel">[docs]</a><span class="k">class</span> <span class="nc">ScanPanel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A scan panel with extra options.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The panel or frame which contains this panel.</span>
+<span class="sd">    wxId : int</span>
+<span class="sd">        The ID of this panel.</span>
+<span class="sd">    initialData : list of tuple of float</span>
+<span class="sd">        The data the table should contain initially. Each tuple is one row</span>
+<span class="sd">        and should be of the form (initial point, final point, step size),</span>
+<span class="sd">        where all are in the same units.</span>
+<span class="sd">    formatString : str</span>
+<span class="sd">        The string used to format the floats into appropriate strings.</span>
+<span class="sd">    buttonIcons : bool</span>
+<span class="sd">        Whether to use icons for the editing buttons. If `False`, text will</span>
+<span class="sd">        be used instead.</span>
+<span class="sd">    label : str</span>
+<span class="sd">        The label to surround the panel. If `None`, the panel will not have</span>
+<span class="sd">        either a label or a border.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">wxId</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">initialData</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+                 <span class="n">formatString</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%.3f</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">buttonIcons</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        
+        <span class="nb">super</span><span class="p">(</span><span class="n">ScanPanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wxId</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">__formatString</span> <span class="o">=</span> <span class="n">formatString</span>
+        
+        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">staticbox</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+            <span class="n">mainsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBoxSizer</span><span class="p">(</span><span class="n">staticbox</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mainsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        
+        
+        <span class="n">listpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="n">listsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">listpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">listsizer</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span> <span class="o">=</span> <span class="n">ListCtrl</span><span class="p">(</span><span class="n">listpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span>
+                               <span class="n">headers</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;Initial&#39;</span><span class="p">,</span> <span class="s">&#39;Final&#39;</span><span class="p">,</span> <span class="s">&#39;Step&#39;</span><span class="p">))</span>
+        <span class="n">listsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">initialData</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">initialData</span><span class="p">)</span>
+            
+        <span class="n">navpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="n">navsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">navpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">navsizer</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">buttonIcons</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">navUp</span> <span class="o">=</span> <span class="n">createButton</span><span class="p">(</span><span class="n">navpanel</span><span class="p">,</span> <span class="n">navsizer</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span>
+                                      <span class="n">img</span><span class="o">.</span><span class="n">getScanUpBitmap</span><span class="p">(),</span>
+                                      <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Move up&#39;</span><span class="p">,</span> 
+                                      <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onMoveUp</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">navDown</span> <span class="o">=</span> <span class="n">createButton</span><span class="p">(</span><span class="n">navpanel</span><span class="p">,</span> <span class="n">navsizer</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span>
+                                        <span class="n">img</span><span class="o">.</span><span class="n">getScanDownBitmap</span><span class="p">(),</span> 
+                                        <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Move down&#39;</span><span class="p">,</span> 
+                                        <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onMoveDown</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">navAdd</span> <span class="o">=</span> <span class="n">createButton</span><span class="p">(</span><span class="n">navpanel</span><span class="p">,</span> <span class="n">navsizer</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span>
+                                       <span class="n">img</span><span class="o">.</span><span class="n">getScanAddBitmap</span><span class="p">(),</span> 
+                                       <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Add item&#39;</span><span class="p">,</span> 
+                                       <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onAdd</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">navInsert</span> <span class="o">=</span> <span class="n">createButton</span><span class="p">(</span><span class="n">navpanel</span><span class="p">,</span> <span class="n">navsizer</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span>
+                                          <span class="n">img</span><span class="o">.</span><span class="n">getScanInsertBitmap</span><span class="p">(),</span> 
+                                          <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Insert item&#39;</span><span class="p">,</span> 
+                                          <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onInsert</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">navRemove</span> <span class="o">=</span> <span class="n">createButton</span><span class="p">(</span><span class="n">navpanel</span><span class="p">,</span> <span class="n">navsizer</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span>
+                                          <span class="n">img</span><span class="o">.</span><span class="n">getScanRemoveBitmap</span><span class="p">(),</span> 
+                                          <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Remove item&#39;</span><span class="p">,</span> 
+                                          <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onRemove</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">navUp</span> <span class="o">=</span> <span class="n">createButton</span><span class="p">(</span><span class="n">navpanel</span><span class="p">,</span> <span class="n">navsizer</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> 
+                                      <span class="n">label</span><span class="o">=</span><span class="s">&#39;Up&#39;</span><span class="p">,</span>
+                                      <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Move up&#39;</span><span class="p">,</span> 
+                                      <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onMoveUp</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">navDown</span> <span class="o">=</span> <span class="n">createButton</span><span class="p">(</span><span class="n">navpanel</span><span class="p">,</span> <span class="n">navsizer</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span>
+                                        <span class="n">label</span><span class="o">=</span><span class="s">&#39;Down&#39;</span><span class="p">,</span>
+                                        <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Move down&#39;</span><span class="p">,</span> 
+                                        <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onMoveDown</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">navAdd</span> <span class="o">=</span> <span class="n">createButton</span><span class="p">(</span><span class="n">navpanel</span><span class="p">,</span> <span class="n">navsizer</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> 
+                                       <span class="n">label</span><span class="o">=</span><span class="s">&#39;Add&#39;</span><span class="p">,</span>
+                                       <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Add item&#39;</span><span class="p">,</span> 
+                                       <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onAdd</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">navInsert</span> <span class="o">=</span> <span class="n">createButton</span><span class="p">(</span><span class="n">navpanel</span><span class="p">,</span> <span class="n">navsizer</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> 
+                                          <span class="n">label</span><span class="o">=</span><span class="s">&#39;Insert&#39;</span><span class="p">,</span>
+                                          <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Insert item&#39;</span><span class="p">,</span> 
+                                          <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onInsert</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">navRemove</span> <span class="o">=</span> <span class="n">createButton</span><span class="p">(</span><span class="n">navpanel</span><span class="p">,</span> <span class="n">navsizer</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> 
+                                          <span class="n">label</span><span class="o">=</span><span class="s">&#39;Remove&#39;</span><span class="p">,</span>
+                                          <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Remove item&#39;</span><span class="p">,</span> 
+                                          <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onRemove</span><span class="p">)</span>
+        
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">listpanel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">navpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__formatString</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__formatString</span> <span class="o">!=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_LIST_ITEM_DESELECTED</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verifyData</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizerAndFit</span><span class="p">(</span><span class="n">mainsizer</span><span class="p">)</span>
+            
+<div class="viewcode-block" id="ScanPanel.onMoveUp"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.ScanPanel.onMoveUp">[docs]</a>    <span class="k">def</span> <span class="nf">onMoveUp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Move the currently selected item up.&quot;&quot;&quot;</span>
+        <span class="n">cpos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">GetFocusedItem</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">cpos</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">cpos</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">moveRowUp</span><span class="p">(</span><span class="n">cpos</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">cpos</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">Focus</span><span class="p">(</span><span class="n">cpos</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="ScanPanel.onMoveDown"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.ScanPanel.onMoveDown">[docs]</a>    <span class="k">def</span> <span class="nf">onMoveDown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Move the selected item down.&quot;&quot;&quot;</span>
+        <span class="n">cpos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">GetFocusedItem</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">cpos</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">GetItemCount</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">cpos</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">moveRowDown</span><span class="p">(</span><span class="n">cpos</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">cpos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">Focus</span><span class="p">(</span><span class="n">cpos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ScanPanel.onAdd"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.ScanPanel.onAdd">[docs]</a>    <span class="k">def</span> <span class="nf">onAdd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a new item.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">GetFocusedItem</span><span class="p">(),</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">numItems</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">GetItemCount</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">numItems</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">previousData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getRowData</span><span class="p">(</span><span class="n">numItems</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tempData</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">GetColumnCount</span><span class="p">()):</span>
+                <span class="n">tempData</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">previousData</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">newData</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">previousData</span><span class="p">)</span>
+        <span class="n">newData</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">previousData</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">newData</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_formatData</span><span class="p">([</span><span class="n">newData</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">numItems</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">Focus</span><span class="p">(</span><span class="n">numItems</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ScanPanel.onInsert"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.ScanPanel.onInsert">[docs]</a>    <span class="k">def</span> <span class="nf">onInsert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Insert an item at the current position&quot;&quot;&quot;</span>
+        <span class="n">cpos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">GetFocusedItem</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">cpos</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cpos</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">previousData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getRowData</span><span class="p">(</span><span class="n">cpos</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">previousData</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">newData</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">previousData</span><span class="p">)</span>
+        <span class="n">newData</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">previousData</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">newData</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">insertRow</span><span class="p">(</span><span class="n">cpos</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formatData</span><span class="p">([</span><span class="n">newData</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">Focus</span><span class="p">(</span><span class="n">cpos</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">cpos</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ScanPanel.onRemove"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.ScanPanel.onRemove">[docs]</a>    <span class="k">def</span> <span class="nf">onRemove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove the selected item.&quot;&quot;&quot;</span>
+        <span class="n">cpos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">GetFocusedItem</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">cpos</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">cpos</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">removeRow</span><span class="p">(</span><span class="n">cpos</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">GetItemCount</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+            </div>
+<div class="viewcode-block" id="ScanPanel.getRowData"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.ScanPanel.getRowData">[docs]</a>    <span class="k">def</span> <span class="nf">getRowData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the data from one row of the table.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The index of the row whose data should be returned.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of str</span>
+<span class="sd">            A list of strings containing the data from the specified row.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">getRowData</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formatData</span><span class="p">([</span><span class="n">data</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+
+        </div>
+    <span class="k">def</span> <span class="nf">_formatData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Format the data using the format string.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : list of tuple</span>
+<span class="sd">            The data to go into the table. Each tuple represents a single</span>
+<span class="sd">            row. The data type of the elements may be `str`, `int`, or `float`,</span>
+<span class="sd">            but it must be castable to `float`.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of tuple of str</span>
+<span class="sd">            The same data as was entered, but formatted according to the</span>
+<span class="sd">            specified format string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__formatString</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__formatString</span> <span class="o">!=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">:</span>
+            <span class="n">formattedData</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">currentRow</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span> 
+                        <span class="n">newValue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__formatString</span> <span class="o">%</span> <span class="nb">float</span><span class="p">(</span><span class="n">col</span><span class="p">)</span> 
+                    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                        <span class="n">newValue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__formatString</span> <span class="o">%</span> <span class="mf">0.0</span>
+                    <span class="n">currentRow</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newValue</span><span class="p">)</span>
+                <span class="n">formattedData</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">currentRow</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">formattedData</span>
+        <span class="k">return</span> <span class="n">data</span>
+    
+<div class="viewcode-block" id="ScanPanel.formatData"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.ScanPanel.formatData">[docs]</a>    <span class="k">def</span> <span class="nf">formatData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Format the data in the control using the format string.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getData</span><span class="p">())</span>
+        
+        </div>
+<div class="viewcode-block" id="ScanPanel.setData"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.ScanPanel.setData">[docs]</a>    <span class="k">def</span> <span class="nf">setData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">formatData</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the data values in the table control.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : list of tuple</span>
+<span class="sd">            A list of tuples, where each tuple contains the data for one row.</span>
+<span class="sd">            The data type of the elements in the tuples can be `str`, `int`, or</span>
+<span class="sd">            `float`, as long as it can be cast to `float`.</span>
+<span class="sd">        formatData : bool</span>
+<span class="sd">            Whether to format the data before passing it to the table control.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">formatData</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formatData</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">setValues</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ScanPanel.getData"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.ScanPanel.getData">[docs]</a>    <span class="k">def</span> <span class="nf">getData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">formatData</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the data values from the table control.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        formatData : bool</span>
+<span class="sd">            Whether to format the data before returning it from the table.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of tuple of str</span>
+<span class="sd">            The data from the list control. Each tuple represents one row.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">formatData</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formatData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">getData</span><span class="p">())</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__list</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span>
+    </div>
+    <span class="k">def</span> <span class="nf">_verifyData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Make sure all inputs are floats.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">formatData</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+
+
+<span class="c">#===============================================================================</span>
+<span class="c"># </span>
+<span class="c"># MULTIPURPOSE CONTROL CONSTRUCTORS</span>
+<span class="c">#</span>
+<span class="c">#===============================================================================</span>
+</div>
+<div class="viewcode-block" id="createButton"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.createButton">[docs]</a><span class="k">def</span> <span class="nf">createButton</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">sizer</span><span class="p">,</span> <span class="n">wxId</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> 
+                 <span class="n">tooltip</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a new button.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The button&#39;s parent frame or panel.</span>
+<span class="sd">    sizer : wxSizer</span>
+<span class="sd">        The sizer to which the button should be added.</span>
+<span class="sd">    wxId : int</span>
+<span class="sd">        The ID number of the control (default: wx.ID_ANY).</span>
+<span class="sd">    icon : wxBitmap</span>
+<span class="sd">        A bitmap object to use as the icon for the button (default: `None`). If</span>
+<span class="sd">        `None`, the label will be used instead of an icon.</span>
+<span class="sd">    label : str</span>
+<span class="sd">        The label for the button. If `icon` is provided, then `label` will be</span>
+<span class="sd">        ignored.</span>
+<span class="sd">    tooltip : str</span>
+<span class="sd">        The tooltip to display when the user hovers over the button.</span>
+<span class="sd">    border : int</span>
+<span class="sd">        The amount of space in pixels to display around all sides of the button.</span>
+<span class="sd">    handler : method</span>
+<span class="sd">        The method which will be invoked when the user clicks on the button.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    wxButton</span>
+<span class="sd">        The newly created button.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">icon</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">button</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BitmapButton</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wxId</span><span class="p">,</span> <span class="n">icon</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">button</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wxId</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">tooltip</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">button</span><span class="o">.</span><span class="n">SetToolTipString</span><span class="p">(</span><span class="n">tooltip</span><span class="p">)</span>
+    
+    <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">button</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">handler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">button</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">button</span>
+</div>
+<div class="viewcode-block" id="createMenuItem"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.createMenuItem">[docs]</a><span class="k">def</span> <span class="nf">createMenuItem</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">menu</span><span class="p">,</span> <span class="n">wxId</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">tooltip</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+                   <span class="n">pos</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a new menu item and add it to the appropriate menu.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The frame or control which contains the appropriate menu bar.</span>
+<span class="sd">    menu : wxMenu</span>
+<span class="sd">        The menu to which the item should be added.</span>
+<span class="sd">    wxId : int</span>
+<span class="sd">        The ID of the menu item.</span>
+<span class="sd">    label : str</span>
+<span class="sd">        The text which should label the item.</span>
+<span class="sd">    tooltip : str</span>
+<span class="sd">        The text which should go in the tooltip and/or the status bar</span>
+<span class="sd">        when the item is highlighted.</span>
+<span class="sd">    handler : method</span>
+<span class="sd">        The method which should respond to clicks on the item.</span>
+<span class="sd">    pos : int</span>
+<span class="sd">        The position before which the item should be inserted. If `None` (the</span>
+<span class="sd">        default), the item will be appended to the end.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    wxMenuItem</span>
+<span class="sd">        The newly created menu item.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">pos</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">tooltip</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">newButton</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="n">Append</span><span class="p">(</span><span class="n">wxId</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">tooltip</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">newButton</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="n">Append</span><span class="p">(</span><span class="n">wxId</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">tooltip</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">newButton</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="n">Insert</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">wxId</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">tooltip</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">newButton</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="n">Insert</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">wxId</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+        
+    <span class="k">if</span> <span class="n">handler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">parent</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_MENU</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">newButton</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">newButton</span>
+    </div>
+<div class="viewcode-block" id="createMenu"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.createMenu">[docs]</a><span class="k">def</span> <span class="nf">createMenu</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">menuBar</span><span class="p">,</span> <span class="n">menuTitle</span><span class="p">,</span> <span class="n">menuItems</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a new menu and populate it.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The frame or control which contains the appropriate menu bar.</span>
+<span class="sd">    menuBar : wxMenuBar</span>
+<span class="sd">        The menu bar which should contain the new menu.</span>
+<span class="sd">    menuTitle : str</span>
+<span class="sd">        The title of the menu.</span>
+<span class="sd">    menuItems : list of tuple</span>
+<span class="sd">        A list of tuples, where each tuple describes one item for the menu.</span>
+<span class="sd">        The tuples should contain, in order, wxId, label, tooltip, and</span>
+<span class="sd">        handler. For the meanings, see `createMenuItem`. If an element in</span>
+<span class="sd">        the list is `None`, a separator will be appended at that point.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of wxMenuItem</span>
+<span class="sd">        The menu item objects which constitute the menu.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">newMenu</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Menu</span><span class="p">()</span>
+    <span class="n">itemsOut</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">menuItems</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">newMenu</span><span class="o">.</span><span class="n">AppendSeparator</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">itemsOut</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">createMenuItem</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">newMenu</span><span class="p">,</span> <span class="o">*</span><span class="n">item</span><span class="p">))</span>
+    <span class="n">menuBar</span><span class="o">.</span><span class="n">Append</span><span class="p">(</span><span class="n">newMenu</span><span class="p">,</span> <span class="n">menuTitle</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">itemsOut</span>
+</div>
+<div class="viewcode-block" id="createLabeledTextControl"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.createLabeledTextControl">[docs]</a><span class="k">def</span> <span class="nf">createLabeledTextControl</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">sizer</span><span class="p">,</span> <span class="n">wxId</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Input:&#39;</span><span class="p">,</span> 
+                             <span class="n">initialValue</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                             <span class="n">defocusHandler</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a label and a text control and add them to the sizer.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The panel or frame which should serve as the parent for the label</span>
+<span class="sd">        and control.</span>
+<span class="sd">    sizer : wxSizer</span>
+<span class="sd">        The sizer to which the label and text control should be added. Usually,</span>
+<span class="sd">        it should be a wxFlexGridSizer or wxGridSizer.</span>
+<span class="sd">    wxId : int</span>
+<span class="sd">        The ID for the text control (default: wx.ID_ANY).</span>
+<span class="sd">    label : str</span>
+<span class="sd">        The text that goes in the label (default: &quot;Input:&quot;).</span>
+<span class="sd">    initialValue : str</span>
+<span class="sd">        The initial value for the control (default: &quot;&quot;).</span>
+<span class="sd">    border : int</span>
+<span class="sd">        The border thickness in pixels (default: 0). The same border is applied</span>
+<span class="sd">        around both the label and the control.</span>
+<span class="sd">    style : int</span>
+<span class="sd">        The style (normally, use wx constants) to use for the text control</span>
+<span class="sd">        (default: 0).</span>
+<span class="sd">    defocusHandler : method</span>
+<span class="sd">        A method to be called when the text control loses focus (default: </span>
+<span class="sd">        `None`).</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    wxTextCtrl</span>
+<span class="sd">        The text control created by this function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">staticText</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+    <span class="n">textControl</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wxId</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">initialValue</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+    <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">staticText</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span>
+              <span class="n">border</span><span class="p">)</span>
+    <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">textControl</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">defocusHandler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">textControl</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_KILL_FOCUS</span><span class="p">,</span> <span class="n">defocusHandler</span><span class="p">)</span>
+        
+    <span class="k">return</span> <span class="n">textControl</span>
+</div>
+<div class="viewcode-block" id="createLabeledComboBox"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.createLabeledComboBox">[docs]</a><span class="k">def</span> <span class="nf">createLabeledComboBox</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">sizer</span><span class="p">,</span> <span class="n">wxId</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Input:&#39;</span><span class="p">,</span> 
+                          <span class="n">initialValue</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> 
+                          <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">CB_DROPDOWN</span><span class="p">,</span> <span class="n">defocusHandler</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">valueHandler</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a label and a combo box and add them to the sizer.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The panel or frame which should serve as the parent for the label</span>
+<span class="sd">        and control.</span>
+<span class="sd">    sizer : wxSizer</span>
+<span class="sd">        The sizer to which the label and combo box should be added. Usually,</span>
+<span class="sd">        it should be a wxFlexGridSizer or wxGridSizer.</span>
+<span class="sd">    wxId : int</span>
+<span class="sd">        The ID for the combo box (default: wx.ID_ANY).</span>
+<span class="sd">    label : str</span>
+<span class="sd">        The text that goes in the label (default: &quot;Input:&quot;).</span>
+<span class="sd">    initialValue : str</span>
+<span class="sd">        The initial value for the control (default: &quot;&quot;).</span>
+<span class="sd">    choices : list of str</span>
+<span class="sd">        A list of strings representing the values the combo box offers. If</span>
+<span class="sd">        `None` (the default), no options will be available initially. (If</span>
+<span class="sd">        `None`, make sure that `style` is not `wx.CB_READONLY`, or the combo</span>
+<span class="sd">        box will be entirely useless.)</span>
+<span class="sd">    border : int</span>
+<span class="sd">        The border thickness in pixels (default: 0). The same border is applied</span>
+<span class="sd">        around both the label and the control.</span>
+<span class="sd">    style : int</span>
+<span class="sd">        The style (normally, use wx constants) to use for the combo box</span>
+<span class="sd">        (default: `wx.CB_DROPDOWN`; the other typical value is </span>
+<span class="sd">        `wx.CB_READONLY`).</span>
+<span class="sd">    defocusHandler : method</span>
+<span class="sd">        A method to be called when the text control loses focus (default: </span>
+<span class="sd">        `None`).</span>
+<span class="sd">    valueHandler : method</span>
+<span class="sd">        A method to be called when the value selection in the combo box</span>
+<span class="sd">        changes (default: `None`)</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    wxComboBox</span>
+<span class="sd">        The combo box created by this function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">choices</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">choices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">staticText</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+    <span class="n">comboBox</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ComboBox</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wxId</span><span class="p">,</span> <span class="n">initialValue</span><span class="p">,</span> 
+                           <span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+    <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">staticText</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span>
+              <span class="n">border</span><span class="p">)</span>
+    <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">comboBox</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">border</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">defocusHandler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">comboBox</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_KILL_FOCUS</span><span class="p">,</span> <span class="n">defocusHandler</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">valueHandler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">comboBox</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_COMBOBOX</span><span class="p">,</span> <span class="n">valueHandler</span><span class="p">)</span>
+        
+    <span class="k">return</span> <span class="n">comboBox</span>
+
+
+</div>
+<div class="viewcode-block" id="ErrorDialog"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.ErrorDialog">[docs]</a><span class="k">class</span> <span class="nc">ErrorDialog</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Dialog</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A dialog for displaying general sequence errors.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The panel or frame which spawns this dialog.</span>
+<span class="sd">    error : GeneralExperimentError</span>
+<span class="sd">        The exception whose contents should be displayed in the dialog.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">error</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ErrorDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="n">error</span>
+        
+        <span class="n">imageList</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ImageList</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="n">iconError</span> <span class="o">=</span> <span class="n">imageList</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ArtProvider</span><span class="o">.</span><span class="n">GetBitmap</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ART_ERROR</span><span class="p">,</span> 
+                                                           <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">)))</span>
+        <span class="n">iconWarning</span> <span class="o">=</span> <span class="n">imageList</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ArtProvider</span><span class="o">.</span><span class="n">GetBitmap</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ART_WARNING</span><span class="p">,</span> 
+                                                             <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list</span> <span class="o">=</span> <span class="n">ListBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">LC_REPORT</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">LC_NO_HEADER</span><span class="o">|</span>
+                            <span class="n">wx</span><span class="o">.</span><span class="n">BORDER_SIMPLE</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">AssignImageList</span><span class="p">(</span><span class="n">imageList</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">IMAGE_LIST_SMALL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">InsertColumn</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_LIST_ITEM_FOCUSED</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onSelection</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">error</span><span class="o">.</span><span class="n">items</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;error&#39;</span><span class="p">:</span>
+                <span class="n">imageIndex</span> <span class="o">=</span> <span class="n">iconError</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">imageIndex</span> <span class="o">=</span> <span class="n">iconWarning</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">InsertStringItem</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">maxint</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">SetItemImage</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">imageIndex</span><span class="p">,</span> <span class="n">imageIndex</span><span class="p">)</span>
+        
+        
+        <span class="n">buttonpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">buttonsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">buttonpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">buttonsizer</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonCancel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">buttonpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_CANCEL</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Cancel&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonCancel</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onClose</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonProceed</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">buttonpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Proceed&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buttonProceed</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onClose</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">error</span><span class="o">.</span><span class="n">errorCount</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">buttonProceed</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;There are errors in the &#39;</span> <span class="o">+</span>
+                                  <span class="s">&#39;sequence. Cannot proceed.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetIcon</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ArtProvider</span><span class="o">.</span><span class="n">GetIcon</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ART_ERROR</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;There are problems with the &#39;</span> <span class="o">+</span>
+                                  <span class="s">&#39;sequence. Are you sure you want to &#39;</span> <span class="o">+</span>
+                                  <span class="s">&#39;proceed?&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetIcon</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ArtProvider</span><span class="o">.</span><span class="n">GetIcon</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ART_WARNING</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetTitle</span><span class="p">(</span><span class="s">&#39;Sequence Errors Detected&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">infobox</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">TE_MULTILINE</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">infobox</span><span class="o">.</span><span class="n">SetEditable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">buttonsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buttonCancel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">buttonsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buttonProceed</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        
+        <span class="n">sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_LEFT</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infobox</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">buttonpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_CLOSE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onClose</span><span class="p">)</span>
+        
+        <span class="n">sizer</span><span class="o">.</span><span class="n">SetMinSize</span><span class="p">((</span><span class="mi">400</span><span class="p">,</span> <span class="mi">300</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">sizer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Fit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">SetColumnWidth</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">LIST_AUTOSIZE</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_onClose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Respond to a close event.&quot;&quot;&quot;</span>
+        <span class="n">buttonId</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">GetId</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EndModal</span><span class="p">(</span><span class="n">buttonId</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Destroy</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_onSelection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Respond to selection of items.&quot;&quot;&quot;</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">getSelection</span><span class="p">()</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">infobox</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+      
+
+<span class="c">#--------------------------------------------------------------------- Prompters</span>
+</div>
+<div class="viewcode-block" id="ComboBoxPrompter"><a class="viewcode-back" href="../../../api_gui_gui_helpers.html#src.gui.gui_helpers.ComboBoxPrompter">[docs]</a><span class="k">class</span> <span class="nc">ComboBoxPrompter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An object for prompting for user input from a combo box dialog.&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_width</span> <span class="o">=</span> <span class="n">width</span>
+        
+    <span class="k">def</span> <span class="nf">prompt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">SingleChoiceDialog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="p">,</span> 
+                                       <span class="n">textwrap</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_width</span><span class="p">),</span>
+                                       <span class="s">&#39;Enter a selection&#39;</span><span class="p">,</span>
+                                       <span class="n">options</span><span class="p">,</span>
+                                       <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">CHOICEDLG_STYLE</span><span class="o">&amp;~</span><span class="n">wx</span><span class="o">.</span><span class="n">CANCEL</span><span class="p">)</span>
+                                       
+        <span class="n">dialog</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">Destroy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">response</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

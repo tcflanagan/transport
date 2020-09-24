@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.core.inst_manager &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.core.inst_manager</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;A tool to manage instruments.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">imp</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">src</span> <span class="kn">import</span> <span class="n">settings</span> <span class="k">as</span> <span class="n">stng</span>
+<span class="kn">from</span> <span class="nn">src.core</span> <span class="kn">import</span> <span class="n">instrument</span> <span class="k">as</span> <span class="n">inst</span>
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">path_tools</span> <span class="k">as</span> <span class="n">pt</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;transport&#39;</span><span class="p">)</span>
+
+<span class="n">_PATH</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="n">stng</span><span class="o">.</span><span class="n">DIR_INSTRUMENT_DRIVERS</span><span class="p">)</span>
+<span class="n">_PATH_CTRL</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="n">stng</span><span class="o">.</span><span class="n">DIR_INSTRUMENT_CONTROLLERS</span><span class="p">)</span>
+<span class="n">_LOOKUP_ORDER</span> <span class="o">=</span> <span class="n">stng</span><span class="o">.</span><span class="n">INST_PREFERENCE_ORDER</span>
+<span class="n">_COUNTER</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="n">_MSG_IMPORT_SUCCESS</span> <span class="o">=</span> <span class="s">&#39;Successfully loaded </span><span class="si">%s</span><span class="s"> from file </span><span class="si">%s</span><span class="s">.&#39;</span>
+<span class="n">_MSG_IMPORT_FAILURE</span> <span class="o">=</span> <span class="s">&#39;Error loading </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">. Is VISA installed?</span><span class="se">\n</span><span class="s">&gt;&gt;&gt;&gt;</span><span class="si">%s</span><span class="s">&#39;</span>
+
+<div class="viewcode-block" id="InstrumentManager"><a class="viewcode-back" href="../../../api_core_inst_manager.html#src.core.inst_manager.InstrumentManager">[docs]</a><span class="k">class</span> <span class="nc">InstrumentManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A class for managing instruments.</span>
+
+<span class="sd">    There are several purposes for this class. One is loading available</span>
+<span class="sd">    instruments and relaying them to other objects. Perhaps the most important</span>
+<span class="sd">    is ensuring that only one instance of each cryostat object exists at a</span>
+<span class="sd">    time, since major problems can occur if there are multiple instances.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Creating an instrument manager.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_knownInstruments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_knownSingletons</span> <span class="o">=</span> <span class="n">_loadDrivers</span><span class="p">(</span><span class="n">_PATH</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_knownControllers</span> <span class="o">=</span> <span class="n">_loadDrivers</span><span class="p">(</span><span class="n">_PATH_CTRL</span><span class="p">,</span> <span class="n">inst</span><span class="o">.</span><span class="n">Controller</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_presentSingletons</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_controllers</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="InstrumentManager.getAvailableInstrumentStrings"><a class="viewcode-back" href="../../../api_core_inst_manager.html#src.core.inst_manager.InstrumentManager.getAvailableInstrumentStrings">[docs]</a>    <span class="k">def</span> <span class="nf">getAvailableInstrumentStrings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get a list of strings of available instruments.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of str</span>
+<span class="sd">            A list of strings indicating the names of the available</span>
+<span class="sd">            instruments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">instrumentNames</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_knownInstruments</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">cryostatNames</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_knownSingletons</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">instrumentNames</span> <span class="o">+</span> <span class="n">cryostatNames</span>
+</div>
+<div class="viewcode-block" id="InstrumentManager.constructInstrument"><a class="viewcode-back" href="../../../api_core_inst_manager.html#src.core.inst_manager.InstrumentManager.constructInstrument">[docs]</a>    <span class="k">def</span> <span class="nf">constructInstrument</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">experiment</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Construct a new instrument.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            The name of the instrument to create.</span>
+<span class="sd">        experiment : Experiment</span>
+<span class="sd">            The experiment which should own the instrument.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Instrument</span>
+<span class="sd">            An instance of the desired instrument class. If the requested</span>
+<span class="sd">            instrument is a cryostat and the class has already been</span>
+<span class="sd">            instantiated, the returned value is the already-instantiated</span>
+<span class="sd">            cryostat. Otherwise, a newly created instrument is returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_knownInstruments</span><span class="p">:</span>
+            <span class="n">instrumentClass</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_knownInstruments</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">instrumentClass</span><span class="p">(</span><span class="n">experiment</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_knownSingletons</span><span class="p">:</span>
+            <span class="n">singletonClass</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_knownSingletons</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">existing</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_presentSingletons</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">existing</span><span class="p">,</span> <span class="n">singletonClass</span><span class="p">):</span>
+                    <span class="n">existing</span><span class="o">.</span><span class="n">setExperiment</span><span class="p">(</span><span class="n">experiment</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">existing</span>
+            <span class="n">newSingleton</span> <span class="o">=</span> <span class="n">singletonClass</span><span class="p">(</span><span class="n">experiment</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Creating singleton instrument </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_presentSingletons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newSingleton</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">newSingleton</span>
+        <span class="k">return</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="InstrumentManager.constructController"><a class="viewcode-back" href="../../../api_core_inst_manager.html#src.core.inst_manager.InstrumentManager.constructController">[docs]</a>    <span class="k">def</span> <span class="nf">constructController</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instrument</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Construct a controller for the specified instrument if possible.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        instrument : Instrument</span>
+<span class="sd">            The `Instrument` object for which to construct a controller.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Controller</span>
+<span class="sd">            A `Controller` object for the specified instrument. If the</span>
+<span class="sd">            specified instrument already has a controller associated with it,</span>
+<span class="sd">            the existing controller will be returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">instrument</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+        <span class="n">experiment</span> <span class="o">=</span> <span class="n">instrument</span><span class="o">.</span><span class="n">getExperiment</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">currInst</span><span class="p">,</span> <span class="n">currCont</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_controllers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">currInst</span> <span class="ow">is</span> <span class="n">instrument</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">currCont</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_knownControllers</span><span class="p">:</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_knownControllers</span><span class="p">[</span><span class="n">name</span><span class="p">](</span><span class="n">experiment</span><span class="p">,</span> <span class="n">instrument</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_controllers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">instrument</span><span class="p">,</span> <span class="n">new</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">new</span>
+        <span class="k">return</span> <span class="bp">None</span>
+ </div></div>
+<span class="k">class</span> <span class="nc">_InfoBox</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A convenience class for containing information about driver modules.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    directory : str</span>
+<span class="sd">        The absolute path of the directory holding the modules represented by</span>
+<span class="sd">        the `_InfoBox`.</span>
+<span class="sd">    moduleName : str</span>
+<span class="sd">        The name of the module file (with no extension or base path) represented</span>
+<span class="sd">        by the `_InfoBox`. Note that **all** modules with the specified name</span>
+<span class="sd">        (that is, both source and byte-compiled files) will be scanned.</span>
+<span class="sd">    superclass : class</span>
+<span class="sd">        The class of which driver classes contained within the represented</span>
+<span class="sd">        module should be subclasses (all subclasses of `superclass` will be</span>
+<span class="sd">        returned as implemented drivers; `superclass` itself will not be</span>
+<span class="sd">        reported).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span> <span class="n">moduleName</span><span class="p">,</span> <span class="n">superclass</span><span class="o">=</span><span class="n">inst</span><span class="o">.</span><span class="n">Instrument</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">directory</span> <span class="o">=</span> <span class="n">directory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">moduleName</span> <span class="o">=</span> <span class="n">moduleName</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">superclass</span> <span class="o">=</span> <span class="n">superclass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sources</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">pathBase</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">moduleName</span><span class="p">)</span>
+         
+        <span class="bp">self</span><span class="o">.</span><span class="n">_addElements</span><span class="p">(</span><span class="n">pathBase</span><span class="p">,</span> <span class="n">imp</span><span class="o">.</span><span class="n">load_source</span><span class="p">,</span> <span class="s">&#39;py&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">superclass</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_addElements</span><span class="p">(</span><span class="n">pathBase</span><span class="p">,</span> <span class="n">imp</span><span class="o">.</span><span class="n">load_compiled</span><span class="p">,</span> <span class="s">&#39;pyc&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">superclass</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_addElements</span><span class="p">(</span><span class="n">pathBase</span><span class="p">,</span> <span class="n">imp</span><span class="o">.</span><span class="n">load_compiled</span><span class="p">,</span> <span class="s">&#39;pyo&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">superclass</span><span class="p">)</span>
+         
+    <span class="k">def</span> <span class="nf">_addElements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">meth</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> <span class="n">superclass</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load the drivers contained in a particular file.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : str</span>
+<span class="sd">            The absolute path to the file to load, without an extension.</span>
+<span class="sd">        meth : function or instancemethod</span>
+<span class="sd">            The function or method to import the requested module (usually</span>
+<span class="sd">            a function contained in the `imp` module).</span>
+<span class="sd">        ext : str</span>
+<span class="sd">            The extension of the file to load, without a leading period (usually</span>
+<span class="sd">            &quot;py&quot;, &quot;pyc&quot;, or &quot;pyo&quot;.</span>
+<span class="sd">        superclass : class</span>
+<span class="sd">            The class of which driver classes contained within the represented</span>
+<span class="sd">            module should be subclasses (all subclasses of `superclass` will be</span>
+<span class="sd">            returned as implemented drivers; `superclass` itself will not be</span>
+<span class="sd">            reported).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">path</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">ext</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+            <span class="n">module</span> <span class="o">=</span> <span class="n">meth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">moduleName</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">_COUNTER</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">filepath</span><span class="p">)</span>
+            <span class="n">_COUNTER</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">curr</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">module</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">superclass</span><span class="p">)</span> <span class="ow">and</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">superclass</span><span class="p">:</span>
+                        <span class="n">curr</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                    <span class="k">pass</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">curr</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">ext</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">ext</span><span class="p">]</span> <span class="o">=</span> <span class="n">module</span>
+                 
+    <span class="k">def</span> <span class="nf">getElements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the objects which have drivers in the specified modules.</span>
+<span class="sd">        </span>
+<span class="sd">        Return a tuple of lists. The first list contains information about</span>
+<span class="sd">        instruments of which more than one instance may exist, and the second</span>
+<span class="sd">        contains information about instruments of which at most one instance</span>
+<span class="sd">        may exist.</span>
+<span class="sd">        </span>
+<span class="sd">        Each list contains a series of tuples specifying information about</span>
+<span class="sd">        the instruments in the modules represented by the `_InfoBox`. The</span>
+<span class="sd">        tuple elements are</span>
+<span class="sd">            1. A `str` specifying the name of the instrument;</span>
+<span class="sd">            2. The `class` which can be used to create an instance of the</span>
+<span class="sd">               instrument; and</span>
+<span class="sd">            3. The absolute path of the file from which the class was loaded.</span>
+<span class="sd">        </span>
+<span class="sd">        The file from which the loaded class will be taken depends on `order`,</span>
+<span class="sd">        which specifies extensions of Python code files in order of decreasing</span>
+<span class="sd">        preference. For example, if the module name is &quot;somefile&quot; and</span>
+<span class="sd">        &quot;somefile.py&quot; and &quot;somefile.pyc&quot; both exist, an `order` of</span>
+<span class="sd">        ``[&#39;pyc&#39;, &#39;py&#39;]`` will result in the class from &quot;somefile.pyc&quot; being</span>
+<span class="sd">        used.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        order : list of str</span>
+<span class="sd">            A list of strings indicating the extensions (without leading </span>
+<span class="sd">            periods) of Python source files **in order of preference**.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of list of tuple</span>
+<span class="sd">            A tuple of lists containing necessary information about the</span>
+<span class="sd">            implemented drivers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">multiples</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">singletons</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">order</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="n">_LOOKUP_ORDER</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">curr</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">cmod</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">done</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">order</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">val</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
+                    <span class="n">curr</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="n">ext</span><span class="p">]</span>
+                    <span class="n">cmod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">ext</span><span class="p">]</span>
+                    <span class="n">done</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">if</span> <span class="n">curr</span><span class="o">.</span><span class="n">isSingleton</span><span class="p">():</span>
+                <span class="n">singletons</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="n">curr</span><span class="p">,</span> <span class="n">cmod</span><span class="o">.</span><span class="n">__file__</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">multiples</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="n">curr</span><span class="p">,</span> <span class="n">cmod</span><span class="o">.</span><span class="n">__file__</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">multiples</span><span class="p">,</span> <span class="n">singletons</span><span class="p">)</span>
+         
+<span class="k">def</span> <span class="nf">_listModulesNoDuplicates</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a duplicate-free list of Python files in a given directory.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    directory : str</span>
+<span class="sd">        A string indicating the absolute path to the folder in which to search </span>
+<span class="sd">        for Python files.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of str</span>
+<span class="sd">        A list of strings, where each string is the name of a Python file (a</span>
+<span class="sd">        file ending with &quot;.py&quot;, &quot;.pyc&quot;, or &quot;.pyo&quot;). All extensions and </span>
+<span class="sd">        duplicates are removed, so that if &quot;somefile.py&quot; and &quot;somefile.pyc&quot; </span>
+<span class="sd">        both exist, a single element, &quot;somefile&quot;, will be reported.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">extensions</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">_LOOKUP_ORDER</span><span class="p">]</span>
+    <span class="n">rawFiles</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">lsAbsolute</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="n">modules</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">rawFiles</span><span class="p">:</span>
+        <span class="n">root</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">extensions</span> <span class="ow">and</span> <span class="n">root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">modules</span><span class="p">:</span>
+            <span class="n">modules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">modules</span>
+ 
+<span class="k">def</span> <span class="nf">_loadDrivers</span><span class="p">(</span><span class="n">directories</span><span class="p">,</span> <span class="n">superclass</span><span class="o">=</span><span class="n">inst</span><span class="o">.</span><span class="n">Instrument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load instrument drivers.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    directories : list of str</span>
+<span class="sd">        A list of strings specifying folders to scan for instruments.</span>
+<span class="sd">    superclass : class</span>
+<span class="sd">        The class whose subclasses should represent drivers of the desired</span>
+<span class="sd">        type. Note that `superclass` itself will **not** be loaded.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple of dict</span>
+<span class="sd">        A tuple of two dictionaries containing information about drivers</span>
+<span class="sd">        located in the specified places. In each dictionary, the keys are</span>
+<span class="sd">        names of objects with drivers (usually subclasses of `Instrument`), and</span>
+<span class="sd">        the values are the `class` objects corresponding to the given name.</span>
+<span class="sd">        </span>
+<span class="sd">        The first dictionary contains the drivers for those instruments of which</span>
+<span class="sd">        more than one instance is permitted, and drivers in the second </span>
+<span class="sd">        dictionary are for those instruments of which no more than one </span>
+<span class="sd">        instance should exist.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">multiples</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">singletons</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">allFiles</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">directories</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">directories</span> <span class="o">=</span> <span class="p">[</span><span class="n">directories</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="n">directories</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">mod</span> <span class="ow">in</span> <span class="n">_listModulesNoDuplicates</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
+            <span class="n">allFiles</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">folder</span><span class="p">,</span> <span class="n">mod</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">directory</span><span class="p">,</span> <span class="n">codefile</span> <span class="ow">in</span> <span class="n">allFiles</span><span class="p">:</span>
+        <span class="n">ibox</span> <span class="o">=</span> <span class="n">_InfoBox</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">codefile</span><span class="p">,</span> <span class="n">superclass</span><span class="p">)</span>
+        <span class="n">currm</span><span class="p">,</span> <span class="n">currs</span> <span class="o">=</span> <span class="n">ibox</span><span class="o">.</span><span class="n">getElements</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">currm</span><span class="p">:</span>
+            <span class="n">multiples</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_MSG_IMPORT_SUCCESS</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">loc</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">currs</span><span class="p">:</span>
+            <span class="n">singletons</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_MSG_IMPORT_SUCCESS</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">loc</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">multiples</span><span class="p">,</span> <span class="n">singletons</span><span class="p">)</span>
+
+<span class="n">INSTRUMENT_MANAGER</span> <span class="o">=</span> <span class="n">InstrumentManager</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

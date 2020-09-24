@@ -1,0 +1,298 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.gui.instruments.cryomag_panels &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.gui.instruments.cryomag_panels</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Panels for controlling cryostat-magnet systems</span>
+
+<span class="sd">This module provides a versatile panel for receiving data from and sending</span>
+<span class="sd">data to a cryostat-magnet system, featuring an indicator to show received</span>
+<span class="sd">values, a control for setting new values, and a button for sending commands.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">string</span> 
+<span class="kn">import</span> <span class="nn">wx</span>
+
+<span class="kn">from</span> <span class="nn">src.gui</span> <span class="kn">import</span> <span class="n">images</span> <span class="k">as</span> <span class="n">img</span>
+
+<span class="c"># pylint: disable=W0221,C0103,W0613</span>
+<span class="n">_BUTTON_SIZE_ADDITION</span> <span class="o">=</span> <span class="mi">6</span>
+
+<span class="n">_LABEL_OPTS</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span>
+
+<div class="viewcode-block" id="GridPanel"><a class="viewcode-back" href="../../../../api_gui_instruments_cryomag_panels.html#src.gui.instruments.cryomag_panels.GridPanel">[docs]</a><span class="k">class</span> <span class="nc">GridPanel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A panel for displaying and setting values, allowing arbitrary rows.</span>
+<span class="sd">    </span>
+<span class="sd">    This panel features four columns:</span>
+<span class="sd">        1. A label to indicate what the row represents.</span>
+<span class="sd">        2. An indicator to show a measured value.</span>
+<span class="sd">        3. A control for specifying new setpoints.</span>
+<span class="sd">        4. A button for sending the setpoint to the appropriate handler.</span>
+<span class="sd">    </span>
+<span class="sd">    The rows which receive buttons is somewhat customizable. If the </span>
+<span class="sd">    `buttonIDs` is set to `None`, no buttons will be created. If it is a </span>
+<span class="sd">    single integer or a list of integers of length 1, a single button will</span>
+<span class="sd">    be created in the last row. If it is a list of integers of the same</span>
+<span class="sd">    length as the list of row labels, each row will receive a button.</span>
+<span class="sd">    </span>
+<span class="sd">    Even if no buttons are to be added, the space will be reserved for them</span>
+<span class="sd">    to ensure that, when multiple instances of this panel are placed</span>
+<span class="sd">    above and below one another, the controls will still line up </span>
+<span class="sd">    aesthetically.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wx.Window</span>
+<span class="sd">        The frame or panel which owns this panel.</span>
+<span class="sd">    panelLabel : str</span>
+<span class="sd">        The string which labels the panel (in the border).</span>
+<span class="sd">    rowLabels : list of str</span>
+<span class="sd">        A list of strings which label the rows in the grid.</span>
+<span class="sd">    buttonIDs : list of int</span>
+<span class="sd">        A list of integer IDs for the buttons so that the parent can bind</span>
+<span class="sd">        actions to them.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+        
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">panelLabel</span><span class="p">,</span> <span class="n">rowLabels</span><span class="p">,</span> <span class="n">buttonIDs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new GridPanel.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GridPanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        
+<span class="c">#         outerpanel = wx.StaticBox(self, wx.ID_ANY, panelLabel)</span>
+<span class="c">#         outersizer = wx.StaticBoxSizer(outerpanel, wx.VERTICAL)</span>
+        <span class="n">outersizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> 
+                                                    <span class="n">panelLabel</span><span class="p">),</span> 
+                                       <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        
+        <span class="n">mainpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">mainsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">FlexGridSizer</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rowLabels</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">mainpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">mainsizer</span><span class="p">)</span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">AddGrowableCol</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        
+        <span class="n">okBitmap</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">getOkBitmap</span><span class="p">()</span>
+        <span class="n">buttonSize</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">_BUTTON_SIZE_ADDITION</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">okBitmap</span><span class="o">.</span><span class="n">GetSize</span><span class="p">()]</span>
+
+
+        <span class="c">#-- HEADER ROW ---------------------------------------------------------        </span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">),</span>
+                      <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Current&#39;</span><span class="p">),</span>
+                      <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Setpoint&#39;</span><span class="p">),</span>
+                      <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">buttonIDs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Set&#39;</span><span class="p">),</span>
+                          <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mainsizer</span><span class="o">.</span><span class="n">AddSpacer</span><span class="p">(</span><span class="n">buttonSize</span><span class="p">)</span>
+
+        
+        <span class="c">#-- ITEMS --------------------------------------------------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currentCtrls</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setpointCtrls</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rowLabels</span><span class="p">):</span>
+            <span class="c"># Row label</span>
+            <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">),</span>
+                          <span class="mi">1</span><span class="p">,</span> <span class="n">_LABEL_OPTS</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+            
+            <span class="c"># Current value indicator</span>
+            <span class="n">indicator</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> 
+                                    <span class="n">style</span><span class="o">=</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">TE_RIGHT</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">TE_RICH2</span><span class="o">|</span>
+                                           <span class="n">wx</span><span class="o">.</span><span class="n">TE_READONLY</span><span class="p">),</span> <span class="n">value</span><span class="o">=</span><span class="s">&#39;0.0&#39;</span><span class="p">)</span>
+            <span class="n">indicator</span><span class="o">.</span><span class="n">SetBackgroundColour</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">WHITE</span><span class="p">)</span>
+            <span class="n">indicator</span><span class="o">.</span><span class="n">SetForegroundColour</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">BLUE</span><span class="p">)</span>
+            <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">indicator</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">currentCtrls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">indicator</span><span class="p">)</span>
+            
+            <span class="c"># Setpoint control</span>
+            <span class="n">control</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">TE_RIGHT</span><span class="p">,</span>
+                                  <span class="n">validator</span><span class="o">=</span><span class="n">CharValidator</span><span class="p">(),</span> <span class="n">value</span><span class="o">=</span><span class="s">&#39;0.0&#39;</span><span class="p">)</span>
+            <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">control</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setpointCtrls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">control</span><span class="p">)</span>
+            
+            <span class="c"># Button</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">buttonIDs</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="n">buttonIDs</span> <span class="o">=</span> <span class="p">[</span><span class="n">buttonIDs</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">buttonIDs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">mainsizer</span><span class="o">.</span><span class="n">AddSpacer</span><span class="p">(</span><span class="n">buttonSize</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">buttonIDs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">rowLabels</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">BitmapButton</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">,</span> <span class="n">buttonIDs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> 
+                                                  <span class="n">okBitmap</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">buttonSize</span><span class="p">),</span> 
+                                  <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">mainsizer</span><span class="o">.</span><span class="n">AddSpacer</span><span class="p">(</span><span class="n">buttonSize</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">buttonIDs</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">rowLabels</span><span class="p">):</span>
+                <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">BitmapButton</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">,</span> <span class="n">buttonIDs</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> 
+                                              <span class="n">okBitmap</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">buttonSize</span><span class="p">),</span> 
+                              <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        <span class="n">outersizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizerAndFit</span><span class="p">(</span><span class="n">outersizer</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="GridPanel.getSetpoints"><a class="viewcode-back" href="../../../../api_gui_instruments_cryomag_panels.html#src.gui.instruments.cryomag_panels.GridPanel.getSetpoints">[docs]</a>    <span class="k">def</span> <span class="nf">getSetpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the values of the setpoints.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of float</span>
+<span class="sd">            The values of the setpoint controls.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ans</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">setpoint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setpointCtrls</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">setpoint</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">setpoint</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;0.0&#39;</span><span class="p">)</span>
+            <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ans</span>
+    </div>
+<div class="viewcode-block" id="GridPanel.setCurrents"><a class="viewcode-back" href="../../../../api_gui_instruments_cryomag_panels.html#src.gui.instruments.cryomag_panels.GridPanel.setCurrents">[docs]</a>    <span class="k">def</span> <span class="nf">setCurrents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the values of the current indicators.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        values : list of float</span>
+<span class="sd">            Set the indicators for the current values of the parameters</span>
+<span class="sd">            contained in the panel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currentCtrls</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+            <span class="n">current</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+
+</div></div>
+<div class="viewcode-block" id="CharValidator"><a class="viewcode-back" href="../../../../api_gui_instruments_cryomag_panels.html#src.gui.instruments.cryomag_panels.CharValidator">[docs]</a><span class="k">class</span> <span class="nc">CharValidator</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">PyValidator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A validator to ensure that only digits are entered into a control.&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new validator.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CharValidator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_CHAR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">OnChar</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="CharValidator.OnChar"><a class="viewcode-back" href="../../../../api_gui_instruments_cryomag_panels.html#src.gui.instruments.cryomag_panels.CharValidator.OnChar">[docs]</a>    <span class="k">def</span> <span class="nf">OnChar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Make sure the character is a digit.&quot;&quot;&quot;</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">GetKeyCode</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="n">wx</span><span class="o">.</span><span class="n">WXK_LEFT</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">WXK_RIGHT</span><span class="p">]:</span>
+            <span class="n">event</span><span class="o">.</span><span class="n">Skip</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="nb">chr</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">GetKeyCode</span><span class="p">())</span>
+                <span class="n">win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetWindow</span><span class="p">()</span>
+                <span class="k">if</span> <span class="s">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">win</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span> <span class="ow">and</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;.&#39;</span><span class="p">:</span>
+                    <span class="k">return</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">string</span><span class="o">.</span><span class="n">letters</span> <span class="ow">or</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39; &#39;</span><span class="p">:</span>
+                    <span class="k">return</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">Skip</span><span class="p">()</span>
+        </div>
+<div class="viewcode-block" id="CharValidator.Validate"><a class="viewcode-back" href="../../../../api_gui_instruments_cryomag_panels.html#src.gui.instruments.cryomag_panels.CharValidator.Validate">[docs]</a>    <span class="k">def</span> <span class="nf">Validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">win</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Nothing needs doing when the frame is closed.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    </div>
+<div class="viewcode-block" id="CharValidator.Clone"><a class="viewcode-back" href="../../../../api_gui_instruments_cryomag_panels.html#src.gui.instruments.cryomag_panels.CharValidator.Clone">[docs]</a>    <span class="k">def</span> <span class="nf">Clone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new validator.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">CharValidator</span><span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="CharValidator.TransferToWindow"><a class="viewcode-back" href="../../../../api_gui_instruments_cryomag_panels.html#src.gui.instruments.cryomag_panels.CharValidator.TransferToWindow">[docs]</a>    <span class="k">def</span> <span class="nf">TransferToWindow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;No data needs to be transferred.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    </div>
+<div class="viewcode-block" id="CharValidator.TransferFromWindow"><a class="viewcode-back" href="../../../../api_gui_instruments_cryomag_panels.html#src.gui.instruments.cryomag_panels.CharValidator.TransferFromWindow">[docs]</a>    <span class="k">def</span> <span class="nf">TransferFromWindow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;No data needs to be transferred.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">True</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

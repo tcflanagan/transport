@@ -1,0 +1,194 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The keithley6220 module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The instruments package" href="api_instruments.html" />
+    <link rel="next" title="The hp34401a module" href="api_instruments_hp34401a.html" />
+    <link rel="prev" title="The vector_magnet module" href="api_instruments_vector_magnet.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_hp34401a.html" title="The hp34401a module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_vector_magnet.html" title="The vector_magnet module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" accesskey="U">The <cite>instruments</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.instruments.keithley6220">
+<span id="the-keithley6220-module"></span><h1>The <cite>keithley6220</cite> module<a class="headerlink" href="#module-src.instruments.keithley6220" title="Permalink to this headline">¶</a></h1>
+<p><tt class="docutils literal"><span class="pre">Instrument</span></tt> representation of a Keithley 6220 DC Current Source</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="keithley6220">
+<h3>Keithley6220<a class="headerlink" href="#keithley6220" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.instruments.keithley6220.Keithley6220">
+<em class="property">class </em><tt class="descclassname">src.instruments.keithley6220.</tt><tt class="descname">Keithley6220</tt><big>(</big><em>experiment</em>, <em>name='Keithley6220: DC current source'</em>, <em>spec=None</em><big>)</big><a class="reference internal" href="_modules/src/instruments/keithley6220.html#Keithley6220"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.keithley6220.Keithley6220" title="Permalink to this definition">¶</a></dt>
+<dd><p>Driver for a Keithley 6220 current source.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.instruments.keithley6220.Keithley6220.finalize">
+<tt class="descname">finalize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/keithley6220.html#Keithley6220.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.keithley6220.Keithley6220.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the communication channel.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.keithley6220.Keithley6220.getActions">
+<tt class="descname">getActions</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/keithley6220.html#Keithley6220.getActions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.keithley6220.Keithley6220.getActions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the list of supported actions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.keithley6220.Keithley6220.getAddress">
+<tt class="descname">getAddress</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/keithley6220.html#Keithley6220.getAddress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.keithley6220.Keithley6220.getAddress" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the instrument&#8217;s VISA resource address.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.keithley6220.Keithley6220.getCurrent">
+<tt class="descname">getCurrent</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/keithley6220.html#Keithley6220.getCurrent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.keithley6220.Keithley6220.getCurrent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the output current from the current source.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.keithley6220.Keithley6220.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/keithley6220.html#Keithley6220.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.keithley6220.Keithley6220.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open the communication channel.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.keithley6220.Keithley6220.setCurrent">
+<tt class="descname">setCurrent</tt><big>(</big><em>current</em><big>)</big><a class="reference internal" href="_modules/src/instruments/keithley6220.html#Keithley6220.setCurrent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.keithley6220.Keithley6220.setCurrent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the current source&#8217;s output current.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.keithley6220.Keithley6220.setOutput">
+<tt class="descname">setOutput</tt><big>(</big><em>output</em><big>)</big><a class="reference internal" href="_modules/src/instruments/keithley6220.html#Keithley6220.setOutput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.keithley6220.Keithley6220.setOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Toggle the output current on and off.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>keithley6220</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#keithley6220">Keithley6220</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_instruments_vector_magnet.html"
+                        title="previous chapter">The <cite>vector_magnet</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_instruments_hp34401a.html"
+                        title="next chapter">The <cite>hp34401a</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_instruments_keithley6220.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_hp34401a.html" title="The hp34401a module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_vector_magnet.html" title="The vector_magnet module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" >The <cite>instruments</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

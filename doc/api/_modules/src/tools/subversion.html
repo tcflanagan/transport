@@ -1,0 +1,269 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.tools.subversion &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.tools.subversion</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;A class to represent a subversion repository.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">general</span>
+<span class="kn">from</span> <span class="nn">src.tools.commandline</span> <span class="kn">import</span> <span class="n">Environment</span>
+
+
+<div class="viewcode-block" id="SVNRepository"><a class="viewcode-back" href="../../../api_tools_subversion.html#src.tools.subversion.SVNRepository">[docs]</a><span class="k">class</span> <span class="nc">SVNRepository</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An object to represent an SVN repository.&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repositoryHome</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">changeDirectory</span><span class="p">(</span><span class="n">repositoryHome</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="SVNRepository.checkout"><a class="viewcode-back" href="../../../api_tools_subversion.html#src.tools.subversion.SVNRepository.checkout">[docs]</a>    <span class="k">def</span> <span class="nf">checkout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check out an SVN repository specified by URL.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        url : str</span>
+<span class="sd">            The web address of the repository to check out.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;svn checkout &#39;</span> <span class="o">+</span> <span class="n">url</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="SVNRepository.getContentsString"><a class="viewcode-back" href="../../../api_tools_subversion.html#src.tools.subversion.SVNRepository.getContentsString">[docs]</a>    <span class="k">def</span> <span class="nf">getContentsString</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the contents of the repository as a single string.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        recursive : bool</span>
+<span class="sd">            Whether to scan the repository tree recursively. If `True`, </span>
+<span class="sd">            include all elements of the repository, regardless of depth. If </span>
+<span class="sd">            `False`, include only the top-level elements.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            A string containing each item in the repository on one line.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;svn list -R&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;svn list&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SVNRepository.getContentsList"><a class="viewcode-back" href="../../../api_tools_subversion.html#src.tools.subversion.SVNRepository.getContentsList">[docs]</a>    <span class="k">def</span> <span class="nf">getContentsList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get a list of the contents of the repository.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        recursive : bool</span>
+<span class="sd">            Whether to scan the repository tree recursively. If `True`, </span>
+<span class="sd">            include all elements of the repository, regardless of depth. If </span>
+<span class="sd">            `False`, include only the top-level elements.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of str</span>
+<span class="sd">            A list of strings, where each string represents a single item in</span>
+<span class="sd">            the repository.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contentsString</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getContentsString</span><span class="p">(</span><span class="n">recursive</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">general</span><span class="o">.</span><span class="n">multilineStringToList</span><span class="p">(</span><span class="n">contentsString</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SVNRepository.getStatusString"><a class="viewcode-back" href="../../../api_tools_subversion.html#src.tools.subversion.SVNRepository.getStatusString">[docs]</a>    <span class="k">def</span> <span class="nf">getStatusString</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the status of the SVN repository.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str </span>
+<span class="sd">            A many-line string indicating the status of the repository (each</span>
+<span class="sd">            line corresponds to a file, and &quot;status&quot; includes information about</span>
+<span class="sd">            whether the file should be added or removed or whether there are</span>
+<span class="sd">            conflicts.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;svn status&#39;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span>
+        </div>
+<div class="viewcode-block" id="SVNRepository.getStatusList"><a class="viewcode-back" href="../../../api_tools_subversion.html#src.tools.subversion.SVNRepository.getStatusList">[docs]</a>    <span class="k">def</span> <span class="nf">getStatusList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the status list of the SVN repository.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of str</span>
+<span class="sd">            A list of strings indicating the status of the repository (each</span>
+<span class="sd">            string corresponds to a file, and &quot;status&quot; contains information </span>
+<span class="sd">            about whether the file should be added or removed or whether there </span>
+<span class="sd">            are conflicts.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getStatusString</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">general</span><span class="o">.</span><span class="n">multilineStringToList</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="SVNRepository.markUnknowns"><a class="viewcode-back" href="../../../api_tools_subversion.html#src.tools.subversion.SVNRepository.markUnknowns">[docs]</a>    <span class="k">def</span> <span class="nf">markUnknowns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the repository to reflect changes in the local filesystem.</span>
+<span class="sd">        </span>
+<span class="sd">        When files are added to or removed from the folder tree where the</span>
+<span class="sd">        working copy is stored, the repository does not know what to do with</span>
+<span class="sd">        them. To keep the entire tree properly versioned, mark every missing</span>
+<span class="sd">        element as &quot;deleted&quot; and every new (&quot;unversioned&quot;) element as &quot;added.&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">statusCommand</span> <span class="o">=</span> <span class="s">&#39;svn status&#39;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">statusCommand</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">general</span><span class="o">.</span><span class="n">multilineStringToList</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">8</span><span class="p">:]</span>
+            <span class="n">mod</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">conflict</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">mod</span> <span class="o">==</span> <span class="s">&#39;C&#39;</span> <span class="ow">or</span> <span class="n">conflict</span> <span class="o">!=</span> <span class="s">&#39; &#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;Conflict with &#39;</span> <span class="o">+</span> <span class="n">filename</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">mod</span> <span class="o">==</span> <span class="s">&#39;?&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">mod</span> <span class="o">==</span> <span class="s">&#39;!&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">mod</span> <span class="o">==</span> <span class="s">&#39;~&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">repairObstruction</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SVNRepository.add"><a class="viewcode-back" href="../../../api_tools_subversion.html#src.tools.subversion.SVNRepository.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Mark an item for addition to the repository.&quot;&quot;&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;svn add </span><span class="si">%s</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">command</span> <span class="o">%</span> <span class="n">item</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SVNRepository.remove"><a class="viewcode-back" href="../../../api_tools_subversion.html#src.tools.subversion.SVNRepository.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Mark an item for removal from the repository.&quot;&quot;&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;svn remove </span><span class="si">%s</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">command</span> <span class="o">%</span> <span class="n">item</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SVNRepository.repairObstruction"><a class="viewcode-back" href="../../../api_tools_subversion.html#src.tools.subversion.SVNRepository.repairObstruction">[docs]</a>    <span class="k">def</span> <span class="nf">repairObstruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Attempt to repair obstructions, usually without success.&quot;&quot;&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;svn update --force </span><span class="si">%s</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">command</span> <span class="o">%</span> <span class="n">item</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">command</span> <span class="o">%</span> <span class="n">item</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="SVNRepository.getRevision"><a class="viewcode-back" href="../../../api_tools_subversion.html#src.tools.subversion.SVNRepository.getRevision">[docs]</a>    <span class="k">def</span> <span class="nf">getRevision</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the current revision of the repository.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            The current revision of the repository.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;svn info&#39;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="n">splitResponse</span> <span class="o">=</span> <span class="n">general</span><span class="o">.</span><span class="n">multilineStringToList</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">splitResponse</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;Revision:&#39;</span><span class="p">):</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="s">&#39;Revision:&#39;</span><span class="p">):]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="n">revision</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">revision</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    </div>
+<div class="viewcode-block" id="SVNRepository.getLog"><a class="viewcode-back" href="../../../api_tools_subversion.html#src.tools.subversion.SVNRepository.getLog">[docs]</a>    <span class="k">def</span> <span class="nf">getLog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the repository&#39;s change log.&quot;&quot;&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;svn log&#39;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">general</span><span class="o">.</span><span class="n">multilineStringToList</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="SVNRepository.update"><a class="viewcode-back" href="../../../api_tools_subversion.html#src.tools.subversion.SVNRepository.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the working copy to accord with the repository.&quot;&quot;&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;svn update&#39;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span>
+    </div>
+<div class="viewcode-block" id="SVNRepository.commit"><a class="viewcode-back" href="../../../api_tools_subversion.html#src.tools.subversion.SVNRepository.commit">[docs]</a>    <span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Upload a working copy to the repository.&quot;&quot;&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s">&#39;svn commit -m &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="n">message</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

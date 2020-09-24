@@ -1,0 +1,364 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The oxford_common module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The noauto package" href="api_instruments_noauto.html" />
+    <link rel="next" title="The itc503 module" href="api_instruments_noauto_itc503.html" />
+    <link rel="prev" title="The ips120 module" href="api_instruments_noauto_ips120.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_noauto_itc503.html" title="The itc503 module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_noauto_ips120.html" title="The ips120 module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" >The <cite>instruments</cite> package</a> &raquo;</li>
+          <li><a href="api_instruments_noauto.html" accesskey="U">The <cite>noauto</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.instruments.noauto.oxford_common">
+<span id="the-oxford-common-module"></span><h1>The <cite>oxford_common</cite> module<a class="headerlink" href="#module-src.instruments.noauto.oxford_common" title="Permalink to this headline">¶</a></h1>
+<p>Tools which are shared among multiple Oxford Instruments devices</p>
+<p>This provides a class which can be overridden by the various instruments from
+Oxford instruments. The <cite>OxfordCommon</cite> class provides the initialization and
+communication routines common to the ITC503, the PS120, and the IPS120.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="oxfordcommon">
+<h3>OxfordCommon<a class="headerlink" href="#oxfordcommon" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.instruments.noauto.oxford_common.OxfordCommon">
+<em class="property">class </em><tt class="descclassname">src.instruments.noauto.oxford_common.</tt><tt class="descname">OxfordCommon</tt><big>(</big><em>name='Magnet'</em>, <em>protocol='ISOBUS'</em>, <em>isobusAddress='0'</em>, <em>visaAddress='GPIB0::23'</em>, <em>serialConfig=None</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/oxford_common.html#OxfordCommon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.oxford_common.OxfordCommon" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a class to perform actions common to most Oxford Instruments
+devices, including the ITC503, the PS120, and the IPS120.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>A name to identify the instrument</p>
+</div></blockquote>
+<p><strong>protocol</strong> : {&#8216;ISOBUS&#8217;, &#8216;GPIB&#8217;, &#8216;Serial&#8217;, &#8216;Gateway Master&#8217;, &#8216;Gateway Slave&#8217;}</p>
+<blockquote>
+<div><p>The protocol for communication between the computer and the power
+supply.</p>
+</div></blockquote>
+<p><strong>isobusAddress</strong> : str</p>
+<blockquote>
+<div><p>An integer string representing the ISOBUS address, if relevant. An
+integer will be accepted and converted.</p>
+</div></blockquote>
+<p><strong>visaAddress</strong> : str</p>
+<blockquote>
+<div><p>A full VISA resource address (including the bus) to locate the 
+instrument (e.g. &#8220;GPIB0::27&#8221;).</p>
+</div></blockquote>
+<p><strong>serialConfig</strong> : dict</p>
+<blockquote class="last">
+<div><p>A dictionary to indicate how to configure a serial port, which is used
+with both the &#8216;ISOBUS&#8217; and &#8216;Serial&#8217; protocols.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.instruments.noauto.oxford_common.OxfordCommon.closeCommunication">
+<tt class="descname">closeCommunication</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/oxford_common.html#OxfordCommon.closeCommunication"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.oxford_common.OxfordCommon.closeCommunication" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalize the instrument.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.oxford_common.OxfordCommon.openCommunication">
+<tt class="descname">openCommunication</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/oxford_common.html#OxfordCommon.openCommunication"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.oxford_common.OxfordCommon.openCommunication" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the instrument.</p>
+<p>Open a new (protocol-specific) communication channel between the
+computer and the instrument, initializing initializing the ports
+and sending device clears as appropriate.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>protocol</strong> : str</p>
+<blockquote class="last">
+<div><p>A string to indicate the communication protocol for the
+instrument. It may be one of the following: &#8216;GPIB&#8217;, &#8216;Gateway
+Master&#8217;, &#8216;Gateway Slave&#8217;, or &#8216;ISOBUS&#8217;. The default is &#8216;ISOBUS&#8217;.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.instruments.noauto.oxford_common.waitForStableTemperature">
+<tt class="descclassname">src.instruments.noauto.oxford_common.</tt><tt class="descname">waitForStableTemperature</tt><big>(</big><em>targetTemperature</em>, <em>measurementFunction</em>, <em>allowedDeviation</em>, <em>deviationType='percent'</em>, <em>stabilizedTime=60.0</em>, <em>timeout=600.0</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/oxford_common.html#waitForStableTemperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.oxford_common.waitForStableTemperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait for the temperature to stabilize.</p>
+<p>Wait for the temperature to become steady (within some specified tolerance)
+at a particular target temperature. There are two timers in use in this
+method. One is the total time elapsed since the function starts, and the
+other is the time over which the temperature has been within the tolerance
+(i.e., it resets whenever the temperature goes out of range). The function 
+ends when either the latter timer reaches <cite>stabilizedTime</cite> or when the
+former reaches <cite>timeout</cite>, whichever comes first.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>targetTemperature</strong> : float</p>
+<blockquote>
+<div><p>The temperature at which to stabilize.</p>
+</div></blockquote>
+<p><strong>measurementFunction</strong> : function</p>
+<blockquote>
+<div><p>The function or method to use to measure the temperature.</p>
+</div></blockquote>
+<p><strong>allowedDeviation</strong> : float</p>
+<blockquote>
+<div><p>By how much the temperature can vary and still be considered to be
+at the target temperature.</p>
+</div></blockquote>
+<p><strong>deviationType</strong> : str {&#8216;percent&#8217;, &#8216;absolute&#8217;}</p>
+<blockquote>
+<div><p>Whether <cite>allowedDeviation</cite> should be treated as a percentage of the
+target temperature or an absolute temperature in Kelvin. For example,
+assume that the target temperature is 10.0 K, and <cite>allowedDeviation</cite> 
+is 5. If <cite>deviationType</cite> is &#8216;percent&#8217;, then the temperature will
+be accepted as at the target if it is between 9.5 K and 10.5 K,
+inclusive. If <cite>deviationType</cite> is &#8216;absolute&#8217;, the accepted range is
+5.0 K to 15.0 K, inclusive.</p>
+</div></blockquote>
+<p><strong>stabilizedTime</strong> : float</p>
+<blockquote>
+<div><p>The minimum time, in seconds, over which the temperature must remain
+within the accepted range.</p>
+</div></blockquote>
+<p><strong>timeout</strong> : float</p>
+<blockquote>
+<div><p>Loosely speaking, the maximum time to wait (see <cite>timeoutReset</cite>).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p><cite>True</cite> if the temperature has been within the allowed range long enough
+to be considered stable, or <cite>False</cite> if the function times out.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.instruments.noauto.oxford_common.expandRange">
+<tt class="descclassname">src.instruments.noauto.oxford_common.</tt><tt class="descname">expandRange</tt><big>(</big><em>initial</em>, <em>final</em>, <em>stepArray</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/oxford_common.html#expandRange"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.oxford_common.expandRange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Expand a range, getting the step sizes from an array.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>initial</strong> : float</p>
+<blockquote>
+<div><p>The value at which the returned array should start.</p>
+</div></blockquote>
+<p><strong>final</strong> : float</p>
+<blockquote>
+<div><p>The final value in the returned array.</p>
+</div></blockquote>
+<p><strong>stepArray</strong> : list of 3-tuple of float</p>
+<blockquote>
+<div><p>A list of tuples specifying step sizes. Each tuple should consist
+of three elements. The last is the step size, the first is the lowest
+value for which the step size should be used, and the second is
+the highest value for which the step size should be used.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of float</strong> :</p>
+<blockquote class="last">
+<div><p>A list of floats spanning from <cite>initial</cite> to <cite>final</cite> (inclusive), where
+the step sizes vary based on the value.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.instruments.noauto.oxford_common.readAddressConfig">
+<tt class="descclassname">src.instruments.noauto.oxford_common.</tt><tt class="descname">readAddressConfig</tt><big>(</big><em>configurationFile</em>, <em>section</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/oxford_common.html#readAddressConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.oxford_common.readAddressConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the configuration for an Oxford instrument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>configurationFile</strong> : str</p>
+<blockquote>
+<div><p>The absolute path to the configuration file containing the information
+about the instrument.</p>
+</div></blockquote>
+<p><strong>section</strong> : str</p>
+<blockquote>
+<div><p>The section within the configuration file containing the information
+about the relevant instrument.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>protocol</strong> : str</p>
+<blockquote>
+<div><p>The communication protocol, which may be &#8216;ISOBUS&#8217;, &#8216;GPIB&#8217;,
+&#8216;Serial&#8217;, &#8216;Gateway Master&#8217;, and &#8216;Gateway Slave&#8217;.</p>
+</div></blockquote>
+<p><strong>visaAddress</strong> : str</p>
+<blockquote>
+<div><p>The VISA resource address for the power supply.</p>
+</div></blockquote>
+<p><strong>isobusAddress</strong> : str</p>
+<blockquote>
+<div><p>The ISOBUS address of the instrument</p>
+</div></blockquote>
+<p><strong>serialConfig</strong> : dict</p>
+<blockquote class="last">
+<div><p>Either <cite>None</cite>, if no serial port is needed, or a dictionary
+containing these keys: &#8216;baud_rate&#8217;, &#8216;parity&#8217;, &#8216;data_bits&#8217;, and
+&#8216;stop bits&#8217;.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>oxford_common</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#oxfordcommon">OxfordCommon</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_instruments_noauto_ips120.html"
+                        title="previous chapter">The <cite>ips120</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_instruments_noauto_itc503.html"
+                        title="next chapter">The <cite>itc503</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_instruments_noauto_oxford_common.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_noauto_itc503.html" title="The itc503 module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_noauto_ips120.html" title="The ips120 module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" >The <cite>instruments</cite> package</a> &raquo;</li>
+          <li><a href="api_instruments_noauto.html" >The <cite>noauto</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

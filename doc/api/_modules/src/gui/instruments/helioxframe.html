@@ -1,0 +1,276 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.gui.instruments.helioxframe &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.gui.instruments.helioxframe</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;A graphical interface for controlling the Heliox.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span><span class="p">,</span> <span class="n">sleep</span>
+<span class="kn">import</span> <span class="nn">wx</span>
+<span class="kn">from</span> <span class="nn">wx.lib.newevent</span> <span class="kn">import</span> <span class="n">NewEvent</span>
+<span class="kn">from</span> <span class="nn">wx.lib.plot</span> <span class="kn">import</span> <span class="n">PlotCanvas</span><span class="p">,</span> <span class="n">PlotGraphics</span><span class="p">,</span> <span class="n">PolyLine</span>
+
+<span class="kn">from</span> <span class="nn">src.gui.instruments.cryomag_panels</span> <span class="kn">import</span> <span class="n">GridPanel</span>
+<span class="kn">from</span> <span class="nn">src.instruments.controllers</span> <span class="kn">import</span> <span class="n">ctrl_heliox</span> <span class="k">as</span> <span class="n">ch</span>
+<span class="kn">from</span> <span class="nn">src.tools.general</span> <span class="kn">import</span> <span class="n">Command</span>
+
+<span class="n">ID_PID</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_TEMP1</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_TEMP2</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_TEMP3</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_TEMPAUTO</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_FIELD</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_RAMP</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+
+<div class="viewcode-block" id="HelioxController"><a class="viewcode-back" href="../../../../api_gui_instruments_helioxframe.html#src.gui.instruments.helioxframe.HelioxController">[docs]</a><span class="k">class</span> <span class="nc">HelioxController</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+     
+        <span class="nb">super</span><span class="p">(</span><span class="n">HelioxController</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> 
+                                               <span class="n">title</span><span class="o">=</span><span class="s">&#39;Heliox Controller&#39;</span><span class="p">)</span>
+        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">UpdateEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">EVT_UPDATE_DATA</span><span class="p">)</span> <span class="o">=</span> <span class="n">NewEvent</span><span class="p">()</span>
+        
+        <span class="n">pidLabels</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Proportional (K)&#39;</span><span class="p">,</span> <span class="s">&#39;Integral (min)&#39;</span><span class="p">,</span> 
+                     <span class="s">&#39;Derivative (min)&#39;</span><span class="p">]</span>
+        <span class="n">tempLabels</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Sorb (K)&#39;</span><span class="p">,</span> <span class="s">&#39;Sample low (K)&#39;</span><span class="p">,</span> <span class="s">&#39;Sample high (K)&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;Automatic (K)&#39;</span><span class="p">]</span>
+        <span class="n">fieldLabels</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Field (T)&#39;</span><span class="p">,</span> <span class="s">&#39;Sweep rate (T/min)&#39;</span><span class="p">]</span>
+        
+        <span class="n">datapanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">datasizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">datapanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">datasizer</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">pidPanel</span> <span class="o">=</span> <span class="n">GridPanel</span><span class="p">(</span><span class="n">datapanel</span><span class="p">,</span> <span class="s">&#39;PID settings&#39;</span><span class="p">,</span> <span class="n">pidLabels</span><span class="p">,</span>
+                                  <span class="p">[</span><span class="n">ID_PID</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tempPanel</span> <span class="o">=</span> <span class="n">GridPanel</span><span class="p">(</span><span class="n">datapanel</span><span class="p">,</span> <span class="s">&#39;Temperatures&#39;</span><span class="p">,</span> <span class="n">tempLabels</span><span class="p">,</span>
+                                   <span class="p">[</span><span class="n">ID_TEMP1</span><span class="p">,</span> <span class="n">ID_TEMP2</span><span class="p">,</span> <span class="n">ID_TEMP3</span><span class="p">,</span> <span class="n">ID_TEMPAUTO</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fieldPanel</span> <span class="o">=</span> <span class="n">GridPanel</span><span class="p">(</span><span class="n">datapanel</span><span class="p">,</span> <span class="s">&#39;Field settings&#39;</span><span class="p">,</span> <span class="n">fieldLabels</span><span class="p">,</span> 
+                                    <span class="p">[</span><span class="n">ID_FIELD</span><span class="p">,</span> <span class="n">ID_RAMP</span><span class="p">])</span>
+        
+        <span class="n">settingsPanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">datapanel</span><span class="p">)</span>
+        <span class="n">settingsSizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">settingsPanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">settingsSizer</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">graphingEnabledCheck</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">CheckBox</span><span class="p">(</span><span class="n">settingsPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> 
+                                        <span class="n">label</span><span class="o">=</span><span class="s">&#39;Graphs enabled&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graphingEnabledCheck</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">settingsSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graphingEnabledCheck</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> 
+                          <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        <span class="n">datasizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pidPanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">datasizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempPanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">datasizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fieldPanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">datasizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">settingsPanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">graphingEnabled</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">autoScaleEnabled</span> <span class="o">=</span> <span class="bp">True</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span> <span class="o">=</span> <span class="n">PlotCanvas</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">SetMinSize</span><span class="p">((</span><span class="mi">650</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">SetEnableZoom</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">SetEnableDrag</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">SetEnableLegend</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">datapanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizerAndFit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sizer</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bindEvents</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">startTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tempDataLow</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tempDataHigh</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">helioxMonitor</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">HelioxController</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        
+        <span class="n">hoc</span> <span class="o">=</span> <span class="n">HelioxUpdateCommand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">UpdateEvent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">helioxMonitor</span><span class="o">.</span><span class="n">setUpdateCommands</span><span class="p">([</span><span class="n">hoc</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">helioxMonitor</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_onSetPID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the Heliox&#39;s PID values.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">helioxMonitor</span><span class="o">.</span><span class="n">setPID</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pidPanel</span><span class="o">.</span><span class="n">getSetpoints</span><span class="p">())</span>
+        
+    <span class="k">def</span> <span class="nf">_onSetTempSorb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the sorb temperature.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">helioxMonitor</span><span class="o">.</span><span class="n">setTemperatureSorb</span><span class="p">(</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">tempPanel</span><span class="o">.</span><span class="n">getSetpoints</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+    
+    <span class="k">def</span> <span class="nf">_onSetTempLow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the sample-low temperature.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">helioxMonitor</span><span class="o">.</span><span class="n">setTemperatureSampleLow</span><span class="p">(</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">tempPanel</span><span class="o">.</span><span class="n">getSetpoints</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+        
+    <span class="k">def</span> <span class="nf">_onSetTempHigh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the sample-high temperature.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">helioxMonitor</span><span class="o">.</span><span class="n">setTemperatureSampleHigh</span><span class="p">(</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">tempPanel</span><span class="o">.</span><span class="n">getSetpoints</span><span class="p">()[</span><span class="mi">2</span><span class="p">])</span>
+        
+    <span class="k">def</span> <span class="nf">_onSetField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnetic field.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">helioxMonitor</span><span class="o">.</span><span class="n">setField</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fieldPanel</span><span class="o">.</span><span class="n">getSetpoints</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        
+    <span class="k">def</span> <span class="nf">_onSetRampRate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnetic field ramp rate.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">helioxMonitor</span><span class="o">.</span><span class="n">setFieldRampRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fieldPanel</span><span class="o">.</span><span class="n">getSetpoints</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+            
+    <span class="k">def</span> <span class="nf">_onUpdate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the graph.&quot;&quot;&quot;</span>
+        <span class="n">newData</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">temps</span> <span class="o">=</span> <span class="n">newData</span><span class="p">[</span><span class="s">&#39;temperatures&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">newData</span><span class="p">[</span><span class="s">&#39;auto_temp&#39;</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pidPanel</span><span class="o">.</span><span class="n">setCurrents</span><span class="p">(</span><span class="n">newData</span><span class="p">[</span><span class="s">&#39;pid&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tempPanel</span><span class="o">.</span><span class="n">setCurrents</span><span class="p">(</span><span class="n">temps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fieldPanel</span><span class="o">.</span><span class="n">setCurrents</span><span class="p">([</span><span class="n">newData</span><span class="p">[</span><span class="s">&#39;field&#39;</span><span class="p">],</span> <span class="n">newData</span><span class="p">[</span><span class="s">&#39;ramp_rate&#39;</span><span class="p">]])</span>
+        
+        <span class="n">currtime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">startTime</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tempDataLow</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">currtime</span><span class="p">,</span> <span class="n">temps</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tempDataHigh</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">currtime</span><span class="p">,</span> <span class="n">temps</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempDataLow</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">60</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">tempDataLow</span><span class="p">[:</span><span class="mi">20</span><span class="p">]</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">tempDataHigh</span><span class="p">[:</span><span class="mi">20</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphingEnabled</span><span class="p">:</span>
+            <span class="n">pl2</span> <span class="o">=</span> <span class="n">PolyLine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempDataLow</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">colour</span><span class="o">=</span><span class="s">&#39;blue&#39;</span><span class="p">,</span> 
+                           <span class="n">legend</span><span class="o">=</span><span class="s">&#39;Sample Low&#39;</span><span class="p">)</span>
+            <span class="n">pl3</span> <span class="o">=</span> <span class="n">PolyLine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempDataHigh</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">colour</span><span class="o">=</span><span class="s">&#39;red&#39;</span><span class="p">,</span> 
+                           <span class="n">legend</span><span class="o">=</span><span class="s">&#39;Sample High&#39;</span><span class="p">)</span>
+            <span class="n">pgph</span> <span class="o">=</span> <span class="n">PlotGraphics</span><span class="p">([</span><span class="n">pl2</span><span class="p">,</span> <span class="n">pl3</span><span class="p">],</span> <span class="s">&#39;Temperatures vs. Time&#39;</span><span class="p">,</span> <span class="s">&#39;Time (s)&#39;</span><span class="p">,</span> 
+                              <span class="s">&#39;Temperature (K)&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">Draw</span><span class="p">(</span><span class="n">pgph</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_onGraphEnabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Toggle enabled graphing.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graphingEnabled</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphingEnabledCheck</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphingEnabled</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">Show</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sizer</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">Show</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sizer</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">_onClose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Unbind event handlers and destroy the frame.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">helioxMonitor</span><span class="o">.</span><span class="n">clearUpdateCommands</span><span class="p">()</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Destroy</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_bindEvents</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Bind the event handlers.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onSetPID</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">ID_PID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">EVT_UPDATE_DATA</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onUpdate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_CHECKBOX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onGraphEnabled</span><span class="p">,</span> 
+                  <span class="bp">self</span><span class="o">.</span><span class="n">graphingEnabledCheck</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_CLOSE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onClose</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="HelioxUpdateCommand"><a class="viewcode-back" href="../../../../api_gui_instruments_helioxframe.html#src.gui.instruments.helioxframe.HelioxUpdateCommand">[docs]</a><span class="k">class</span> <span class="nc">HelioxUpdateCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A Command subclass for updating the Heliox monitor data.&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eventClass</span><span class="p">,</span> <span class="n">window</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eventClass</span> <span class="o">=</span> <span class="n">eventClass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">window</span>
+        
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">evt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eventClass</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;data&#39;</span><span class="p">])</span>
+        <span class="n">wx</span><span class="o">.</span><span class="n">PostEvent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">evt</span><span class="p">)</span>
+    </div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">App</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">heliox</span> <span class="o">=</span> <span class="n">HelioxController</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">heliox</span><span class="o">.</span><span class="n">Show</span><span class="p">()</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">MainLoop</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

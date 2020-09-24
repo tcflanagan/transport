@@ -1,0 +1,606 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The itc503 module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The noauto package" href="api_instruments_noauto.html" />
+    <link rel="next" title="The ps120 module" href="api_instruments_noauto_ps120.html" />
+    <link rel="prev" title="The oxford_common module" href="api_instruments_noauto_oxford_common.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_noauto_ps120.html" title="The ps120 module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_noauto_oxford_common.html" title="The oxford_common module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" >The <cite>instruments</cite> package</a> &raquo;</li>
+          <li><a href="api_instruments_noauto.html" accesskey="U">The <cite>noauto</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.instruments.noauto.itc503">
+<span id="the-itc503-module"></span><h1>The <cite>itc503</cite> module<a class="headerlink" href="#module-src.instruments.noauto.itc503" title="Permalink to this headline">¶</a></h1>
+<p>Basic drivers for an Oxford Instruments model ITC503 temperature controller</p>
+<p>Note that this module does <strong>not</strong> represent an <cite>Instrument</cite> subclass, since
+the ITC503 is never used by itself&#8212;it is always part of a larger system 
+driving both a magnet power supply and temperature controllers, and the
+temperature controller cannot usually be used in isolation.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="itc503">
+<h3>ITC503<a class="headerlink" href="#itc503" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.instruments.noauto.itc503.ITC503">
+<em class="property">class </em><tt class="descclassname">src.instruments.noauto.itc503.</tt><tt class="descname">ITC503</tt><big>(</big><em>name='Temperatures'</em>, <em>protocol='ISOBUS'</em>, <em>isobusAddress=0</em>, <em>visaAddress='GPIB0::23'</em>, <em>serialConfig=None</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503" title="Permalink to this definition">¶</a></dt>
+<dd><p>An Oxford Instruments ITC</p>
+<p>This is a basic driver for an Oxford Instruments ITC503 (Intelligent
+Temperature Controller). It should typically be included in an <cite>Instrument</cite>
+class representing a cryostat-magnet system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>A name to identify the instrument.</p>
+</div></blockquote>
+<p><strong>protocol</strong> : {&#8216;ISOBUS&#8217;, &#8216;GPIB&#8217;, &#8216;Serial&#8217;, &#8216;Gateway Master&#8217;, &#8216;Gateway Slave&#8217;}</p>
+<blockquote>
+<div><p>The protocol for communication between the computer and the temperature
+controller.</p>
+</div></blockquote>
+<p><strong>isobusAddress</strong> : str</p>
+<blockquote>
+<div><p>An integer string representing the ISOBUS address, if relevant. An
+integer will be accepted and converted.</p>
+</div></blockquote>
+<p><strong>visaAddress</strong> : str</p>
+<blockquote>
+<div><p>A full VISA resource address (including the bus) to locate the 
+instrument (e.g. &#8220;GPIB0::27&#8221;).</p>
+</div></blockquote>
+<p><strong>serialConfig</strong> : dict</p>
+<blockquote class="last">
+<div><p>A dictionary to indicate how to configure a serial port, which is used
+with both the &#8216;ISOBUS&#8217; and &#8216;Serial&#8217; protocols.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.getAutoPID">
+<tt class="descname">getAutoPID</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.getAutoPID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.getAutoPID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether auto-PID is enabled.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the ITC is configured for auto-PID.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.getAutoStatus">
+<tt class="descname">getAutoStatus</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.getAutoStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.getAutoStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the heater and needle valve are in automatic mode.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote>
+<div><p>Whether the heater is in automatic mode.</p>
+</div></blockquote>
+<p><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the needle valve (gas controller) is in automatic mode.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.getHeaterSensor">
+<tt class="descname">getHeaterSensor</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.getHeaterSensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.getHeaterSensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return which sensor is currently active.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>An integer string, &#8216;1&#8217;, &#8216;2&#8217;, or &#8216;3&#8217;, indicating which sensor is
+currently being used to control the temperature(s).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.getPID">
+<tt class="descname">getPID</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.getPID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.getPID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the PID values for the temperature controller.</p>
+<p>Return the values for the proportional band, the integral action time,
+and the derivative action time which the temperature controller is
+currently using.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>tuple of float</strong> :</p>
+<blockquote class="last">
+<div><p>A tuple of floats containing, in order, P, I, and D.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.getSetpoint">
+<tt class="descname">getSetpoint</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.getSetpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.getSetpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the setpoint temperature.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The setpoint temperature in Kelvin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.getTemperature">
+<tt class="descname">getTemperature</tt><big>(</big><em>sensor</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.getTemperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.getTemperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the temperature measured by the specified sensor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>sensor</strong> : {&#8216;1&#8217;, &#8216;2&#8217;, &#8216;3&#8217;}</p>
+<blockquote>
+<div><p>An integer string representing the temperature sensor from which
+to read.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The temperature measured by the specified sensor in Kelvin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.getTemperatures">
+<tt class="descname">getTemperatures</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.getTemperatures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.getTemperatures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the readings from all three temperature sensors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>tuple of float</strong> :</p>
+<blockquote class="last">
+<div><p>The temperatures measured by sensors 1, 2, and 3, expressed as
+floats in a tuple with the obvious order.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare the temperature controller for use.</p>
+<dl class="docutils">
+<dt>Prepare the temperature controller for use by </dt>
+<dd><ol class="first last arabic simple">
+<li>opening the appropriate communication channel;</li>
+<li>setting the control mode to &#8216;remote and unlocked&#8217;;</li>
+<li>setting the auto/manual status to full auto;</li>
+<li>get the currently set PID values;</li>
+<li>get the current temperature readings from all sensors; and</li>
+<li>read the status.</li>
+</ol>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.setAutoStatus">
+<tt class="descname">setAutoStatus</tt><big>(</big><em>heater=True</em>, <em>needleValve=True</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.setAutoStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.setAutoStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the auto/manual status of the heater and gas controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>heater</strong> : bool</p>
+<blockquote>
+<div><p>Whether the temperature controller&#8217;s heater should be placed in
+automatic mode. If <cite>False</cite>, the heater will be placed in manual
+mode.</p>
+</div></blockquote>
+<p><strong>needleValve</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether the temperature controller&#8217;s needle valve (gas flow
+controller) should be placed in automatic mode. If <cite>False</cite>, the
+needle valve will be placed in manual mode.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.setControlMode">
+<tt class="descname">setControlMode</tt><big>(</big><em>controlMode='3'</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.setControlMode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.setControlMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the control mode for the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>controlMode</strong> : str, optional</p>
+<blockquote class="last">
+<div><p>An integer string representing the desired control mode. Allowed
+values are the following.</p>
+<blockquote>
+<div><ul class="simple">
+<li>&#8216;0&#8217;: Local and locked (power-up state).</li>
+<li>&#8216;1&#8217;: Remote and locked.</li>
+<li>&#8216;2&#8217;: Local and unlocked.</li>
+<li>&#8216;3&#8217;: Remote and unlocked (default).</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.setD">
+<tt class="descname">setD</tt><big>(</big><em>newD</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.setD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.setD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the PID values for the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>newD</strong> : float</p>
+<blockquote class="last">
+<div><p>The derivative action time in minutes. The allowed range is
+0 to 273 minutes.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.setHeaterOutput">
+<tt class="descname">setHeaterOutput</tt><big>(</big><em>output</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.setHeaterOutput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.setHeaterOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the output for the selected heater.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>output</strong> : float</p>
+<blockquote class="last">
+<div><p>The desired heater output as a percent of the maximum range.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.setHeaterSensor">
+<tt class="descname">setHeaterSensor</tt><big>(</big><em>sensor='1'</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.setHeaterSensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.setHeaterSensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the active temperature sensor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>sensor</strong> : str</p>
+<blockquote class="last">
+<div><p>An integer string representing the sensor to activate. Allowed
+values are &#8216;1&#8217;, &#8216;2&#8217;, and &#8216;3&#8217;, the meanings of which should be
+obvious.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.setI">
+<tt class="descname">setI</tt><big>(</big><em>newI</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.setI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.setI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the PID values for the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>newI</strong> : float</p>
+<blockquote class="last">
+<div><p>The integral action time in minutes. Values between 0 and
+140 minutes (inclusive), in steps of 0.1 minutes, are accepted.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.setMaximumHeaterVoltage">
+<tt class="descname">setMaximumHeaterVoltage</tt><big>(</big><em>voltage</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.setMaximumHeaterVoltage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.setMaximumHeaterVoltage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the maximum voltage for the currently controlled heater.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>voltage</strong> : float</p>
+<blockquote class="last">
+<div><p>The largest voltage allowed to be supplied to the heater.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.setP">
+<tt class="descname">setP</tt><big>(</big><em>newP</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.setP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.setP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the PID values for the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>newP</strong> : float</p>
+<blockquote class="last">
+<div><p>The proportional band in Kelvin, to a resolution of 0.001 K.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.setPID">
+<tt class="descname">setPID</tt><big>(</big><em>newP=None</em>, <em>newI=None</em>, <em>newD=None</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.setPID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.setPID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the PID values for the temperature controller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>newP</strong> : float, optional</p>
+<blockquote>
+<div><p>The proportional band in Kelvin, to a resolution of 0.001 K.</p>
+</div></blockquote>
+<p><strong>newI</strong> : float, optional</p>
+<blockquote>
+<div><p>The integral action time in minutes. Values between 0 and
+140 minutes (inclusive), in steps of 0.1 minutes, are accepted.</p>
+</div></blockquote>
+<p><strong>newD</strong> : float, optional</p>
+<blockquote class="last">
+<div><p>The derivative action time in minutes. The allowed range is
+0 to 273 minutes.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.setTemperature">
+<tt class="descname">setTemperature</tt><big>(</big><em>temperature</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.setTemperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.setTemperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the target temperature for the controller.</p>
+<p>Set the target temperature for the currently-selected sensor to
+<cite>temperature</cite>, and begin moving toward the setpoint.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If a sweep is in progress, the sweep will override the value
+set by this command.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>temperature</strong> : float</p>
+<blockquote class="last">
+<div><p>The temperature setpoint for the currently-enabled sensor.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.itc503.ITC503.toggleAutoPid">
+<tt class="descname">toggleAutoPid</tt><big>(</big><em>autoPID='0'</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/itc503.html#ITC503.toggleAutoPid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.itc503.ITC503.toggleAutoPid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the auto-PID status of the temperature controller.</p>
+<p>If a PID table has been programmed into the instrument, you can enable
+auto-PID, so that the PID values will be automatically chosen based
+on the temperature range.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If a PID table has not been programmed, attempting to 
+enable auto-PID will return an error.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>autoPID</strong> : str</p>
+<blockquote class="last">
+<div><p>An integer string representing the desired auto-PID status. The
+allowed values are below.</p>
+<blockquote>
+<div><ul class="simple">
+<li>0: Disable auto-PID</li>
+<li>1: Enable auto-PID</li>
+</ul>
+</div></blockquote>
+<p>This method also accepts a boolean value for <cite>autoPID</cite>, and this
+value would be interpreted in the obvious way.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>itc503</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#itc503">ITC503</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_instruments_noauto_oxford_common.html"
+                        title="previous chapter">The <cite>oxford_common</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_instruments_noauto_ps120.html"
+                        title="next chapter">The <cite>ps120</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_instruments_noauto_itc503.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_noauto_ps120.html" title="The ps120 module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_noauto_oxford_common.html" title="The oxford_common module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" >The <cite>instruments</cite> package</a> &raquo;</li>
+          <li><a href="api_instruments_noauto.html" >The <cite>noauto</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

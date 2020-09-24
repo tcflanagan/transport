@@ -1,0 +1,836 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.tools.instrospection_old &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.tools.instrospection_old</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;A tool for reading instrument code files and extracting their structure.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Module&#39;</span><span class="p">,</span> <span class="s">&#39;Instrument&#39;</span><span class="p">,</span> <span class="s">&#39;Method&#39;</span><span class="p">,</span> <span class="s">&#39;Action&#39;</span><span class="p">]</span>
+
+<span class="n">LineTuple</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;LineTuple&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;indent&#39;</span><span class="p">,</span> <span class="s">&#39;text&#39;</span><span class="p">])</span>
+<span class="n">ArgTuple</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;ArgTuple&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;keyword&#39;</span><span class="p">,</span> <span class="s">&#39;value&#39;</span><span class="p">,</span> <span class="s">&#39;spec&#39;</span><span class="p">])</span>
+
+<div class="viewcode-block" id="splitLine"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.splitLine">[docs]</a><span class="k">def</span> <span class="nf">splitLine</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Split a line of text into a LineTuple.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;    &#39;</span><span class="p">)</span>
+    <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;( *)(.*)&#39;</span><span class="p">)</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">LineTuple</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="clean"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.clean">[docs]</a><span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">something</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Find the minimum indentation level in chunk of text, and subtract that</span>
+<span class="sd">    indentation from every line.&#39;&#39;&#39;</span>        
+    <span class="n">min_indent</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+        <span class="n">line_tuple</span> <span class="o">=</span> <span class="n">splitLine</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line_tuple</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">min_indent</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">min_indent</span> <span class="o">=</span> <span class="n">line_tuple</span><span class="o">.</span><span class="n">indent</span>
+        <span class="k">elif</span> <span class="n">line_tuple</span><span class="o">.</span><span class="n">indent</span> <span class="o">&lt;</span> <span class="n">min_indent</span><span class="p">:</span>
+            <span class="n">min_indent</span> <span class="o">=</span> <span class="n">line_tuple</span><span class="o">.</span><span class="n">indent</span>
+    
+    <span class="n">new_lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+        <span class="n">ls</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ls</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">new_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="n">min_indent</span><span class="p">:])</span>
+    
+    <span class="k">return</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_lines</span><span class="p">))</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="tokenize"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.tokenize">[docs]</a><span class="k">def</span> <span class="nf">tokenize</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Break a line of text into tokens by comma, ignoring the comma if it</span>
+<span class="sd">    appears in a string (that is, the text itself contains quotation marks).&#39;&#39;&#39;</span> 
+    <span class="n">tokens</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="n">opensq</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">opendq</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">ld</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">current_token</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">char</span> <span class="o">==</span> <span class="s">&#39;,&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">opensq</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">opendq</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ld</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_token</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                <span class="n">current_token</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">current_token</span> <span class="o">+=</span> <span class="n">char</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">char</span> <span class="o">==</span> <span class="s">&quot;&#39;&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">opensq</span><span class="p">:</span>
+                    <span class="n">opensq</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">opensq</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">elif</span> <span class="n">char</span> <span class="o">==</span> <span class="s">&#39;&quot;&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">opendq</span><span class="p">:</span>
+                    <span class="n">opendq</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">opendq</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">elif</span> <span class="n">char</span> <span class="o">==</span> <span class="s">&#39;[&#39;</span><span class="p">:</span>
+                <span class="n">ld</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">char</span> <span class="o">==</span> <span class="s">&#39;]&#39;</span><span class="p">:</span>
+                <span class="n">ld</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="n">current_token</span> <span class="o">+=</span> <span class="n">char</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_token</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_token</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">tokens</span>
+</div>
+<div class="viewcode-block" id="glob"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.glob">[docs]</a><span class="k">def</span> <span class="nf">glob</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Break a list into sublists. A new element is started whenever</span>
+<span class="sd">    the indentation of the first line of the input list&#39;s indentation is less</span>
+<span class="sd">    than or equal to the first line of the previous.&#39;&#39;&#39;</span>
+    <span class="n">ans</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_glob</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">splitLine</span><span class="p">(</span><span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">indent</span> <span class="o">==</span> <span class="n">level</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_glob</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_glob</span><span class="p">)</span>
+            <span class="n">current_glob</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">current_glob</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_glob</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_glob</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ans</span>
+</div>
+<div class="viewcode-block" id="applyIndent"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.applyIndent">[docs]</a><span class="k">def</span> <span class="nf">applyIndent</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">indent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Take a multi-line string or list and apply `indent` to each line.&#39;&#39;&#39;</span>
+    <span class="n">full_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+            <span class="n">full_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">full_list</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">code_list_out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">full_list</span><span class="p">:</span>
+        <span class="n">code_list_out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="o">*</span><span class="n">indent</span> <span class="o">+</span> <span class="n">line</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">code_list_out</span><span class="p">)</span>
+        
+
+<span class="c">#===============================================================================</span>
+<span class="c"># Module class</span>
+<span class="c">#===============================================================================</span>
+</div>
+<div class="viewcode-block" id="Module"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.Module">[docs]</a><span class="k">class</span> <span class="nc">Module</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contents</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="n">module_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadFile</span><span class="p">()</span>
+        <span class="c">#self.extractInstruments(module_text)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">processModule</span><span class="p">(</span><span class="n">module_text</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="Module.loadFile"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.Module.loadFile">[docs]</a>    <span class="k">def</span> <span class="nf">loadFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">join</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Read the module file and return the full text.&#39;&#39;&#39;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;rU&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">module</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">module</span><span class="p">:</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">join</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">lines</span>
+    </div>
+    <span class="k">def</span> <span class="nf">setAll</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newvalue</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">ModuleConstant</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;__all__&#39;</span><span class="p">:</span>
+                    <span class="n">item</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s">&#39;[</span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">newvalue</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">]&#39;</span>
+                    
+
+    
+<div class="viewcode-block" id="Module.processModule"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.Module.processModule">[docs]</a>    <span class="k">def</span> <span class="nf">processModule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lines</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Scan through the module, creating objects for the elements.&#39;&#39;&#39;</span>
+        <span class="n">sections</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        
+        <span class="n">ans</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="n">pat_inst</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;class *(\w*)\s*\(\s*Instrument\s*\)\s*:&#39;</span><span class="p">)</span>
+        <span class="n">pat_subclass</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;class *(\w*)\s*\(\s*([\w_]*)\s*\)\s*:&#39;</span><span class="p">)</span>
+        <span class="n">pat_class</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;class *(\w*)\s*:&#39;</span><span class="p">)</span>
+        <span class="n">pat_importA</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;from *([\w_\.]+) +import *([\w_\.]+)&#39;</span><span class="p">)</span>
+        <span class="n">pat_importB</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;import *([\w_\.]+)&#39;</span><span class="p">)</span>
+        <span class="n">pat_const</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;([\w_]+) *= *(.+)&#39;</span><span class="p">)</span>
+        <span class="n">pat_docstring</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&quot;&#39;{3}&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span><span class="p">)</span>
+        <span class="n">pat_comment</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;\s*#&#39;</span><span class="p">)</span>
+        
+        <span class="n">ds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dsopen</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">sections</span><span class="p">:</span>
+            <span class="n">top</span> <span class="o">=</span> <span class="n">section</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">pat_inst</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Instrument</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">section</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+                <span class="k">continue</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">pat_subclass</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Class</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">section</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+                <span class="k">continue</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">pat_class</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Class</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">section</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">pat_importA</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">top</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pat_importB</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">top</span><span class="p">):</span>
+                <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ModuleImport</span><span class="p">(</span><span class="n">section</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="k">continue</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">pat_const</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">section</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">val</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">section</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+                <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ModuleConstant</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">val</span><span class="p">))</span>
+                <span class="k">continue</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">pat_comment</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Comment</span><span class="p">(</span><span class="n">top</span><span class="o">.</span><span class="n">strip</span><span class="p">()))</span>
+                <span class="k">continue</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">pat_docstring</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">dsopen</span><span class="p">:</span>
+                    <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ModuleDocstring</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ds</span><span class="p">)))</span>
+                    <span class="n">ds</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">dsopen</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">dsopen</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">dsopen</span><span class="p">:</span>
+                <span class="n">ds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+                <span class="k">continue</span>
+                    
+            <span class="k">print</span> <span class="s">&#39;UNKNOWN &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">section</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ans</span>  
+</div>
+    <span class="k">def</span> <span class="nf">getInstruments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ans</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Instrument</span><span class="p">):</span>
+                <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ans</span>
+    
+    <span class="k">def</span> <span class="nf">toCode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_indent</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">ans</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">:</span>
+            <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">toCode</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ans</span><span class="p">)</span>
+        
+</div>
+<div class="viewcode-block" id="ModuleDocstring"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.ModuleDocstring">[docs]</a><span class="k">class</span> <span class="nc">ModuleDocstring</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Takes a multi-line string.&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
+        
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;</span><span class="se">\&#39;\&#39;\&#39;</span><span class="s">&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n\&#39;\&#39;\&#39;</span><span class="s">&#39;</span>
+    
+    <span class="k">def</span> <span class="nf">toCode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_indent</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">applyIndent</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="n">min_indent</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ModuleImport"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.ModuleImport">[docs]</a><span class="k">class</span> <span class="nc">ModuleImport</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Takes a single-line string.&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
+        
+    <span class="k">def</span> <span class="nf">toCode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_indent</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">applyIndent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">min_indent</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ModuleConstant"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.ModuleConstant">[docs]</a><span class="k">class</span> <span class="nc">ModuleConstant</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+        
+    <span class="k">def</span> <span class="nf">toCode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="n">applyIndent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s">&#39; = &#39;</span> <span class="o">+</span> <span class="n">val</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="Comment"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.Comment">[docs]</a><span class="k">class</span> <span class="nc">Comment</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Takes a string.&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        
+    <span class="k">def</span> <span class="nf">toCode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_indent</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">applyIndent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">min_indent</span><span class="p">)</span>
+
+
+<span class="c">#===============================================================================</span>
+<span class="c"># Class level</span>
+<span class="c">#===============================================================================</span></div>
+<div class="viewcode-block" id="Class"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.Class">[docs]</a><span class="k">class</span> <span class="nc">Class</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">lines</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bases</span> <span class="o">=</span> <span class="n">bases</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">processClass</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">toCode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_indent</span><span class="p">):</span>
+        <span class="n">contents_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;class </span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">):&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">:</span>
+            <span class="n">contents_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">toCode</span><span class="p">(</span><span class="n">min_indent</span><span class="o">+</span><span class="mi">4</span><span class="p">))</span>
+            
+        <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">contents_list</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">processClass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lines</span><span class="p">):</span>
+        <span class="n">ans</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">pat_action</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;    def +([_\w]+) *\((.*?)\):&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span><span class="p">)</span>
+        <span class="c">#pat_action = re.compile(r&#39;    def +([_\w]+) *\(([, _\w=\&#39;\&quot;:-]*?)\):&#39;, re.S)</span>
+        <span class="n">pat_decorator</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;    @([_\w]+)&#39;</span><span class="p">)</span>
+        <span class="n">pat_comment</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;\s*#&#39;</span><span class="p">)</span>
+        
+        <span class="n">sections</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="n">decorator</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">sections</span><span class="p">:</span>
+            <span class="n">top</span> <span class="o">=</span> <span class="n">section</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">pat_decorator</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="n">decorator</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">pat_action</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Method</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">section</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">decorator</span><span class="p">))</span>
+                <span class="n">decorator</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+                <span class="k">continue</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">pat_comment</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Comment</span><span class="p">(</span><span class="n">top</span><span class="o">.</span><span class="n">strip</span><span class="p">()))</span>
+                <span class="k">continue</span>
+            <span class="n">joined</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">section</span><span class="p">)</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">pat_action</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">section</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">rest</span> <span class="o">=</span> <span class="n">joined</span><span class="p">[</span><span class="n">match</span><span class="o">.</span><span class="n">end</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Method</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">rest</span><span class="p">,</span> <span class="n">decorator</span><span class="p">))</span>
+                <span class="n">decorator</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+            <span class="k">print</span> <span class="s">&#39;UNKNOWN &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">section</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ans</span>
+            
+                </div>
+<div class="viewcode-block" id="Instrument"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.Instrument">[docs]</a><span class="k">class</span> <span class="nc">Instrument</span><span class="p">(</span><span class="n">Class</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">lines</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Instrument</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s">&#39;Instrument&#39;</span><span class="p">,</span> <span class="n">lines</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span> <span class="o">=</span> <span class="n">lines</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extractActions</span><span class="p">()</span>
+        
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Method</span><span class="p">)</span> <span class="ow">and</span> <span class="n">item</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;__init__&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">init</span> <span class="o">=</span> <span class="n">item</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    
+    <span class="k">def</span> <span class="nf">getMethod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Method</span><span class="p">)</span> <span class="ow">and</span> <span class="n">item</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">item</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    
+    <span class="k">def</span> <span class="nf">getMethods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ans</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Method</span><span class="p">):</span>
+                <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ans</span>
+    
+    <span class="k">def</span> <span class="nf">addMethod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="n">newmethod</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Method</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">item</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;getActions&#39;</span><span class="p">:</span>
+                <span class="n">pos</span> <span class="o">+=</span> <span class="mi">1</span>
+                
+        <span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">pos</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">newmethod</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">newmethod</span>
+        
+    <span class="k">def</span> <span class="nf">deleteMethod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="n">to_delete</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Method</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+                    <span class="n">to_delete</span> <span class="o">=</span> <span class="n">index</span>
+                    <span class="k">break</span>
+        <span class="k">if</span> <span class="n">to_delete</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">[</span><span class="n">to_delete</span><span class="p">]</span>
+        
+    <span class="k">def</span> <span class="nf">addAction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Action</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
+        
+    <span class="k">def</span> <span class="nf">removeAction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    
+    <span class="k">def</span> <span class="nf">getAction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">description</span> <span class="o">==</span> <span class="n">description</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">item</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    
+    <span class="k">def</span> <span class="nf">getDefaultName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;name *= *</span><span class="se">\&#39;</span><span class="s">(.*?)</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&#39;&#39;</span>
+    
+    <span class="k">def</span> <span class="nf">setDefaultName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newname</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;name *= *</span><span class="se">\&#39;</span><span class="s">(.*?)</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">new_args</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="n">new_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;name=&#39;</span> <span class="o">+</span> <span class="n">newname</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_args</span><span class="p">)</span>
+        
+        
+    
+    <span class="k">def</span> <span class="nf">getRequiredParameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">reqparams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMethod</span><span class="p">(</span><span class="s">&#39;getRequiredParameters&#39;</span><span class="p">)</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">reqparams</span><span class="o">.</span><span class="n">body</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;({.*})&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span><span class="p">)</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+        <span class="n">paramdict</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="n">paramdict</span><span class="p">[</span><span class="s">&#39;order&#39;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">paramdict</span><span class="p">[</span><span class="s">&#39;order&#39;</span><span class="p">]</span>
+        <span class="n">ans</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">order</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">paramdict</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">kind</span> <span class="o">=</span> <span class="s">&#39;None&#39;</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="s">&#39;None&#39;</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">kind</span> <span class="o">=</span> <span class="s">&#39;String&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">kind</span> <span class="o">=</span> <span class="s">&#39;Number&#39;</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">item</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">kind</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">ans</span>
+    
+    <span class="k">def</span> <span class="nf">setRequiredParameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_params</span><span class="p">):</span>
+        <span class="n">strs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">new_params</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">kind</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;String&#39;</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="s">&quot;&#39;&quot;</span> <span class="o">+</span> <span class="n">val</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span>
+            <span class="n">strs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="o">*</span><span class="mi">8</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">: &#39;</span> <span class="o">+</span> <span class="n">val</span><span class="p">)</span>
+        
+        <span class="n">output</span> <span class="o">=</span> <span class="s">&#39;return {&#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">order</span><span class="se">\&#39;</span><span class="s">: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;,</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s">&#39;,</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">strs</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s">&#39;}&#39;</span>
+        
+        <span class="n">reqparams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMethod</span><span class="p">(</span><span class="s">&#39;getRequiredParameters&#39;</span><span class="p">)</span>
+        <span class="n">reqparams</span><span class="o">.</span><span class="n">body</span> <span class="o">=</span> <span class="n">output</span>
+    
+    <span class="k">def</span> <span class="nf">extractActions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMethod</span><span class="p">(</span><span class="s">&#39;getActions&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">body</span>
+        <span class="n">pat_return</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;\s*return\s*\[(.+)\]&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span><span class="p">)</span>
+        <span class="n">mat_return</span> <span class="o">=</span> <span class="n">pat_return</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">clean</span><span class="p">(</span><span class="n">mat_return</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        
+        <span class="n">pat_act</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;\s*Action(\w*) *\(&#39;</span><span class="p">)</span>
+        <span class="n">mat_act</span> <span class="o">=</span> <span class="n">pat_act</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mat_act</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">finished</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">finished</span><span class="p">:</span>
+            <span class="n">current_type</span> <span class="o">=</span> <span class="n">mat_act</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">next_start_position</span> <span class="o">=</span> <span class="n">mat_act</span><span class="o">.</span><span class="n">end</span><span class="p">()</span>
+            <span class="n">mat_act</span> <span class="o">=</span> <span class="n">pat_act</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">next_start_position</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mat_act</span><span class="p">:</span>
+                <span class="n">current_text</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">next_start_position</span><span class="p">:</span><span class="n">mat_act</span><span class="o">.</span><span class="n">start</span><span class="p">()]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">current_text</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">next_start_position</span><span class="p">:]</span>
+                <span class="n">finished</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">current_text</span> <span class="o">=</span> <span class="n">current_text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">current_text</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">):</span>
+                <span class="n">current_text</span> <span class="o">=</span> <span class="n">current_text</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">current_text</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;)&#39;</span><span class="p">):</span>
+                <span class="n">current_text</span> <span class="o">=</span> <span class="n">current_text</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Action</span><span class="p">(</span><span class="n">current_type</span><span class="p">,</span> <span class="n">current_text</span><span class="p">))</span>
+    
+    <span class="k">def</span> <span class="nf">updateInit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">curr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">body</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;super\((\w*)\s*,\s*self\)&#39;</span><span class="p">)</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">curr</span><span class="p">)</span>
+        <span class="n">curr</span> <span class="o">=</span> <span class="n">curr</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="n">curr</span><span class="p">[</span><span class="n">match</span><span class="o">.</span><span class="n">end</span><span class="p">(</span><span class="mi">1</span><span class="p">):]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">body</span> <span class="o">=</span> <span class="n">curr</span>
+                                                    
+        
+    <span class="k">def</span> <span class="nf">toCode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_indent</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateInit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">)</span>
+        <span class="n">contents_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;class </span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">):&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bases</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;getActions&#39;</span><span class="p">:</span>
+                <span class="n">contents_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">toCode</span><span class="p">(</span><span class="n">min_indent</span><span class="o">+</span><span class="mi">4</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">contents_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">toCode</span><span class="p">(</span><span class="n">min_indent</span><span class="o">+</span><span class="mi">4</span><span class="p">))</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">contents_list</span><span class="p">)</span>
+    
+    </div>
+<div class="viewcode-block" id="Method"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.Method">[docs]</a><span class="k">class</span> <span class="nc">Method</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">decorator</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">body</span> <span class="o">=</span> <span class="n">clean</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">),</span> <span class="p">[</span><span class="s">&#39;@classmethod&#39;</span><span class="p">,</span> <span class="s">&#39;#&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">class_method</span> <span class="o">=</span> <span class="n">decorator</span>
+        
+    <span class="k">def</span> <span class="nf">getArguments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">item</span><span class="p">[:</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">val</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">):</span>
+                    <span class="n">vtype</span> <span class="o">=</span> <span class="s">&#39;String&#39;</span>
+                <span class="k">elif</span> <span class="n">val</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span><span class="p">:</span>
+                    <span class="n">vtype</span> <span class="o">=</span> <span class="s">&#39;None&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">vtype</span> <span class="o">=</span> <span class="s">&#39;Number&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">item</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+                <span class="n">vtype</span> <span class="o">=</span> <span class="s">&#39;No Default&#39;</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">vtype</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">output</span>
+    
+    <span class="k">def</span> <span class="nf">setArguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newargs</span><span class="p">):</span>
+        <span class="n">strings</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">newargs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;No Default&#39;</span><span class="p">:</span>
+                <span class="n">strings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">item</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;String&#39;</span><span class="p">:</span>
+                <span class="n">strings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;=</span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">strings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;=&#39;</span> <span class="o">+</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">strings</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="s">&#39;self, &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span>
+    <span class="k">def</span> <span class="nf">toCode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_indent</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">actions</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">pre_text</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">class_method</span><span class="p">:</span>
+            <span class="n">pre_text</span> <span class="o">=</span> <span class="s">&#39;@classmethod&#39;</span>
+        <span class="n">header_text</span> <span class="o">=</span> <span class="s">&#39;def </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">):&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">actions</span><span class="p">:</span>
+            <span class="n">body_temp</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">body_temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;return [&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">actions</span><span class="p">):</span>
+                <span class="n">body_temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">toCode</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">body_temp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">body_temp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;,&#39;</span>
+            <span class="n">body_temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;]&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">body_temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">applyIndent</span><span class="p">([</span><span class="n">pre_text</span><span class="p">,</span> <span class="n">header_text</span><span class="p">,</span> 
+                            <span class="n">applyIndent</span><span class="p">(</span><span class="n">body_temp</span><span class="p">,</span> <span class="mi">4</span><span class="p">)],</span> <span class="n">min_indent</span><span class="p">)</span>
+
+    </div>
+<div class="viewcode-block" id="Action"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.Action">[docs]</a><span class="k">class</span> <span class="nc">Action</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">DEFAULTS</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="s">&#39;self._expt&#39;</span><span class="p">,</span>
+                <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="s">&#39;self&#39;</span><span class="p">,</span>
+                <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                <span class="s">&#39;inputs&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                <span class="s">&#39;outputs&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">None</span>
+                <span class="p">}</span>
+    <span class="n">ORDER</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;experiment&#39;</span><span class="p">,</span> <span class="s">&#39;instrument&#39;</span><span class="p">,</span> <span class="s">&#39;description&#39;</span><span class="p">,</span> <span class="s">&#39;inputs&#39;</span><span class="p">,</span> <span class="s">&#39;outputs&#39;</span><span class="p">,</span>
+             <span class="s">&#39;string&#39;</span><span class="p">,</span> <span class="s">&#39;method&#39;</span><span class="p">]</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action_type</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadContents</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">Action</span><span class="o">.</span><span class="n">DEFAULTS</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_type</span> <span class="o">=</span> <span class="n">action_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parseParameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;inputs&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parseParameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;outputs&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;string&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;method&#39;</span><span class="p">]</span>
+    
+    <span class="k">def</span> <span class="nf">updateDictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;inputs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;outputs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;string&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">string</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;method&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span>
+        
+<div class="viewcode-block" id="Action.loadContents"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.Action.loadContents">[docs]</a>    <span class="k">def</span> <span class="nf">loadContents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Convert the text from the module into a dictionary of arguments.&#39;&#39;&#39;</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">Action</span><span class="o">.</span><span class="n">DEFAULTS</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">kw_started</span> <span class="o">=</span> <span class="bp">False</span>
+        
+        <span class="n">kw_pat</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;(\w+)\s*=(.+)&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">keyword</span><span class="p">,</span> <span class="n">token</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ORDER</span><span class="p">,</span> <span class="n">tokens</span><span class="p">):</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">kw_pat</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="n">kw_started</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">args</span><span class="p">[</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">kw_started</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;ERROR PARSING!!!! pos after kw&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">args</span><span class="p">[</span><span class="n">keyword</span><span class="p">]</span> <span class="o">=</span> <span class="n">token</span>
+        <span class="k">return</span> <span class="n">args</span>
+    
+    </div>
+<div class="viewcode-block" id="Action.parseParameters"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.Action.parseParameters">[docs]</a>    <span class="k">def</span> <span class="nf">parseParameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Take a list of strings and parse it into a list of parameters.&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;[&#39;</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;]&#39;</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">pat_param</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;\s*Parameter *\(&#39;</span><span class="p">)</span>
+        <span class="n">mat_param</span> <span class="o">=</span> <span class="n">pat_param</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mat_param</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">finished</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">finished</span><span class="p">:</span>
+            <span class="n">next_start_position</span> <span class="o">=</span> <span class="n">mat_param</span><span class="o">.</span><span class="n">end</span><span class="p">()</span>
+            <span class="n">mat_param</span> <span class="o">=</span> <span class="n">pat_param</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">next_start_position</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mat_param</span><span class="p">:</span>
+                <span class="n">current_text</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">next_start_position</span><span class="p">:</span><span class="n">mat_param</span><span class="o">.</span><span class="n">start</span><span class="p">()]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">current_text</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">next_start_position</span><span class="p">:]</span>
+                <span class="n">finished</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">current_text</span> <span class="o">=</span> <span class="n">current_text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">current_text</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">):</span>
+                <span class="n">current_text</span> <span class="o">=</span> <span class="n">current_text</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">current_text</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;)&#39;</span><span class="p">):</span>
+                <span class="n">current_text</span> <span class="o">=</span> <span class="n">current_text</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Parameter</span><span class="p">(</span><span class="n">current_text</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">params</span>
+    </div>
+    <span class="k">def</span> <span class="nf">toCode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_indent</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateDictionary</span><span class="p">()</span>
+        <span class="n">output_lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">first_line</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Action&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_type</span> <span class="o">+</span> <span class="s">&#39;(&#39;</span> <span class="o">+</span>
+                      <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;experiment&#39;</span><span class="p">],</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;instrument&#39;</span><span class="p">],</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">]])</span> <span class="o">+</span> <span class="s">&#39;,&#39;</span><span class="p">)</span>
+        <span class="n">output_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">first_line</span><span class="p">)</span>
+        <span class="n">inner_lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c">#inputs = [&#39;inputs = [&#39;]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">:</span>
+                <span class="n">curr</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">toCode</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+                <span class="n">inputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curr</span><span class="p">)</span>
+            <span class="n">inner_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;inputs = [&#39;</span><span class="p">,</span> <span class="s">&#39;,</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inputs</span><span class="p">),</span> <span class="s">&#39;]&#39;</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">:</span>
+                <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">toCode</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+            <span class="n">inner_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;outputs = [&#39;</span><span class="p">,</span> <span class="s">&#39;,</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outputs</span><span class="p">),</span> <span class="s">&#39;]&#39;</span><span class="p">]))</span>
+        <span class="n">inner_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;string = &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
+        <span class="n">inner_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;method = &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">)</span>
+        <span class="n">output_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">applyIndent</span><span class="p">(</span><span class="s">&#39;,</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inner_lines</span><span class="p">),</span> <span class="mi">4</span><span class="p">))</span>
+        <span class="n">output_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;)&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">applyIndent</span><span class="p">(</span><span class="n">output_lines</span><span class="p">,</span> <span class="n">min_indent</span><span class="p">)</span>
+        
+        </div>
+<div class="viewcode-block" id="Parameter"><a class="viewcode-back" href="../../../api_tools_instrospection_old.html#src.tools.instrospection_old.Parameter">[docs]</a><span class="k">class</span> <span class="nc">Parameter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">DEFAULTS</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="s">&#39;self._expt&#39;</span><span class="p">,</span>
+                <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.6e</span><span class="s">&#39;</span><span class="p">,</span>
+                <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="s">&#39;None&#39;</span><span class="p">,</span>
+                <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;None&#39;</span><span class="p">,</span>
+                <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;0&#39;</span><span class="p">,</span>
+                <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="s">&#39;None&#39;</span><span class="p">,</span>
+                <span class="s">&#39;instantiate&#39;</span><span class="p">:</span> <span class="bp">False</span> 
+                <span class="p">}</span>
+    <span class="n">ORDER</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;experiment&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;description&#39;</span><span class="p">,</span> <span class="s">&#39;formatString&#39;</span><span class="p">,</span> <span class="s">&#39;binName&#39;</span><span class="p">,</span>
+             <span class="s">&#39;binType&#39;</span><span class="p">,</span> <span class="s">&#39;value&#39;</span><span class="p">,</span> <span class="s">&#39;allowed&#39;</span><span class="p">,</span> <span class="s">&#39;instantiate&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getArgumentDictionary</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">DEFAULTS</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">format_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;formatString&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bin_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;binName&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;binType&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allowed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;allowed&#39;</span><span class="p">]</span>
+        
+    <span class="k">def</span> <span class="nf">updateDictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;formatString&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_string</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;binName&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;binType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;allowed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed</span>
+        
+    <span class="k">def</span> <span class="nf">getArgumentDictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">DEFAULTS</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        
+        <span class="n">kw_started</span> <span class="o">=</span> <span class="bp">False</span>
+        
+        <span class="n">kw_pat</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;(\w+)\s*=(.+)&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">keyword</span><span class="p">,</span> <span class="n">token</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ORDER</span><span class="p">,</span> <span class="n">tokens</span><span class="p">):</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">kw_pat</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="n">kw_started</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">args</span><span class="p">[</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">kw_started</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;ERROR PARSING!!!! pos after kw&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">args</span><span class="p">[</span><span class="n">keyword</span><span class="p">]</span> <span class="o">=</span> <span class="n">token</span>
+        <span class="k">return</span> <span class="n">args</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ans_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ORDER</span><span class="p">:</span>
+            <span class="n">ans_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span> <span class="o">+</span> <span class="s">&#39;=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="n">item</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ans_list</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">toCode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_indent</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateDictionary</span><span class="p">()</span>
+        <span class="n">ans_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ORDER</span><span class="p">:</span>
+            <span class="n">ans_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span> <span class="o">+</span> <span class="s">&#39;=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="n">item</span><span class="p">]))</span>
+        
+        <span class="n">new_ans_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">running</span> <span class="o">=</span> <span class="s">&#39;Parameter(&#39;</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">running</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">ans_list</span><span class="p">:</span>
+            <span class="n">newlen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">length</span> <span class="o">+</span> <span class="n">newlen</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="mi">60</span><span class="p">:</span>
+                <span class="n">new_ans_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                <span class="n">running</span> <span class="o">=</span> <span class="n">running</span> <span class="o">+</span> <span class="n">item</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span>
+                <span class="n">length</span> <span class="o">+=</span> <span class="n">newlen</span> <span class="o">+</span> <span class="mi">2</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_ans_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">    &#39;</span> <span class="o">+</span> <span class="n">item</span><span class="p">)</span>
+                <span class="n">running</span> <span class="o">=</span> <span class="n">item</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span>
+                <span class="n">length</span> <span class="o">+=</span> <span class="n">newlen</span> <span class="o">+</span> <span class="mi">2</span> 
+
+        <span class="k">return</span> <span class="n">applyIndent</span><span class="p">(</span><span class="s">&#39;Parameter(&#39;</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_ans_list</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span><span class="p">,</span> <span class="n">min_indent</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

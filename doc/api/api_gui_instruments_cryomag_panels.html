@@ -1,0 +1,279 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The cryomag_panels module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The instruments package" href="api_gui_instruments.html" />
+    <link rel="next" title="The helioxframe module" href="api_gui_instruments_helioxframe.html" />
+    <link rel="prev" title="The common_panels module" href="api_gui_instruments_common_panels.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_instruments_helioxframe.html" title="The helioxframe module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_instruments_common_panels.html" title="The common_panels module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li>
+          <li><a href="api_gui_instruments.html" accesskey="U">The <cite>instruments</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.gui.instruments.cryomag_panels">
+<span id="the-cryomag-panels-module"></span><h1>The <cite>cryomag_panels</cite> module<a class="headerlink" href="#module-src.gui.instruments.cryomag_panels" title="Permalink to this headline">¶</a></h1>
+<p>Panels for controlling cryostat-magnet systems</p>
+<p>This module provides a versatile panel for receiving data from and sending
+data to a cryostat-magnet system, featuring an indicator to show received
+values, a control for setting new values, and a button for sending commands.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="gridpanel">
+<h3>GridPanel<a class="headerlink" href="#gridpanel" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.instruments.cryomag_panels.GridPanel">
+<em class="property">class </em><tt class="descclassname">src.gui.instruments.cryomag_panels.</tt><tt class="descname">GridPanel</tt><big>(</big><em>parent</em>, <em>panelLabel</em>, <em>rowLabels</em>, <em>buttonIDs=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/instruments/cryomag_panels.html#GridPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.cryomag_panels.GridPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>A panel for displaying and setting values, allowing arbitrary rows.</p>
+<dl class="docutils">
+<dt>This panel features four columns:</dt>
+<dd><ol class="first last arabic simple">
+<li>A label to indicate what the row represents.</li>
+<li>An indicator to show a measured value.</li>
+<li>A control for specifying new setpoints.</li>
+<li>A button for sending the setpoint to the appropriate handler.</li>
+</ol>
+</dd>
+</dl>
+<p>The rows which receive buttons is somewhat customizable. If the 
+<cite>buttonIDs</cite> is set to <cite>None</cite>, no buttons will be created. If it is a 
+single integer or a list of integers of length 1, a single button will
+be created in the last row. If it is a list of integers of the same
+length as the list of row labels, each row will receive a button.</p>
+<p>Even if no buttons are to be added, the space will be reserved for them
+to ensure that, when multiple instances of this panel are placed
+above and below one another, the controls will still line up 
+aesthetically.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wx.Window</p>
+<blockquote>
+<div><p>The frame or panel which owns this panel.</p>
+</div></blockquote>
+<p><strong>panelLabel</strong> : str</p>
+<blockquote>
+<div><p>The string which labels the panel (in the border).</p>
+</div></blockquote>
+<p><strong>rowLabels</strong> : list of str</p>
+<blockquote>
+<div><p>A list of strings which label the rows in the grid.</p>
+</div></blockquote>
+<p><strong>buttonIDs</strong> : list of int</p>
+<blockquote class="last">
+<div><p>A list of integer IDs for the buttons so that the parent can bind
+actions to them.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.instruments.cryomag_panels.GridPanel.getSetpoints">
+<tt class="descname">getSetpoints</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/instruments/cryomag_panels.html#GridPanel.getSetpoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.cryomag_panels.GridPanel.getSetpoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the values of the setpoints.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of float</strong> :</p>
+<blockquote class="last">
+<div><p>The values of the setpoint controls.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.instruments.cryomag_panels.GridPanel.setCurrents">
+<tt class="descname">setCurrents</tt><big>(</big><em>values</em><big>)</big><a class="reference internal" href="_modules/src/gui/instruments/cryomag_panels.html#GridPanel.setCurrents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.cryomag_panels.GridPanel.setCurrents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the values of the current indicators.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>values</strong> : list of float</p>
+<blockquote class="last">
+<div><p>Set the indicators for the current values of the parameters
+contained in the panel.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="charvalidator">
+<h3>CharValidator<a class="headerlink" href="#charvalidator" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.instruments.cryomag_panels.CharValidator">
+<em class="property">class </em><tt class="descclassname">src.gui.instruments.cryomag_panels.</tt><tt class="descname">CharValidator</tt><a class="reference internal" href="_modules/src/gui/instruments/cryomag_panels.html#CharValidator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.cryomag_panels.CharValidator" title="Permalink to this definition">¶</a></dt>
+<dd><p>A validator to ensure that only digits are entered into a control.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.instruments.cryomag_panels.CharValidator.Clone">
+<tt class="descname">Clone</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/instruments/cryomag_panels.html#CharValidator.Clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.cryomag_panels.CharValidator.Clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new validator.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.instruments.cryomag_panels.CharValidator.OnChar">
+<tt class="descname">OnChar</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/instruments/cryomag_panels.html#CharValidator.OnChar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.cryomag_panels.CharValidator.OnChar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make sure the character is a digit.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.instruments.cryomag_panels.CharValidator.TransferFromWindow">
+<tt class="descname">TransferFromWindow</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/instruments/cryomag_panels.html#CharValidator.TransferFromWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.cryomag_panels.CharValidator.TransferFromWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>No data needs to be transferred.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.instruments.cryomag_panels.CharValidator.TransferToWindow">
+<tt class="descname">TransferToWindow</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/instruments/cryomag_panels.html#CharValidator.TransferToWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.cryomag_panels.CharValidator.TransferToWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>No data needs to be transferred.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.instruments.cryomag_panels.CharValidator.Validate">
+<tt class="descname">Validate</tt><big>(</big><em>win</em><big>)</big><a class="reference internal" href="_modules/src/gui/instruments/cryomag_panels.html#CharValidator.Validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.instruments.cryomag_panels.CharValidator.Validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nothing needs doing when the frame is closed.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>cryomag_panels</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#gridpanel">GridPanel</a></li>
+<li><a class="reference internal" href="#charvalidator">CharValidator</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_gui_instruments_common_panels.html"
+                        title="previous chapter">The <cite>common_panels</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_gui_instruments_helioxframe.html"
+                        title="next chapter">The <cite>helioxframe</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_gui_instruments_cryomag_panels.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_instruments_helioxframe.html" title="The helioxframe module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_instruments_common_panels.html" title="The common_panels module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li>
+          <li><a href="api_gui_instruments.html" >The <cite>instruments</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

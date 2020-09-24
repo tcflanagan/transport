@@ -1,0 +1,461 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.core.graph &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.core.graph</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;A container for graphical data.</span>
+
+<span class="sd">A `Graph` is an object to facilitate interactions between an `Experiment`</span>
+<span class="sd">and an actual GUI implementation of graphing.</span>
+
+<span class="sd">This module provides the following classes:</span>
+
+<span class="sd">Graph: </span>
+<span class="sd">    An interface for passing data from an experiment to a visual graph.</span>
+<span class="sd">AbstractGraphManager: </span>
+<span class="sd">    An interface for spawning graph threads; it (and all its methods) must be </span>
+<span class="sd">    overridden to actually see anything.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">src.tools.parsing</span> <span class="kn">import</span> <span class="n">escapeXML</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;transport&#39;</span><span class="p">)</span>
+
+
+<span class="c">#------------------------------------------------------- Graph manager interface</span>
+
+<div class="viewcode-block" id="AbstractGraphManager"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.AbstractGraphManager">[docs]</a><span class="k">class</span> <span class="nc">AbstractGraphManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An abstract manager for graphs. </span>
+<span class="sd">    </span>
+<span class="sd">    The purpose of a `GraphManager` is to take as input a list of `Graph` </span>
+<span class="sd">    objects and, as the experiment is preparing to run, create a frame or </span>
+<span class="sd">    frames to hold the graphical representation of the graphs and start </span>
+<span class="sd">    threads to update them as data become available.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parentFrame</span>
+<span class="sd">        A GUI frame to pass as the parent of each graph frame.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">ABCMeta</span>
+    
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentFrame</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a GraphManager.&quot;&quot;&quot;</span>
+        
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="AbstractGraphManager.setGraphs"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.AbstractGraphManager.setGraphs">[docs]</a>    <span class="k">def</span> <span class="nf">setGraphs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graphs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the graphs to be managed.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        graphs : list of `Graph`</span>
+<span class="sd">            A list of `Graph` objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        </div>
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="AbstractGraphManager.abort"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.AbstractGraphManager.abort">[docs]</a>    <span class="k">def</span> <span class="nf">abort</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">10.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Stop graphing.</span>
+<span class="sd">        </span>
+<span class="sd">        Command all `Graph` objects to stop taking new data.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        timeout : float</span>
+<span class="sd">            The maximum time to wait for the threads to join.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        </div>
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="AbstractGraphManager.start"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.AbstractGraphManager.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Start graphing.</span>
+<span class="sd">        </span>
+<span class="sd">        Start a thread for each `Graph` object. These should be spawned as </span>
+<span class="sd">        &#39;daemon&#39; threads, so that if the program is exited, the threads all </span>
+<span class="sd">        stop.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        </div>
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="AbstractGraphManager.saveGraphs"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.AbstractGraphManager.saveGraphs">[docs]</a>    <span class="k">def</span> <span class="nf">saveGraphs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save the graphs to a file or files.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filename : str or list</span>
+<span class="sd">            The output file(s) to which the graph(s) should be saved. </span>
+<span class="sd">            Implementations may require either a string or a list of strings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+<span class="c">#------------------------------------------------------------------- Graph class</span>
+</div></div>
+<div class="viewcode-block" id="Graph"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.Graph">[docs]</a><span class="k">class</span> <span class="nc">Graph</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A `Graph` is an object for managing interactions between an </span>
+<span class="sd">    `Experiment` and some graphical interface for actually displaying the </span>
+<span class="sd">    data. It effects the data transfer by pushing data points onto a `Queue`</span>
+<span class="sd">    object.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    experiment : Experiment</span>
+<span class="sd">        The `Experiment` object which owns this `Graph`.</span>
+<span class="sd">    colx : str</span>
+<span class="sd">        The name of the column from which the x coordinates come.</span>
+<span class="sd">    coly : str</span>
+<span class="sd">        The name of the column from which the y coordinates come.</span>
+<span class="sd">    colAdd : str</span>
+<span class="sd">        The name of the column which, when updated, should signal that the next</span>
+<span class="sd">        point added to the graph should begin a new plot.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The `Graph` object does not actually store all of the data---it only keeps </span>
+<span class="sd">    track of the latest point. The reason is that nearly every GUI </span>
+<span class="sd">    implementation of graphing needs to keep track of all of the data, so</span>
+<span class="sd">    `Graph` and the graphing panel/frame contain it would double the </span>
+<span class="sd">    memory used with no real advantage.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment</span><span class="p">,</span> <span class="n">colX</span><span class="p">,</span> <span class="n">colY</span><span class="p">,</span> <span class="n">colAdd</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new graph.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span> <span class="o">=</span> <span class="n">experiment</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nx</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ny</span> <span class="o">=</span> <span class="bp">None</span>
+         
+        <span class="bp">self</span><span class="o">.</span><span class="n">_flagNew</span> <span class="o">=</span> <span class="bp">False</span>
+         
+        <span class="bp">self</span><span class="o">.</span><span class="n">_colX</span> <span class="o">=</span> <span class="n">colX</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_colY</span> <span class="o">=</span> <span class="n">colY</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_colAdd</span> <span class="o">=</span> <span class="n">colAdd</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataQueue</span> <span class="o">=</span> <span class="bp">None</span>
+         
+        <span class="bp">self</span><span class="o">.</span><span class="n">_minX</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maxX</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_minY</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maxY</span> <span class="o">=</span> <span class="bp">None</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_enabled</span> <span class="o">=</span> <span class="bp">True</span>
+        
+        <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Creating a new graph: </span><span class="si">%s</span><span class="s"> vs </span><span class="si">%s</span><span class="s">.&#39;</span><span class="p">,</span> <span class="n">colY</span><span class="p">,</span> <span class="n">colX</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="Graph.setEnabled"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.Graph.setEnabled">[docs]</a>    <span class="k">def</span> <span class="nf">setEnabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enabled</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set whether this graph is enabled.</span>
+<span class="sd">        </span>
+<span class="sd">        The enabled state determines only whether or not the experiment adds</span>
+<span class="sd">        it to the manager. The `Graph` object itself does not use the flag at </span>
+<span class="sd">        all.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        enabled : bool</span>
+<span class="sd">            Whether the graph should be enabled.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_enabled</span> <span class="o">=</span> <span class="n">enabled</span>
+        </div>
+<div class="viewcode-block" id="Graph.isEnabled"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.Graph.isEnabled">[docs]</a>    <span class="k">def</span> <span class="nf">isEnabled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether the graph is enabled.</span>
+<span class="sd">        </span>
+<span class="sd">        The enabled state determines only whether or not the experiment adds</span>
+<span class="sd">        it to the manager. The `Graph` object itself does not use the flag at </span>
+<span class="sd">        all.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether the graph is enabled.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enabled</span>
+        </div>
+<div class="viewcode-block" id="Graph.setDataQueue"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.Graph.setDataQueue">[docs]</a>    <span class="k">def</span> <span class="nf">setDataQueue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queue</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the queue to pass data to the UI.</span>
+<span class="sd">        </span>
+<span class="sd">        A queue is used to pass data from this graph object to the graphical</span>
+<span class="sd">        component which actually displays the data.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        queue : Queue.Queue</span>
+<span class="sd">            The queue to pass data to the user interface.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataQueue</span> <span class="o">=</span> <span class="n">queue</span>
+         </div>
+<div class="viewcode-block" id="Graph.flagNewPlot"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.Graph.flagNewPlot">[docs]</a>    <span class="k">def</span> <span class="nf">flagNewPlot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Indicate that the next point should go into a new plot.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_flagNew</span> <span class="o">=</span> <span class="bp">True</span>
+        </div>
+<div class="viewcode-block" id="Graph.clear"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.Graph.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset the graph data.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_minX</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maxX</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_minY</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maxY</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nx</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ny</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_flagNew</span> <span class="o">=</span> <span class="bp">False</span>
+        </div>
+<div class="viewcode-block" id="Graph.addX"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.Graph.addX">[docs]</a>    <span class="k">def</span> <span class="nf">addX</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add the x-coordinate of the next point to the graph.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newx : float</span>
+<span class="sd">            The new x-value to add to the graph. If it is an integer or a</span>
+<span class="sd">            string, it will be coerced to a float.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nx</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">newx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minX</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_minX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nx</span><span class="o">-</span><span class="mf">0.2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_maxX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nx</span><span class="o">+</span><span class="mf">0.2</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nx</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxX</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_maxX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nx</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nx</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minX</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_minX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkPoint</span><span class="p">()</span>
+     </div>
+<div class="viewcode-block" id="Graph.addY"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.Graph.addY">[docs]</a>    <span class="k">def</span> <span class="nf">addY</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newy</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add the y-coordinate of the next point to the graph.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newy : float</span>
+<span class="sd">            The new y-value to add to the graph. If it is an integer or a</span>
+<span class="sd">            string, it will be coerced to a float.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ny</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">newy</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minY</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_minY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ny</span><span class="o">-</span><span class="mf">0.2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_maxY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ny</span><span class="o">+</span><span class="mf">0.2</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ny</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxY</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_maxY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ny</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ny</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minY</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_minY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ny</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkPoint</span><span class="p">()</span>
+         </div>
+<div class="viewcode-block" id="Graph.checkPoint"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.Graph.checkPoint">[docs]</a>    <span class="k">def</span> <span class="nf">checkPoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a point to the graph, if appropriate.</span>
+<span class="sd">        </span>
+<span class="sd">        Check whether there is both an x- and a y-coordinate available. If so,</span>
+<span class="sd">        add a tuple to the queue, where the tuple contains the following</span>
+<span class="sd">        elements in order:</span>
+<span class="sd">            - New x-coordinate</span>
+<span class="sd">            - New y-coordinate</span>
+<span class="sd">            - Minimum x-coordinate for the graph</span>
+<span class="sd">            - Maximum x-coordinate for the graph</span>
+<span class="sd">            - Minimum y-coordinate for the graph</span>
+<span class="sd">            - Maximum y-coordinate for the graph</span>
+<span class="sd">            - Whether this point goes into a new plot</span>
+<span class="sd">        </span>
+<span class="sd">        Then reset the graph&#39;s fields.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> 
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_ny</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> 
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_dataQueue</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dataQueue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_nx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ny</span><span class="p">,</span> 
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">_minX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxX</span><span class="p">,</span> 
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">_minY</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxY</span><span class="p">,</span> 
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">_flagNew</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_flagNew</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ny</span> <span class="o">=</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="Graph.getColumns"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.Graph.getColumns">[docs]</a>    <span class="k">def</span> <span class="nf">getColumns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the column names which will provide data to this graph.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of str</span>
+<span class="sd">            A 3-tuple whose contents are, in order, the names of the x data</span>
+<span class="sd">            column, the y data column, and the column to trigger new plots on</span>
+<span class="sd">            the graph.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_colX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_colY</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_colAdd</span><span class="p">)</span>
+     </div>
+<div class="viewcode-block" id="Graph.setColumns"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.Graph.setColumns">[docs]</a>    <span class="k">def</span> <span class="nf">setColumns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the names of the columns which will provide data to this graph.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cols : tuple of str</span>
+<span class="sd">            A 3-tuple whose contents indicate the names of the x-column, the</span>
+<span class="sd">            y-column, and the column which should trigger new plots on the</span>
+<span class="sd">            graph, in that order.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span> 
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Setting columns to &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">cols</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_colX</span> <span class="o">=</span> <span class="n">cols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_colY</span> <span class="o">=</span> <span class="n">cols</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_colAdd</span> <span class="o">=</span> <span class="n">cols</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        </div>
+<div class="viewcode-block" id="Graph.getTitle"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.Graph.getTitle">[docs]</a>    <span class="k">def</span> <span class="nf">getTitle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the title of the graph (&quot;y name vs. x name&quot;).</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The name of the graph, in the form &quot;y-column name vs. x-column </span>
+<span class="sd">            name&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_colY</span> <span class="o">+</span> <span class="s">&#39; vs. &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_colX</span>
+        <span class="k">return</span> <span class="n">title</span>
+         </div>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the title of the graph (&quot;y name vs. x name&quot;).</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The name of the graph, in the form &quot;y-column name vs. x-column </span>
+<span class="sd">            name&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getTitle</span><span class="p">()</span>
+        
+<div class="viewcode-block" id="Graph.updateColumnsIfNecessary"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.Graph.updateColumnsIfNecessary">[docs]</a>    <span class="k">def</span> <span class="nf">updateColumnsIfNecessary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">oldcol</span><span class="p">,</span> <span class="n">newcol</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update graph labels to reflect changes in column names.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        oldcol : str</span>
+<span class="sd">            The name of the column from which the graph previously received</span>
+<span class="sd">            data.</span>
+<span class="sd">        newcol : str</span>
+<span class="sd">            The name of the column from which the graph should now receive</span>
+<span class="sd">            data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_colX</span> <span class="o">==</span> <span class="n">oldcol</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_colX</span> <span class="o">=</span> <span class="n">newcol</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_colY</span> <span class="o">==</span> <span class="n">oldcol</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_colY</span> <span class="o">=</span> <span class="n">newcol</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_colAdd</span> <span class="o">==</span> <span class="n">oldcol</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_colAdd</span> <span class="o">=</span> <span class="n">newcol</span>
+
+
+    <span class="c">#---------------------------------------------------- Graph data persistence</span>
+    </div>
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the parts of the `Graph` which are important when saving.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            The data dictionary of the `Graph` object with the un-picklable</span>
+<span class="sd">            (and otherwise undesired) elements removed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">odict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">odict</span><span class="p">[</span><span class="s">&#39;_dataQueue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="n">odict</span>
+    
+<div class="viewcode-block" id="Graph.getXML"><a class="viewcode-back" href="../../../api_core_graph.html#src.core.graph.Graph.getXML">[docs]</a>    <span class="k">def</span> <span class="nf">getXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return an XML string representing the graph.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            A string containing XML data representing all of the data related</span>
+<span class="sd">            to the graph, possibly useful as an alternative to pickle.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s">&#39; &#39;</span><span class="o">*</span><span class="n">indent</span> <span class="o">+</span> 
+                <span class="s">&#39;&lt;graph xcol=&quot;</span><span class="si">%s</span><span class="s">&quot; ycol=&quot;</span><span class="si">%s</span><span class="s">&quot; addcol=&quot;</span><span class="si">%s</span><span class="s">&quot; enabled=&quot;</span><span class="si">%s</span><span class="s">&quot; /&gt;&#39;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="n">escapeXML</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_colX</span><span class="p">),</span> <span class="n">escapeXML</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_colY</span><span class="p">),</span>
+                 <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_colAdd</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_enabled</span><span class="p">)))</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

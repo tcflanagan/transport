@@ -1,0 +1,440 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The sys_config module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The gui package" href="api_gui.html" />
+    <link rel="next" title="The object_config module" href="api_gui_object_config.html" />
+    <link rel="prev" title="The helioxframe module" href="api_gui_instruments_helioxframe.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_object_config.html" title="The object_config module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_instruments_helioxframe.html" title="The helioxframe module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" accesskey="U">The <cite>gui</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.gui.sys_config">
+<span id="the-sys-config-module"></span><h1>The <cite>sys_config</cite> module<a class="headerlink" href="#module-src.gui.sys_config" title="Permalink to this headline">¶</a></h1>
+<p>Dialogs and panels for managing the system configuration.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="changelogdialog">
+<h3>ChangeLogDialog<a class="headerlink" href="#changelogdialog" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.sys_config.ChangeLogDialog">
+<em class="property">class </em><tt class="descclassname">src.gui.sys_config.</tt><tt class="descname">ChangeLogDialog</tt><big>(</big><em>parent</em><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#ChangeLogDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.ChangeLogDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dialog for displaying the software change log.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxFrame</p>
+<blockquote class="last">
+<div><p>The wxFrame which should serve as the parent of this dialog.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+</dd></dl>
+
+</div>
+<div class="section" id="settingsdialog">
+<h3>SettingsDialog<a class="headerlink" href="#settingsdialog" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.sys_config.SettingsDialog">
+<em class="property">class </em><tt class="descclassname">src.gui.sys_config.</tt><tt class="descname">SettingsDialog</tt><big>(</big><em>parent</em><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#SettingsDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.SettingsDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dialog for configuring the system-wide settings.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote class="last">
+<div><p>The frame or panel which spawns the dialog.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.sys_config.SettingsDialog.saveSettings">
+<tt class="descname">saveSettings</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#SettingsDialog.saveSettings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.SettingsDialog.saveSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the new settings to the configuration manager.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="usersettingsdialog">
+<h3>UserSettingsDialog<a class="headerlink" href="#usersettingsdialog" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.sys_config.UserSettingsDialog">
+<em class="property">class </em><tt class="descclassname">src.gui.sys_config.</tt><tt class="descname">UserSettingsDialog</tt><big>(</big><em>parent</em><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#UserSettingsDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.UserSettingsDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dialog for configuring user-specific settings.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote class="last">
+<div><p>The panel or frame which spawns this dialog.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.sys_config.UserSettingsDialog.saveSettings">
+<tt class="descname">saveSettings</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#UserSettingsDialog.saveSettings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.UserSettingsDialog.saveSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the new user settings to the configuration manager.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="usersdialog">
+<h3>UsersDialog<a class="headerlink" href="#usersdialog" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.sys_config.UsersDialog">
+<em class="property">class </em><tt class="descclassname">src.gui.sys_config.</tt><tt class="descname">UsersDialog</tt><big>(</big><em>parent</em><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#UsersDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.UsersDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dialog for creating and deleting users.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote class="last">
+<div><p>The panel or frame which spawns this dialog.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+</dd></dl>
+
+</div>
+<div class="section" id="filespanel">
+<h3>FilesPanel<a class="headerlink" href="#filespanel" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.sys_config.FilesPanel">
+<em class="property">class </em><tt class="descclassname">src.gui.sys_config.</tt><tt class="descname">FilesPanel</tt><big>(</big><em>parent</em>, <em>user=False</em><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#FilesPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.FilesPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>A panel for configuring user defaults.</p>
+<p>This panel allows the user to set and get the settings related to where
+data and experiment files are saved by default, as well as whether the user
+wants to have scan numbers automatically included.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The frame or panel which contains this panel.</p>
+</div></blockquote>
+<p><strong>user</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether this panel represents the settings of a particular user. If
+<cite>False</cite>, the panel will represent the global system settings.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.sys_config.FilesPanel.applyData">
+<tt class="descname">applyData</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#FilesPanel.applyData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.FilesPanel.applyData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the system configuration with data from the controls.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.sys_config.FilesPanel.fillData">
+<tt class="descname">fillData</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#FilesPanel.fillData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.FilesPanel.fillData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fill controls with data from the system configuration.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="personalpanel">
+<h3>PersonalPanel<a class="headerlink" href="#personalpanel" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.sys_config.PersonalPanel">
+<em class="property">class </em><tt class="descclassname">src.gui.sys_config.</tt><tt class="descname">PersonalPanel</tt><big>(</big><em>parent</em><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#PersonalPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.PersonalPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>A panel for configuring a user&#8217;s personal settings.</p>
+<p>This panel allows a certain user to control settings related to whether
+to send text messages on certain events automatically and to set the numbers
+to which such messages should be sent.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote class="last">
+<div><p>The panel or frame which should be used as the parent for this panel.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.sys_config.PersonalPanel.applyData">
+<tt class="descname">applyData</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#PersonalPanel.applyData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.PersonalPanel.applyData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the system configuration with data from the controls.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.sys_config.PersonalPanel.fillData">
+<tt class="descname">fillData</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#PersonalPanel.fillData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.PersonalPanel.fillData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fill the controls with data from the system configuration.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="graphspanel">
+<h3>GraphsPanel<a class="headerlink" href="#graphspanel" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.sys_config.GraphsPanel">
+<em class="property">class </em><tt class="descclassname">src.gui.sys_config.</tt><tt class="descname">GraphsPanel</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#GraphsPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.GraphsPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>A panel for configuring global graph settings.</p>
+<p>In its current implementation, this panel presents a way of changing
+the following graphing settings:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The list of colors used for successive plots within a graph, and</li>
+<li>The rate at which the graph updates (expressed as a delay time in
+seconds).</li>
+</ul>
+</div></blockquote>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.sys_config.GraphsPanel.applyData">
+<tt class="descname">applyData</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#GraphsPanel.applyData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.GraphsPanel.applyData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the software configuration with the data from the controls.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.sys_config.GraphsPanel.fillData">
+<tt class="descname">fillData</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#GraphsPanel.fillData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.GraphsPanel.fillData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fill the controls with data from the software configuration.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="userspanel">
+<h3>UsersPanel<a class="headerlink" href="#userspanel" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.sys_config.UsersPanel">
+<em class="property">class </em><tt class="descclassname">src.gui.sys_config.</tt><tt class="descname">UsersPanel</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#UsersPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.UsersPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>This panel allows for the creation and deletion of users.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.sys_config.UsersPanel.fillData">
+<tt class="descname">fillData</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#UsersPanel.fillData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.UsersPanel.fillData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the controls to reflect those from the software configuration.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.gui.sys_config.showAboutWindow">
+<tt class="descclassname">src.gui.sys_config.</tt><tt class="descname">showAboutWindow</tt><big>(</big><em>parent</em><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#showAboutWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.showAboutWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display an &#8220;About&#8221; dialog.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.gui.sys_config.getHelpWindow">
+<tt class="descclassname">src.gui.sys_config.</tt><tt class="descname">getHelpWindow</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#getHelpWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.getHelpWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a help window.</p>
+<p>Load the HTML Help Workshop documentation from the <cite>doc</cite> folder and embed
+it in a wxPython HtmlHelpController window, and return that window.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function does not actually <em>show</em> the window&#8212;it just 
+creates it. The window must be displayed by whatever calls the function.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>wxHtmlHelpController</strong> :</p>
+<blockquote class="last">
+<div><p>A window containing software documentation</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.gui.sys_config.getChangeLogDialog">
+<tt class="descclassname">src.gui.sys_config.</tt><tt class="descname">getChangeLogDialog</tt><big>(</big><em>parent</em><big>)</big><a class="reference internal" href="_modules/src/gui/sys_config.html#getChangeLogDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.sys_config.getChangeLogDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a change log dialog.</p>
+<p>Create and return a window displaying the change log. If the system can
+access the SVN server, the change log is read from that. Otherwise, it is
+read from a file whenever the system was last able to access the server.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxFrame</p>
+<blockquote>
+<div><p>The wxFrame of which the returned dialog is a child. (This is useful
+for things like centering and making sure that this window is closed
+if the application is closed.)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>ChangeLogDialog</strong> :</p>
+<blockquote class="last">
+<div><p>A simple dialog containing information about all known changes to the
+software.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>sys_config</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#changelogdialog">ChangeLogDialog</a></li>
+<li><a class="reference internal" href="#settingsdialog">SettingsDialog</a></li>
+<li><a class="reference internal" href="#usersettingsdialog">UserSettingsDialog</a></li>
+<li><a class="reference internal" href="#usersdialog">UsersDialog</a></li>
+<li><a class="reference internal" href="#filespanel">FilesPanel</a></li>
+<li><a class="reference internal" href="#personalpanel">PersonalPanel</a></li>
+<li><a class="reference internal" href="#graphspanel">GraphsPanel</a></li>
+<li><a class="reference internal" href="#userspanel">UsersPanel</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_gui_instruments_helioxframe.html"
+                        title="previous chapter">The <cite>helioxframe</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_gui_object_config.html"
+                        title="next chapter">The <cite>object_config</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_gui_sys_config.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_object_config.html" title="The object_config module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_instruments_helioxframe.html" title="The helioxframe module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

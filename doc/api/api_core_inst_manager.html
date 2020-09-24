@@ -1,0 +1,232 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The inst_manager module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The core package" href="api_core.html" />
+    <link rel="next" title="The dev package" href="api_dev.html" />
+    <link rel="prev" title="The experiment module" href="api_core_experiment.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_dev.html" title="The dev package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_core_experiment.html" title="The experiment module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_core.html" accesskey="U">The <cite>core</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.core.inst_manager">
+<span id="the-inst-manager-module"></span><h1>The <cite>inst_manager</cite> module<a class="headerlink" href="#module-src.core.inst_manager" title="Permalink to this headline">¶</a></h1>
+<p>A tool to manage instruments.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="instrumentmanager">
+<h3>InstrumentManager<a class="headerlink" href="#instrumentmanager" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.inst_manager.InstrumentManager">
+<em class="property">class </em><tt class="descclassname">src.core.inst_manager.</tt><tt class="descname">InstrumentManager</tt><a class="reference internal" href="_modules/src/core/inst_manager.html#InstrumentManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.inst_manager.InstrumentManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class for managing instruments.</p>
+<p>There are several purposes for this class. One is loading available
+instruments and relaying them to other objects. Perhaps the most important
+is ensuring that only one instance of each cryostat object exists at a
+time, since major problems can occur if there are multiple instances.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.inst_manager.InstrumentManager.constructController">
+<tt class="descname">constructController</tt><big>(</big><em>instrument</em><big>)</big><a class="reference internal" href="_modules/src/core/inst_manager.html#InstrumentManager.constructController"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.inst_manager.InstrumentManager.constructController" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a controller for the specified instrument if possible.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>instrument</strong> : Instrument</p>
+<blockquote>
+<div><p>The <cite>Instrument</cite> object for which to construct a controller.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>Controller</strong> :</p>
+<blockquote class="last">
+<div><p>A <cite>Controller</cite> object for the specified instrument. If the
+specified instrument already has a controller associated with it,
+the existing controller will be returned.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.inst_manager.InstrumentManager.constructInstrument">
+<tt class="descname">constructInstrument</tt><big>(</big><em>name</em>, <em>experiment</em><big>)</big><a class="reference internal" href="_modules/src/core/inst_manager.html#InstrumentManager.constructInstrument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.inst_manager.InstrumentManager.constructInstrument" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a new instrument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the instrument to create.</p>
+</div></blockquote>
+<p><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The experiment which should own the instrument.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>Instrument</strong> :</p>
+<blockquote class="last">
+<div><p>An instance of the desired instrument class. If the requested
+instrument is a cryostat and the class has already been
+instantiated, the returned value is the already-instantiated
+cryostat. Otherwise, a newly created instrument is returned.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.inst_manager.InstrumentManager.getAvailableInstrumentStrings">
+<tt class="descname">getAvailableInstrumentStrings</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/inst_manager.html#InstrumentManager.getAvailableInstrumentStrings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.inst_manager.InstrumentManager.getAvailableInstrumentStrings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of strings of available instruments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of str</strong> :</p>
+<blockquote class="last">
+<div><p>A list of strings indicating the names of the available
+instruments.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>inst_manager</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#instrumentmanager">InstrumentManager</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_core_experiment.html"
+                        title="previous chapter">The <cite>experiment</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_dev.html"
+                        title="next chapter">The <cite>dev</cite> package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_core_inst_manager.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_dev.html" title="The dev package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_core_experiment.html" title="The experiment module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_core.html" >The <cite>core</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

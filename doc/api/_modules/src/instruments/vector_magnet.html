@@ -1,0 +1,1559 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.instruments.vector_magnet &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.instruments.vector_magnet</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;A software representation of the Oxford Heliox 3He insert.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Lock</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span><span class="p">,</span> <span class="n">time</span>
+
+<span class="kn">from</span> <span class="nn">src.core</span> <span class="kn">import</span> <span class="n">instrument</span> <span class="k">as</span> <span class="n">inst</span>
+<span class="kn">from</span> <span class="nn">src.core.action</span> <span class="kn">import</span> <span class="n">Action</span><span class="p">,</span> <span class="n">ActionScan</span><span class="p">,</span> <span class="n">ActionSpec</span><span class="p">,</span> <span class="n">ParameterSpec</span>
+<span class="kn">from</span> <span class="nn">src.instruments.noauto.itc503</span> <span class="kn">import</span> <span class="n">ITC503</span>
+<span class="kn">from</span> <span class="nn">src.instruments.noauto.oxford_common</span> <span class="kn">import</span> <span class="n">readAddressConfig</span>
+<span class="kn">from</span> <span class="nn">src.instruments.noauto.oxford_valve</span> <span class="kn">import</span> <span class="n">OxfordValve</span>
+<span class="kn">from</span> <span class="nn">src.instruments.noauto.ips120</span> <span class="kn">import</span> <span class="n">IPS120</span>
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">path_tools</span> <span class="k">as</span> <span class="n">pt</span>
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">config_parser</span> <span class="k">as</span> <span class="n">cp</span>
+<span class="kn">from</span> <span class="nn">src.tools.coordinates</span> <span class="kn">import</span> <span class="n">cartesianToSpherical</span> <span class="k">as</span> <span class="n">c2s</span>
+<span class="kn">from</span> <span class="nn">src.tools.coordinates</span> <span class="kn">import</span> <span class="n">sphericalToCartesian</span> <span class="k">as</span> <span class="n">s2c</span>
+<span class="kn">from</span> <span class="nn">src.tools.stability</span> <span class="kn">import</span> <span class="n">StabilityTrend</span><span class="p">,</span> <span class="n">StabilitySetpoint</span>
+<span class="kn">from</span> <span class="nn">src.tools.general</span> <span class="kn">import</span> <span class="n">simpleLinearRegression</span>
+
+<span class="n">MODE_DIRECT</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">MODE_THROUGH_MONITOR</span> <span class="o">=</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="VectorMagnet"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet">[docs]</a><span class="k">class</span> <span class="nc">VectorMagnet</span><span class="p">(</span><span class="n">inst</span><span class="o">.</span><span class="n">Instrument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A Vector Magnet.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    experiment : Experiment</span>
+<span class="sd">        The experiment which owns the instrument.</span>
+<span class="sd">    name : str</span>
+<span class="sd">        The name of the instrument. Typically, it will always be &#39;Vector</span>
+<span class="sd">        Magnet&#39;.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;Vector Magnet&#39;</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">VectorMagnet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Instrument: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span>
+                      <span class="s">&#39;Oxford Instruments Vector Magnet and Triton 3He System&#39;</span><span class="p">)</span>
+
+        <span class="n">confFile</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;config&#39;</span><span class="p">,</span> <span class="s">&#39;vector_magnet.conf&#39;</span><span class="p">)</span>
+
+        <span class="n">confmag1</span> <span class="o">=</span> <span class="n">readAddressConfig</span><span class="p">(</span><span class="n">confFile</span><span class="p">,</span> <span class="s">&#39;ps1_address&#39;</span><span class="p">)</span>
+        <span class="n">confmag2</span> <span class="o">=</span> <span class="n">readAddressConfig</span><span class="p">(</span><span class="n">confFile</span><span class="p">,</span> <span class="s">&#39;ps2_address&#39;</span><span class="p">)</span>
+        <span class="n">confmag3</span> <span class="o">=</span> <span class="n">readAddressConfig</span><span class="p">(</span><span class="n">confFile</span><span class="p">,</span> <span class="s">&#39;ps3_address&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span> <span class="o">=</span> <span class="p">[</span><span class="n">IPS120</span><span class="p">(</span><span class="o">**</span><span class="n">confmag1</span><span class="p">),</span>
+                               <span class="n">IPS120</span><span class="p">(</span><span class="o">**</span><span class="n">confmag2</span><span class="p">),</span>
+                               <span class="n">IPS120</span><span class="p">(</span><span class="o">**</span><span class="n">confmag3</span><span class="p">)]</span>
+
+        <span class="n">conftemp1</span> <span class="o">=</span> <span class="n">readAddressConfig</span><span class="p">(</span><span class="n">confFile</span><span class="p">,</span> <span class="s">&#39;tc1_address&#39;</span><span class="p">)</span>
+        <span class="n">conftemp2</span> <span class="o">=</span> <span class="n">readAddressConfig</span><span class="p">(</span><span class="n">confFile</span><span class="p">,</span> <span class="s">&#39;tc2_address&#39;</span><span class="p">)</span>
+        <span class="n">conftemp3</span> <span class="o">=</span> <span class="n">readAddressConfig</span><span class="p">(</span><span class="n">confFile</span><span class="p">,</span> <span class="s">&#39;tc3_address&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tempControllers</span> <span class="o">=</span> <span class="p">[</span><span class="n">ITC503</span><span class="p">(</span><span class="o">**</span><span class="n">conftemp1</span><span class="p">),</span>
+                                 <span class="n">ITC503</span><span class="p">(</span><span class="o">**</span><span class="n">conftemp2</span><span class="p">),</span>
+                                 <span class="n">ITC503</span><span class="p">(</span><span class="o">**</span><span class="n">conftemp3</span><span class="p">)]</span>
+        <span class="n">confvalve</span> <span class="o">=</span> <span class="n">readAddressConfig</span><span class="p">(</span><span class="n">confFile</span><span class="p">,</span> <span class="s">&#39;aux_address&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_valve</span> <span class="o">=</span> <span class="n">OxfordValve</span><span class="p">(</span><span class="o">**</span><span class="n">confvalve</span><span class="p">)</span>
+
+        <span class="n">conf</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">confFile</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">FORMAT_AUTO</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heSorb</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getOptionsDict</span><span class="p">(</span><span class="s">&#39;he3_sorb&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heLow</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getOptionsDict</span><span class="p">(</span><span class="s">&#39;he3_pot_low&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heHigh</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getOptionsDict</span><span class="p">(</span><span class="s">&#39;he3_pot_high&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heatSwitch</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getOptionsDict</span><span class="p">(</span><span class="s">&#39;heat_switch&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pt1</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getOptionsDict</span><span class="p">(</span><span class="s">&#39;pt1_plate&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pt2</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getOptionsDict</span><span class="p">(</span><span class="s">&#39;pt2_plate&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_int</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getOptionsDict</span><span class="p">(</span><span class="s">&#39;int_plate&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mag</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getOptionsDict</span><span class="p">(</span><span class="s">&#39;magnet&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heSorb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heLow</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heHigh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heatSwitch</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">_pt1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pt2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_int</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mag</span><span class="p">):</span>
+            <span class="n">item</span><span class="p">[</span><span class="s">&#39;itc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tempControllers</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="s">&#39;itc&#39;</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlTemp</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getOptionsDict</span><span class="p">(</span><span class="s">&#39;control_temp&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlCool</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getOptionsDict</span><span class="p">(</span><span class="s">&#39;control_cooldown&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlPrecon</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getOptionsDict</span><span class="p">(</span><span class="s">&#39;control_precondense&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlCon</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getOptionsDict</span><span class="p">(</span><span class="s">&#39;control_condense&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlRecon</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getOptionsDict</span><span class="p">(</span><span class="s">&#39;control_autorecondense&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+        <span class="c"># These are set at initialization time.</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rampLimits</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.250</span><span class="p">,</span> <span class="mf">0.125</span><span class="p">,</span> <span class="mf">0.125</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rampProportion</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="n">MODE_DIRECT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
+
+
+    <span class="c">#===========================================================================</span>
+    <span class="c"># General</span>
+    <span class="c">#===========================================================================</span>
+
+<div class="viewcode-block" id="VectorMagnet.getInformation"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.getInformation">[docs]</a>    <span class="k">def</span> <span class="nf">getInformation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the vector magnet system&#39;s information string.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.initialize"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the Oxford vector magnet system.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">supply</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">:</span>
+            <span class="n">supply</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.finalize"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Finalize the Oxford vector magnet system.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">supply</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">:</span>
+            <span class="n">supply</span><span class="o">.</span><span class="n">closeCommunication</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setMode"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setMode">[docs]</a>    <span class="k">def</span> <span class="nf">setMode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newMode</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the vector magnet system reading mode.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newMode : int</span>
+<span class="sd">            An integer (MODE_DIRECT or MODE_THROUGH_MONITOR) to specify the</span>
+<span class="sd">            reading mode. If it is MODE_DIRECT, all data come directly from</span>
+<span class="sd">            the temperature controller. If it is MODE_THROUGH_MONITOR, only</span>
+<span class="sd">            the temperature monitor triggers direct readings from the </span>
+<span class="sd">            controller, and other requests from data receive the most recent</span>
+<span class="sd">            readings so triggered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="n">newMode</span>
+
+
+    <span class="c">#===========================================================================</span>
+    <span class="c"># Magnetic field</span>
+    <span class="c">#===========================================================================</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldNoWaitX"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitX">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldNoWaitX</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the x-component of the magnetic field.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : float</span>
+<span class="sd">            The new value of the x-component of the magnetic field in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span> <span class="o">=</span> <span class="n">s2c</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">s2c</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">setSweepRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rampLimits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span>
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">_rampProportion</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">setField</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldX"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldX">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldX</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">block</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the x-component of the magnetic field.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : float</span>
+<span class="sd">            The new x-component for the magnetic field.</span>
+<span class="sd">        block : str</span>
+<span class="sd">            A string, either &#39;Yes&#39; or &#39;No&#39;, indicating whether to block the</span>
+<span class="sd">            sequence until the desired field is reached.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFieldNoWaitX</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;yes&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">waitForField</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldCartesian</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldCartesian</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldNoWaitY"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitY">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldNoWaitY</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the y-component of the magnetic field.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : float</span>
+<span class="sd">            The new value of the y-component of the magnetic field in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span> <span class="o">=</span> <span class="n">s2c</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">s2c</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">setSweepRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rampLimits</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span>
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">_rampProportion</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">setField</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldY"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldY">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldY</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">block</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the y-component of the magnetic field.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : float</span>
+<span class="sd">            The new x-component for the magnetic field.</span>
+<span class="sd">        block : str</span>
+<span class="sd">            A string, either &#39;Yes&#39; or &#39;No&#39;, indicating whether to block the</span>
+<span class="sd">            sequence until the desired field is reached.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFieldNoWaitY</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;yes&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">waitForField</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldCartesian</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldCartesian</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldNoWaitZ"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitZ">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldNoWaitZ</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the z-component of the magnetic field.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : float</span>
+<span class="sd">            The new value of the z-component of the magnetic field in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span> <span class="o">=</span> <span class="n">s2c</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">s2c</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">setSweepRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rampLimits</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span>
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">_rampProportion</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">setField</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldZ"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldZ">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldZ</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">block</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the z-component of the magnetic field.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : float</span>
+<span class="sd">            The new x-component for the magnetic field.</span>
+<span class="sd">        block : str</span>
+<span class="sd">            A string, either &#39;Yes&#39; or &#39;No&#39;, indicating whether to block the</span>
+<span class="sd">            sequence until the desired field is reached.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFieldNoWaitZ</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;yes&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">waitForField</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldCartesian</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldCartesian</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setField"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setField">[docs]</a>    <span class="k">def</span> <span class="nf">setField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">block</span><span class="o">=</span><span class="s">&#39;yes&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the z-component of the magnetic field.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : float</span>
+<span class="sd">            The desired z-component of the magnetic field in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFieldZ</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">block</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldNoWaitMagnitude"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitMagnitude">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldNoWaitMagnitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnitude of the magnetic field.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : float</span>
+<span class="sd">            The new magnitude for the magnetic field in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">c2s</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span> <span class="o">=</span> <span class="n">c2s</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_setSphericalFieldNoLock</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldMagnitude"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldMagnitude">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldMagnitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">block</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnitude of the magnetic field.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : float</span>
+<span class="sd">            The new magnitude for the magnetic field in Tesla.</span>
+<span class="sd">        block : str</span>
+<span class="sd">            A string, either &#39;Yes&#39; or &#39;No&#39;, indicating whether to block the</span>
+<span class="sd">            sequence until the desired field is reached.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFieldNoWaitMagnitude</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;yes&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">waitForField</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldSpherical</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldSpherical</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldNoWaitAzimuthal"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitAzimuthal">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldNoWaitAzimuthal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">azimuthalAngle</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the azimuthal angle of the magnetic field.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        azimuthalAngle : float</span>
+<span class="sd">            The desired azimuthal angle for the magnetic field, measured in</span>
+<span class="sd">            degrees down from the positive z-axis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">c2s</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span> <span class="o">=</span> <span class="n">c2s</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">azimuthalAngle</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_setSphericalFieldNoLock</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldAzimuthal"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldAzimuthal">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldAzimuthal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">azimuthalAngle</span><span class="p">,</span> <span class="n">block</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnitude of the magnetic field.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        azimuthalAngle : float</span>
+<span class="sd">            The new azimuthal angle for the field vector, measured in degrees</span>
+<span class="sd">            down from the positive z-axis.</span>
+<span class="sd">        block : str</span>
+<span class="sd">            A string, either &#39;Yes&#39; or &#39;No&#39;, indicating whether to block the</span>
+<span class="sd">            sequence until the desired field is reached.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFieldNoWaitAzimuthal</span><span class="p">(</span><span class="n">azimuthalAngle</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;yes&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">waitForField</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldSpherical</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldSpherical</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldNoWaitPolar"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitPolar">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldNoWaitPolar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">polarAngle</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the polar angle of the magnetic field.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        polarAngle : float</span>
+<span class="sd">            The desired polar angle for the magnetic field, measured in</span>
+<span class="sd">            degrees counter-clockwise from the positive x-axis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">c2s</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span> <span class="o">=</span> <span class="n">c2s</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">polarAngle</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_setSphericalFieldNoLock</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldPolar"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldPolar">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldPolar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">polarAngle</span><span class="p">,</span> <span class="n">block</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnitude of the magnetic field.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        polarAngle : float</span>
+<span class="sd">            The new polar angle for the field vector, measured in degrees</span>
+<span class="sd">            counter-clockwise from the positive x-axis.</span>
+<span class="sd">        block : str</span>
+<span class="sd">            A string, either &#39;Yes&#39; or &#39;No&#39;, indicating whether to block the</span>
+<span class="sd">            sequence until the desired field is reached.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFieldNoWaitAzimuthal</span><span class="p">(</span><span class="n">polarAngle</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;yes&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">waitForField</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldSpherical</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldSpherical</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldNoWaitCartesian"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitCartesian">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldNoWaitCartesian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fieldX</span><span class="p">,</span> <span class="n">fieldY</span><span class="p">,</span> <span class="n">fieldZ</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnetic field to a specified value in Cartesian coordinates.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fieldX : float</span>
+<span class="sd">            The x-component of the field in Tesla.</span>
+<span class="sd">        fieldY : float</span>
+<span class="sd">            The y-component of the field in Tesla.</span>
+<span class="sd">        fieldZ : float</span>
+<span class="sd">            The z-component of the field in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">s2c</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span> <span class="o">=</span> <span class="p">[</span><span class="n">fieldX</span><span class="p">,</span> <span class="n">fieldY</span><span class="p">,</span> <span class="n">fieldZ</span><span class="p">]</span>
+            <span class="n">rates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculateSweepRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">supply</span><span class="p">,</span> <span class="n">rate</span><span class="p">,</span> <span class="n">target</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">,</span> <span class="n">rates</span><span class="p">,</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">):</span>
+                <span class="n">supply</span><span class="o">.</span><span class="n">setSweepRate</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>
+                <span class="n">supply</span><span class="o">.</span><span class="n">setField</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldCartesian"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldCartesian">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldCartesian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fieldX</span><span class="p">,</span> <span class="n">fieldY</span><span class="p">,</span> <span class="n">fieldZ</span><span class="p">,</span> <span class="n">block</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnetic field to a specified value in Cartesian coordinates.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fieldX : float</span>
+<span class="sd">            The x-component of the field in Tesla.</span>
+<span class="sd">        fieldY : float</span>
+<span class="sd">            The y-component of the field in Tesla.</span>
+<span class="sd">        fieldZ : float</span>
+<span class="sd">            The z-component of the field in Tesla.</span>
+<span class="sd">        block : str</span>
+<span class="sd">            A string, either &#39;Yes&#39; or &#39;No&#39;, indicating whether to block the</span>
+<span class="sd">            sequence until the desired field is reached.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFieldNoWaitCartesian</span><span class="p">(</span><span class="n">fieldX</span><span class="p">,</span> <span class="n">fieldY</span><span class="p">,</span> <span class="n">fieldZ</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;yes&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">waitForField</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldCartesian</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldSpherical</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldNoWaitSpherical"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldNoWaitSpherical">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldNoWaitSpherical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">magnitude</span><span class="p">,</span> <span class="n">azimuthalAngle</span><span class="p">,</span> <span class="n">polarAngle</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnetic field in spherical coordinates.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        magnitude : float</span>
+<span class="sd">            The magnitude of the magnetic field in Tesla.</span>
+<span class="sd">        azimuthalAngle : float</span>
+<span class="sd">            The desired azimuthal angle, measured in degrees downward from the</span>
+<span class="sd">            positive z-axis.</span>
+<span class="sd">        polarAngle : float</span>
+<span class="sd">            The desired polar angle, measured in degrees counter-clockwise from</span>
+<span class="sd">            the positive x-axis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">c2s</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span> <span class="o">=</span> <span class="p">[</span><span class="n">magnitude</span><span class="p">,</span> <span class="n">azimuthalAngle</span><span class="p">,</span> <span class="n">polarAngle</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_setSphericalFieldNoLock</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldSpherical"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldSpherical">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldSpherical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">magnitude</span><span class="p">,</span> <span class="n">azimuthalAngle</span><span class="p">,</span> <span class="n">polarAngle</span><span class="p">,</span> <span class="n">block</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnetic field in spherical coordinates.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        magnitude : float</span>
+<span class="sd">            The magnitude of the magnetic field in Tesla.</span>
+<span class="sd">        azimuthalAngle : float</span>
+<span class="sd">            The desired azimuthal angle, measured in degrees downward from the</span>
+<span class="sd">            positive z-axis.</span>
+<span class="sd">        polarAngle : float</span>
+<span class="sd">            The desired polar angle, measured in degrees counter-clockwise from</span>
+<span class="sd">            the positive x-axis.</span>
+<span class="sd">        block : str</span>
+<span class="sd">            A string, either &#39;Yes&#39; or &#39;No&#39;, indicating whether to block the</span>
+<span class="sd">            sequence until the desired field is reached.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFieldNoWaitSpherical</span><span class="p">(</span><span class="n">magnitude</span><span class="p">,</span> <span class="n">azimuthalAngle</span><span class="p">,</span> <span class="n">polarAngle</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;yes&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">waitForField</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldSpherical</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldSpherical</span><span class="p">()</span>
+</div>
+    <span class="k">def</span> <span class="nf">_setSphericalFieldNoLock</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Command the power supplies to ramp to the spherical setpoints.</span>
+<span class="sd">        </span>
+<span class="sd">        Assume that the current field and setpoint are in spherical coordinates</span>
+<span class="sd">        and convert to Cartesian in local variables (i.e., without changing any</span>
+<span class="sd">        instance attributes), calculate the appropriate ramp rates, </span>
+<span class="sd">        set the ramp rates, and command the supplies to proceed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">oldField</span> <span class="o">=</span> <span class="n">s2c</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">)</span>
+        <span class="n">newField</span> <span class="o">=</span> <span class="n">s2c</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">)</span>
+        <span class="n">ramps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculateSweepRate</span><span class="p">(</span><span class="n">oldField</span><span class="p">,</span> <span class="n">newField</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">supply</span><span class="p">,</span> <span class="n">ramp</span><span class="p">,</span> <span class="n">field</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">,</span> <span class="n">ramps</span><span class="p">,</span> <span class="n">newField</span><span class="p">):</span>
+            <span class="n">supply</span><span class="o">.</span><span class="n">setSweepRate</span><span class="p">(</span><span class="n">ramp</span><span class="p">)</span>
+            <span class="n">supply</span><span class="o">.</span><span class="n">setField</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_calculateSweepRate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">oldField</span><span class="p">,</span> <span class="n">newField</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Determine the sweep rates to go from one field to another.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        oldField : list of float</span>
+<span class="sd">            The old Cartesian field components, in Tesla.</span>
+<span class="sd">        newField : list of float</span>
+<span class="sd">            The new Cartesian field components, in Tesla.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of float</span>
+<span class="sd">            The field sweep rates for the three power supplies in Tesla/min.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">differences</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">rampTimes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">oldComp</span><span class="p">,</span> <span class="n">newComp</span><span class="p">,</span> <span class="n">maxRamp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">oldField</span><span class="p">,</span> <span class="n">newField</span><span class="p">,</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">_rampLimits</span><span class="p">):</span>
+            <span class="n">fieldDiff</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">newComp</span> <span class="o">-</span> <span class="n">oldComp</span><span class="p">)</span>
+            <span class="n">rampTimes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fieldDiff</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rampProportion</span> <span class="o">*</span> <span class="n">maxRamp</span><span class="p">))</span>
+            <span class="n">differences</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">newComp</span> <span class="o">-</span> <span class="n">oldComp</span><span class="p">))</span>
+        <span class="n">rampTime</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">rampTimes</span><span class="p">)</span>
+        <span class="n">realRates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">diff</span> <span class="ow">in</span> <span class="n">differences</span><span class="p">:</span>
+            <span class="n">realRates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">diff</span> <span class="o">/</span> <span class="n">rampTime</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">realRates</span>
+
+<div class="viewcode-block" id="VectorMagnet.pauseField"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.pauseField">[docs]</a>    <span class="k">def</span> <span class="nf">pauseField</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pause the field sweep.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">supply</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">:</span>
+            <span class="n">supply</span><span class="o">.</span><span class="n">setActivity</span><span class="p">(</span><span class="s">&#39;0&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.unpauseField"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.unpauseField">[docs]</a>    <span class="k">def</span> <span class="nf">unpauseField</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Resume the field sweep.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">supply</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">:</span>
+            <span class="n">supply</span><span class="o">.</span><span class="n">setActivity</span><span class="p">(</span><span class="s">&#39;1&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.isFieldAtSetpoint"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.isFieldAtSetpoint">[docs]</a>    <span class="k">def</span> <span class="nf">isFieldAtSetpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether the fields have reached the setpoints.&quot;&quot;&quot;</span>
+        <span class="n">answer</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">setpoint</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">field</span> <span class="o">-</span> <span class="n">setpoint</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.00001</span><span class="p">:</span>
+                <span class="n">answer</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="n">answer</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.waitForField"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.waitForField">[docs]</a>    <span class="k">def</span> <span class="nf">waitForField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">readMethod</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Wait until the field has reached its target.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        readMethod : instancemethod</span>
+<span class="sd">            The method to use to update information about the current fields.</span>
+<span class="sd">            It should probably be either `directGetFieldCartesian` or</span>
+<span class="sd">            `directGetFieldSpherical`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isFieldAtSetpoint</span><span class="p">():</span>
+            <span class="n">readMethod</span><span class="p">()</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="o">.</span><span class="n">isPaused</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pauseField</span><span class="p">()</span>
+                <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="o">.</span><span class="n">isPaused</span><span class="p">():</span>
+                    <span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">unpauseField</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.directGetFieldCartesian"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.directGetFieldCartesian">[docs]</a>    <span class="k">def</span> <span class="nf">directGetFieldCartesian</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the magnetic field in Cartesian coordinates.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The x-component of the magnetic field.</span>
+<span class="sd">        float</span>
+<span class="sd">            The y-component of the magnetic field.</span>
+<span class="sd">        float</span>
+<span class="sd">            The z-component of the magnetic field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="n">newX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getField</span><span class="p">()</span>
+            <span class="n">newY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">getField</span><span class="p">()</span>
+            <span class="n">newZ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">getField</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="p">[</span><span class="n">newX</span><span class="p">,</span> <span class="n">newY</span><span class="p">,</span> <span class="n">newZ</span><span class="p">]</span>
+                <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">c2s</span><span class="p">(</span><span class="n">newX</span><span class="p">,</span> <span class="n">newY</span><span class="p">,</span> <span class="n">newZ</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">newX</span><span class="p">,</span> <span class="n">newY</span><span class="p">,</span> <span class="n">newZ</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.getFieldCartesian"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.getFieldCartesian">[docs]</a>    <span class="k">def</span> <span class="nf">getFieldCartesian</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the field vector in Cartesian coordinates.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The x-component of the magnetic field vector.</span>
+<span class="sd">        float</span>
+<span class="sd">            The y-component of the magnetic field vector.</span>
+<span class="sd">        float</span>
+<span class="sd">            The z-component of the magnetic field vector.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="n">MODE_DIRECT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldCartesian</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">s2c</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.getField"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.getField">[docs]</a>    <span class="k">def</span> <span class="nf">getField</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the z-component of the magnetic field.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The z-component of the magnetic field in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getFieldCartesian</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.directGetFieldSpherical"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.directGetFieldSpherical">[docs]</a>    <span class="k">def</span> <span class="nf">directGetFieldSpherical</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the magnetic field in Cartesian coordinates.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnitude of the magnetic field in Tesla.</span>
+<span class="sd">        float</span>
+<span class="sd">            The azimuthal angle of the magnetic field vector, measured in</span>
+<span class="sd">            degrees down from the positive z-axis.</span>
+<span class="sd">        float</span>
+<span class="sd">            The polar angle of the magnetic field vector, measured in</span>
+<span class="sd">            degrees counter-clockwise from the positive x-axis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="n">newX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getField</span><span class="p">()</span>
+            <span class="n">newY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">getField</span><span class="p">()</span>
+            <span class="n">newZ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">getField</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="p">[</span><span class="n">newX</span><span class="p">,</span> <span class="n">newY</span><span class="p">,</span> <span class="n">newZ</span><span class="p">]</span>
+                <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">c2s</span><span class="p">(</span><span class="n">newX</span><span class="p">,</span> <span class="n">newY</span><span class="p">,</span> <span class="n">newZ</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">c2s</span><span class="p">(</span><span class="n">newX</span><span class="p">,</span> <span class="n">newY</span><span class="p">,</span> <span class="n">newZ</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.getFieldSpherical"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.getFieldSpherical">[docs]</a>    <span class="k">def</span> <span class="nf">getFieldSpherical</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the field vector in spherical coordinates.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnitude of the magnetic field vector.</span>
+<span class="sd">        float</span>
+<span class="sd">            The azimuthal angle of the magnetic field vector, measured in</span>
+<span class="sd">            degrees down from the positive z-axis.</span>
+<span class="sd">        float</span>
+<span class="sd">            The polar angle of the magnetic field vector, measured in degrees</span>
+<span class="sd">            counter-clockwise from the positive x-axis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="n">MODE_DIRECT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldSpherical</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">c2s</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.directGetFieldSetpoints"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.directGetFieldSetpoints">[docs]</a>    <span class="k">def</span> <span class="nf">directGetFieldSetpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the field setpoints from the power supplies.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnetic field setpoint in the x-direction in Tesla.</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnetic field setpoint in the y-direction in Tesla.</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnetic field setpoint in the z-direction in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="n">setpointX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getFieldSetpoint</span><span class="p">()</span>
+            <span class="n">setpointY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">getFieldSetpoint</span><span class="p">()</span>
+            <span class="n">setpointZ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">getFieldSetpoint</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span> <span class="o">=</span> <span class="p">[</span><span class="n">setpointX</span><span class="p">,</span> <span class="n">setpointY</span><span class="p">,</span> <span class="n">setpointZ</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span> <span class="o">=</span> <span class="n">c2s</span><span class="p">(</span><span class="n">setpointX</span><span class="p">,</span> <span class="n">setpointY</span><span class="p">,</span> <span class="n">setpointZ</span><span class="p">,</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">setpointX</span><span class="p">,</span> <span class="n">setpointY</span><span class="p">,</span> <span class="n">setpointZ</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.getFieldSetpoints"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.getFieldSetpoints">[docs]</a>    <span class="k">def</span> <span class="nf">getFieldSetpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the magnetic field setpoints.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnetic field setpoint in the x-direction in Tesla.</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnetic field setpoint in the y-direction in Tesla.</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnetic field setpoint in the z-direction in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="n">MODE_DIRECT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldSetpoints</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cartesian</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">s2c</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_fieldSetpoint</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setFieldRampProportion"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setFieldRampProportion">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldRampProportion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proportion</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnetic field ramp rate proportion.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        proportion : float</span>
+<span class="sd">            The ratio of the desired ramp rate to the maximum ramp rate. The</span>
+<span class="sd">            actual rate used for any given magnet sweep will be such that all</span>
+<span class="sd">            power supplies reach the target at the same time, limited by the</span>
+<span class="sd">            power supply with the lowest maximum ramp rate, which will be</span>
+<span class="sd">            multiplied by `proportion`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rampProportion</span> <span class="o">=</span> <span class="n">proportion</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.getFieldRampProportion"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.getFieldRampProportion">[docs]</a>    <span class="k">def</span> <span class="nf">getFieldRampProportion</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the magnetic field ramp rate proportion.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The ratio of the desired ramp rate to the maximum ramp rate. The</span>
+<span class="sd">            actual rate used for any given magnet sweep will be such that all</span>
+<span class="sd">            power supplies reach the target at the same time, limited by the</span>
+<span class="sd">            power supply with the lowest maximum ramp rate, which will be</span>
+<span class="sd">            multiplied by `proportion`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rampProportion</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.directGetFieldRampRates"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.directGetFieldRampRates">[docs]</a>    <span class="k">def</span> <span class="nf">directGetFieldRampRates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the magnetic field sweep rates directly from the power supplies.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The ramp rate for the x-component of the magnetic field in </span>
+<span class="sd">            Tesla/min.</span>
+<span class="sd">        float</span>
+<span class="sd">            The ramp rate for the y-component of the magnetic field in </span>
+<span class="sd">            Tesla/min.</span>
+<span class="sd">        float</span>
+<span class="sd">            The ramp rate for the z-component of the magnetic field in </span>
+<span class="sd">            Tesla/min.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ans</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">supply</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerSupplies</span><span class="p">:</span>
+            <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">supply</span><span class="o">.</span><span class="n">getSweepRate</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ans</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.getFieldRampRates"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.getFieldRampRates">[docs]</a>    <span class="k">def</span> <span class="nf">getFieldRampRates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the magnetic field ramp rates.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The ramp rate for the x-component of the magnetic field in </span>
+<span class="sd">            Tesla/min.</span>
+<span class="sd">        float</span>
+<span class="sd">            The ramp rate for the y-component of the magnetic field in </span>
+<span class="sd">            Tesla/min.</span>
+<span class="sd">        float</span>
+<span class="sd">            The ramp rate for the z-component of the magnetic field in </span>
+<span class="sd">            Tesla/min.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="n">MODE_DIRECT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetFieldRampRates</span><span class="p">()</span>
+        <span class="n">answer</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">rate</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rampLimits</span><span class="p">:</span>
+            <span class="n">answer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rampProportion</span> <span class="o">*</span> <span class="n">rate</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span>
+
+
+    <span class="c">#===========================================================================</span>
+    <span class="c"># Temperature</span>
+    <span class="c">#===========================================================================</span>
+</div>
+    <span class="k">def</span> <span class="nf">_auxReadTemp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sensorData</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the temperature measured by the specified sensor.</span>
+<span class="sd">        </span>
+<span class="sd">        Acquire the lock, read the temperature from the relevant controller,</span>
+<span class="sd">        update the temperature in the vector magnet&#39;s dictionary, and return</span>
+<span class="sd">        the temperature.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sensorData : dict</span>
+<span class="sd">            A dictionary indicating the sensor from which to read. It must have</span>
+<span class="sd">            an `ITC503` object under the heading &#39;itc&#39; and a sensor index</span>
+<span class="sd">            string (&#39;1&#39;, &#39;2&#39;, or &#39;3&#39;) under the key &#39;sensor&#39;.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The temperature measured by the specified sensor in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="n">sensorData</span><span class="p">[</span><span class="s">&#39;itc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">getTemperature</span><span class="p">(</span><span class="n">sensorData</span><span class="p">[</span><span class="s">&#39;sensor&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="s">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp</span>
+        <span class="k">return</span> <span class="n">temp</span>
+
+    <span class="k">def</span> <span class="nf">_auxReadSetpointAndPID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tempController</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the setpoint and PID values for the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Acquire the lock and read the setpoint and the PID values from the</span>
+<span class="sd">        ITC.</span>
+<span class="sd">                </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tempController : ITC503</span>
+<span class="sd">            The Oxford ITC 503 from which to read the requested data.</span>
+<span class="sd">                    </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The setpoint for the active sensor on the controller.</span>
+<span class="sd">        float</span>
+<span class="sd">            The proportional band value for the controller.</span>
+<span class="sd">        float</span>
+<span class="sd">            The integral action time for the controller.</span>
+<span class="sd">        float</span>
+<span class="sd">            The derivative action time for the controller.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="n">setpoint</span> <span class="o">=</span> <span class="n">tempController</span><span class="o">.</span><span class="n">getSetpoint</span><span class="p">()</span>
+            <span class="n">pid</span> <span class="o">=</span> <span class="n">tempController</span><span class="o">.</span><span class="n">getPID</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">setpoint</span><span class="p">,</span> <span class="n">pid</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pid</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">pid</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+<div class="viewcode-block" id="VectorMagnet.directGetTemperatureHe3"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.directGetTemperatureHe3">[docs]</a>    <span class="k">def</span> <span class="nf">directGetTemperatureHe3</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the He3 pot temperature from the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The temperature of the He3 pot.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">maxLowTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heLow</span><span class="p">[</span><span class="s">&#39;max_temp&#39;</span><span class="p">]</span>
+        <span class="n">lowTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auxReadTemp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heLow</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">lowTemp</span> <span class="o">&lt;=</span> <span class="n">maxLowTemp</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="s">&#39;He3 Pot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lowTemp</span>
+            <span class="k">return</span> <span class="n">lowTemp</span>
+        <span class="n">highTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auxReadTemp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heHigh</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_temperatures</span><span class="p">[</span><span class="s">&#39;He3 Pot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">highTemp</span>
+        <span class="k">return</span> <span class="n">highTemp</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.directGetTemperatureSorb"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.directGetTemperatureSorb">[docs]</a>    <span class="k">def</span> <span class="nf">directGetTemperatureSorb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the sorb temperature from the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The temperature of the sorb.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auxReadTemp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heSorb</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.directGetTemperatureHeatSwitch"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.directGetTemperatureHeatSwitch">[docs]</a>    <span class="k">def</span> <span class="nf">directGetTemperatureHeatSwitch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the heat switch temperature from the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The temperature of the heat switch.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auxReadTemp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heatSwitch</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.directGetTemperaturePT1Plate"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.directGetTemperaturePT1Plate">[docs]</a>    <span class="k">def</span> <span class="nf">directGetTemperaturePT1Plate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the PT 1 plate temperature from the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The temperature of the PT1 plate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auxReadTemp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pt1</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.directGetTemperaturePT2Plate"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.directGetTemperaturePT2Plate">[docs]</a>    <span class="k">def</span> <span class="nf">directGetTemperaturePT2Plate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the PT 2 plate temperature from the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The temperature of PT 2 plate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auxReadTemp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pt2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.directGetTemperatureIntPlate"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.directGetTemperatureIntPlate">[docs]</a>    <span class="k">def</span> <span class="nf">directGetTemperatureIntPlate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the intermediate plate temperature from the controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The temperature of the intermediate plate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auxReadTemp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_int</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.directGetTemperatureMagnet"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.directGetTemperatureMagnet">[docs]</a>    <span class="k">def</span> <span class="nf">directGetTemperatureMagnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the magnet temperature from the temperature controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The temperature of the magnet plate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auxReadTemp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mag</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.directGetHe3SetpointAndPid"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.directGetHe3SetpointAndPid">[docs]</a>    <span class="k">def</span> <span class="nf">directGetHe3SetpointAndPid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the He3 temperature setpoint and PID values from the controller.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The setpoint for the He3 pot.</span>
+<span class="sd">        float</span>
+<span class="sd">            The proportional band value for the controller.</span>
+<span class="sd">        float</span>
+<span class="sd">            The integral action time for the controller.</span>
+<span class="sd">        float</span>
+<span class="sd">            The derivative action time for the controller.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">low</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heLow</span>
+        <span class="n">high</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heHigh</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">low</span><span class="p">[</span><span class="s">&#39;itc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">getHeaterSensor</span><span class="p">()</span> <span class="o">==</span> <span class="n">low</span><span class="p">[</span><span class="s">&#39;sensor&#39;</span><span class="p">]</span> <span class="ow">and</span>
+            <span class="n">low</span><span class="p">[</span><span class="s">&#39;itc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">getAutoStatus</span><span class="p">()[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auxReadSetpointAndPID</span><span class="p">(</span><span class="n">low</span><span class="p">[</span><span class="s">&#39;itc&#39;</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">high</span><span class="p">[</span><span class="s">&#39;itc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">getHeaterSensor</span><span class="p">()</span> <span class="o">==</span> <span class="n">high</span><span class="p">[</span><span class="s">&#39;sensor&#39;</span><span class="p">]</span> <span class="ow">and</span>
+              <span class="n">high</span><span class="p">[</span><span class="s">&#39;itc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">getAutoStatus</span><span class="p">()[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auxReadSetpointAndPID</span><span class="p">(</span><span class="n">high</span><span class="p">[</span><span class="s">&#39;itc&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.procedureCooldown"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.procedureCooldown">[docs]</a>    <span class="k">def</span> <span class="nf">procedureCooldown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Perform the system initial cooldown sequence.&quot;&quot;&quot;</span>
+
+        <span class="c"># Turn off power to all heaters</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">sensor</span> <span class="ow">in</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heSorb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heHigh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heLow</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pt1</span><span class="p">,</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">_heatSwitch</span><span class="p">):</span>
+                <span class="n">sensor</span><span class="p">[</span><span class="s">&#39;itc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">setAutoStatus</span><span class="p">(</span><span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+                <span class="n">sensor</span><span class="p">[</span><span class="s">&#39;itc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">setTemperature</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+                <span class="n">sensor</span><span class="p">[</span><span class="s">&#39;itc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">setHeaterOutput</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="c"># Pre-cool: PT2 heater on, Valve V1 open</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="n">_auxToggleHeater</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pt2</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_valve</span><span class="o">.</span><span class="n">openValve</span><span class="p">()</span>
+
+        <span class="c"># Pre-cool: Wait for final He3 temp</span>
+        <span class="n">targetTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlCool</span><span class="p">[</span><span class="s">&#39;precool_final_he3_temp&#39;</span><span class="p">]</span>
+        <span class="n">currentTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auxReadTemp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heHigh</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">targetTemp</span> <span class="o">&lt;=</span> <span class="n">currentTemp</span><span class="p">:</span>
+            <span class="n">currentTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auxReadTemp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heHigh</span><span class="p">)</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="c"># Pre-cool: PT2 heater off</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="n">_auxToggleHeater</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pt2</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+        <span class="c"># Open V1, close heat switch</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="n">_auxToggleHeater</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heatSwitch</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_valve</span><span class="o">.</span><span class="n">openValve</span><span class="p">()</span>
+
+        <span class="c"># Turn on compressor</span>
+        <span class="c"># FIXME: Send a message</span>
+
+        <span class="c"># Wait for He3 to stabilize with sorb &lt; target</span>
+        <span class="n">sorbTarget</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlCool</span><span class="p">[</span><span class="s">&#39;sorb_target&#39;</span><span class="p">]</span>
+        <span class="n">timer</span> <span class="o">=</span> <span class="n">StabilityTrend</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlCool</span><span class="p">[</span><span class="s">&#39;he3_stability_initial&#39;</span><span class="p">])</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="p">(</span><span class="n">timer</span><span class="o">.</span><span class="n">isFinished</span><span class="p">()</span> <span class="ow">and</span>
+                   <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureSorb</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">sorbTarget</span><span class="p">):</span>
+            <span class="n">timer</span><span class="o">.</span><span class="n">addPoint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHe3</span><span class="p">())</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">timer</span>
+
+        <span class="c"># Close V1</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_valve</span><span class="o">.</span><span class="n">closeValve</span><span class="p">()</span>
+
+        <span class="c"># Open heat switch</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="n">_auxToggleHeater</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heatSwitch</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+        <span class="c"># Wait for heat switch to open</span>
+        <span class="n">targetTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heatSwitch</span><span class="p">[</span><span class="s">&#39;off_temp&#39;</span><span class="p">]</span>
+        <span class="n">currentTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHeatSwitch</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">currentTemp</span> <span class="o">&gt;=</span> <span class="n">targetTemp</span><span class="p">:</span>
+            <span class="n">currentTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHeatSwitch</span><span class="p">()</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="c"># Ramp sorb to condense temperature</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="n">_auxSetSetpointAndPID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heSorb</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlCon</span><span class="p">[</span><span class="s">&#39;sorb_setpoint&#39;</span><span class="p">])</span>
+
+        <span class="c"># Wait for the He3 pot to start cooling</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_waitForHe3PotToStartCooling</span><span class="p">()</span>
+
+        <span class="c"># Wait for He3 pot to get below 5K</span>
+        <span class="n">currTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHe3</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">currTemp</span> <span class="o">&gt;=</span> <span class="mf">5.0</span><span class="p">:</span>
+            <span class="n">currTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHe3</span><span class="p">()</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">_waitForHe3PotToStartCooling</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Wait for the He3 pot to start cooling.&quot;&quot;&quot;</span>
+        <span class="n">startTime</span> <span class="o">=</span> <span class="n">downTime</span> <span class="o">=</span> <span class="n">currTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="n">timeout</span> <span class="o">=</span> <span class="mf">1800.0</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="mf">120.0</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="n">currTime</span> <span class="o">-</span> <span class="n">downTime</span> <span class="o">&lt;</span> <span class="n">duration</span> <span class="ow">and</span> <span class="n">currTime</span> <span class="o">-</span> <span class="n">startTime</span> <span class="o">&lt;</span> <span class="n">timeout</span><span class="p">:</span>
+            <span class="n">currTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+            <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">currTime</span><span class="p">)</span>
+            <span class="n">currTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHe3</span><span class="p">()</span>
+            <span class="n">vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">currTemp</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">simpleLinearRegression</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">vals</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mf">0.00001</span><span class="p">:</span>
+                <span class="n">downTime</span> <span class="o">=</span> <span class="n">currTime</span>
+                <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="n">currTime</span><span class="p">]</span>
+                <span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="n">currTemp</span><span class="p">]</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+
+<div class="viewcode-block" id="VectorMagnet.procedurePrecondense"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.procedurePrecondense">[docs]</a>    <span class="k">def</span> <span class="nf">procedurePrecondense</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prepare to condense the helium.&quot;&quot;&quot;</span>
+
+        <span class="c"># Turn the sorb off, turn the heat switch on, and open V1</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_valve</span><span class="o">.</span><span class="n">openValve</span><span class="p">()</span>
+            <span class="n">_auxSetSetpointAndPID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heSorb</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="n">_auxToggleHeater</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heatSwitch</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+
+        <span class="c"># Delay</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="mf">600.0</span>
+        <span class="n">startTime</span> <span class="o">=</span> <span class="n">currTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">currTime</span> <span class="o">-</span> <span class="n">startTime</span> <span class="o">&lt;</span> <span class="n">delay</span><span class="p">:</span>
+            <span class="n">currTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="c"># Wait for the sorb to fall below its target</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlPrecon</span><span class="p">[</span><span class="s">&#39;sorb_target&#39;</span><span class="p">]</span>
+        <span class="n">currTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureSorb</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">currTemp</span> <span class="o">&gt;</span> <span class="n">target</span><span class="p">:</span>
+            <span class="n">currTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureSorb</span><span class="p">()</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="c"># Delay</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlPrecon</span><span class="p">[</span><span class="s">&#39;delay&#39;</span><span class="p">]</span>
+        <span class="n">startTime</span> <span class="o">=</span> <span class="n">currTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">currTime</span> <span class="o">-</span> <span class="n">startTime</span> <span class="o">&lt;</span> <span class="n">delay</span><span class="p">:</span>
+            <span class="n">currTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="c"># Close V1</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_valve</span><span class="o">.</span><span class="n">closeValve</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.procedureCondense"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.procedureCondense">[docs]</a>    <span class="k">def</span> <span class="nf">procedureCondense</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Condense the He3.&quot;&quot;&quot;</span>
+
+        <span class="c"># Close V1, turn off heat switch, and turn off sorb power</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_valve</span><span class="o">.</span><span class="n">closeValve</span><span class="p">()</span>
+            <span class="n">_auxToggleHeater</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heatSwitch</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="n">_auxSetSetpointAndPID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heSorb</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+        <span class="c"># Wait for heat switch to turn off</span>
+        <span class="n">tempOff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heatSwitch</span><span class="p">[</span><span class="s">&#39;off_temp&#39;</span><span class="p">]</span>
+        <span class="n">currTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHeatSwitch</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">currTemp</span> <span class="o">&gt;=</span> <span class="n">tempOff</span><span class="p">:</span>
+            <span class="n">currTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHeatSwitch</span><span class="p">()</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="c"># Warm sorb to intermediate temperature</span>
+        <span class="n">sweepStart</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlCon</span><span class="p">[</span><span class="s">&#39;sorb_sweep_start&#39;</span><span class="p">]</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="n">_auxSetSetpointAndPID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heSorb</span><span class="p">,</span> <span class="n">sweepStart</span><span class="p">)</span>
+
+        <span class="c"># Delay</span>
+        <span class="n">_generalDelay</span><span class="p">(</span><span class="mf">1200.0</span><span class="p">)</span>
+
+        <span class="c"># Warm sorb to final sweep temperature</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_condenseWarmSorbToFinalRampTemp</span><span class="p">()</span>
+
+        <span class="c"># Warm sorb to final condense temp</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="n">_auxSetSetpointAndPID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heSorb</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlCon</span><span class="p">[</span><span class="s">&#39;sorb_setpoint&#39;</span><span class="p">])</span>
+
+        <span class="c"># Delay</span>
+        <span class="n">_generalDelay</span><span class="p">(</span><span class="mf">1200.0</span><span class="p">)</span>
+
+        <span class="c"># Wait for He3 pot to start cooling, waiting at least 3 min</span>
+        <span class="n">minTime</span> <span class="o">=</span> <span class="mf">180.0</span>
+        <span class="n">startTime</span> <span class="o">=</span> <span class="n">currTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="n">timer</span> <span class="o">=</span> <span class="n">StabilityTrend</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">while</span> <span class="p">(</span><span class="n">currTime</span> <span class="o">-</span> <span class="n">startTime</span> <span class="o">&lt;</span> <span class="n">minTime</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">timer</span><span class="o">.</span><span class="n">isBufferFull</span><span class="p">()</span> <span class="ow">or</span>
+               <span class="n">timer</span><span class="o">.</span><span class="n">getTrend</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">):</span>
+            <span class="n">newTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHe3</span><span class="p">()</span>
+            <span class="n">timer</span><span class="o">.</span><span class="n">addPoint</span><span class="p">(</span><span class="n">newTemp</span><span class="p">)</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">timer</span>
+
+        <span class="c"># Wait for He3 to stabilize</span>
+        <span class="n">minTime</span> <span class="o">=</span> <span class="mf">600.0</span>
+        <span class="n">stability</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlCon</span><span class="p">[</span><span class="s">&#39;he3_stability&#39;</span><span class="p">]</span>
+        <span class="n">absStability</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">stability</span><span class="p">)</span>
+        <span class="n">startTime</span> <span class="o">=</span> <span class="n">currTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="n">timer</span> <span class="o">=</span> <span class="n">StabilityTrend</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="n">stability</span><span class="p">)</span>
+        <span class="n">finished</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">finished</span><span class="p">:</span>
+            <span class="n">runTime</span> <span class="o">=</span> <span class="n">currTime</span> <span class="o">-</span> <span class="n">startTime</span>
+            <span class="n">newValue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHe3</span><span class="p">()</span>
+            <span class="n">timer</span><span class="o">.</span><span class="n">addPoint</span><span class="p">(</span><span class="n">newValue</span><span class="p">)</span>
+            <span class="n">slope</span> <span class="o">=</span> <span class="n">timer</span><span class="o">.</span><span class="n">getTrend</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">runTime</span> <span class="o">&gt;=</span> <span class="n">minTime</span> <span class="ow">and</span> <span class="n">slope</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">and</span>
+                <span class="nb">abs</span><span class="p">(</span><span class="n">slope</span> <span class="o">*</span> <span class="mf">60.0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">absStability</span> <span class="ow">and</span> <span class="n">timer</span><span class="o">.</span><span class="n">isStable</span><span class="p">()):</span>
+                <span class="n">finished</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">timer</span>
+
+        <span class="c"># Delay</span>
+        <span class="n">_generalDelay</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ctrlCon</span><span class="p">[</span><span class="s">&#39;delay&#39;</span><span class="p">])</span>
+
+        <span class="c"># Turn off sorb heater</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="n">_auxSetSetpointAndPID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heSorb</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+        <span class="c"># Wait for 1 min</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mf">60.0</span><span class="p">)</span>
+
+        <span class="c"># Open valve V1</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_valve</span><span class="o">.</span><span class="n">openValve</span><span class="p">()</span>
+
+        <span class="c"># Wait for some time after valve opened</span>
+        <span class="n">_generalDelay</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ctrlCon</span><span class="p">[</span><span class="s">&#39;v1_open_time&#39;</span><span class="p">])</span>
+
+        <span class="c"># Close V1, close heat switch</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_valve</span><span class="o">.</span><span class="n">closeValve</span><span class="p">()</span>
+            <span class="n">_auxToggleHeater</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heatSwitch</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">_condenseWarmSorbToFinalRampTemp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Warm the sorb to its final condensation temperature.&quot;&quot;&quot;</span>
+        <span class="n">sweep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heSorb</span><span class="p">[</span><span class="s">&#39;sweep&#39;</span><span class="p">]</span>
+        <span class="n">finalTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlCon</span><span class="p">[</span><span class="s">&#39;sorb_sweep_end&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">sweep</span><span class="p">:</span>
+            <span class="n">startTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureSorb</span><span class="p">()</span>
+            <span class="n">sweepRate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heSorb</span><span class="p">[</span><span class="s">&#39;sweep_rate&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">60.0</span>
+            <span class="n">sweepRate</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">sweepRate</span><span class="p">)</span> <span class="o">*</span> <span class="p">((</span><span class="n">finalTemp</span> <span class="o">-</span> <span class="n">startTemp</span><span class="p">)</span> <span class="o">/</span>
+                                          <span class="nb">abs</span><span class="p">(</span><span class="n">finalTemp</span> <span class="o">-</span> <span class="n">startTemp</span><span class="p">))</span>
+            <span class="n">finished</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="n">startTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="n">finished</span><span class="p">:</span>
+                <span class="n">currTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+                <span class="n">nextTemp</span> <span class="o">=</span> <span class="n">startTemp</span> <span class="o">+</span> <span class="p">(</span><span class="n">currTime</span> <span class="o">-</span> <span class="n">startTime</span><span class="p">)</span> <span class="o">*</span> <span class="n">sweepRate</span>
+                <span class="k">if</span> <span class="n">finalTemp</span> <span class="o">&gt;</span> <span class="n">startTemp</span> <span class="ow">and</span> <span class="n">nextTemp</span> <span class="o">&gt;</span> <span class="n">finalTemp</span><span class="p">:</span>
+                    <span class="n">nextTemp</span> <span class="o">=</span> <span class="n">finalTemp</span>
+                    <span class="n">finished</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">elif</span> <span class="n">finalTemp</span> <span class="o">&lt;</span> <span class="n">startTemp</span> <span class="ow">and</span> <span class="n">nextTemp</span> <span class="o">&lt;</span> <span class="n">finalTemp</span><span class="p">:</span>
+                    <span class="n">nextTemp</span> <span class="o">=</span> <span class="n">finalTemp</span>
+                    <span class="n">finished</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+                    <span class="n">_auxSetSetpointAndPID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heSorb</span><span class="p">,</span> <span class="n">nextTemp</span><span class="p">)</span>
+                <span class="n">sleep</span><span class="p">(</span><span class="mf">0.25</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+                <span class="n">_auxSetSetpointAndPID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heSorb</span><span class="p">,</span> <span class="n">finalTemp</span><span class="p">)</span>
+
+<div class="viewcode-block" id="VectorMagnet.procedureRecondense"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.procedureRecondense">[docs]</a>    <span class="k">def</span> <span class="nf">procedureRecondense</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Recondense the cryostat.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">procedurePrecondense</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">procedureCondense</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.procedureSetTemp"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.procedureSetTemp">[docs]</a>    <span class="k">def</span> <span class="nf">procedureSetTemp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Enter a temperature setpoint.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        target : float</span>
+<span class="sd">            The desired temperature for the He3 pot in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">upperTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlTemp</span><span class="p">[</span><span class="s">&#39;he3_upper_temp&#39;</span><span class="p">]</span>
+        <span class="n">check</span> <span class="o">=</span> <span class="n">upperTemp</span> <span class="o">&gt;</span> <span class="n">target</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_valve</span><span class="o">.</span><span class="n">closeValve</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">check</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlTemp</span><span class="p">[</span><span class="s">&#39;he3_low_lim_low_hs_tset&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">target</span><span class="p">:</span>
+                <span class="n">_auxSetSetpointAndPID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heatSwitch</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlTemp</span><span class="p">[</span><span class="s">&#39;low_hs_tset&#39;</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_auxToggleHeater</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heatSwitch</span><span class="p">,</span> <span class="n">check</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
+                <span class="n">ctrl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heLow</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ctrl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heHigh</span>
+
+            <span class="n">_auxSetSetpointAndPID</span><span class="p">(</span><span class="n">ctrl</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">target</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.procedureRunToTemp"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.procedureRunToTemp">[docs]</a>    <span class="k">def</span> <span class="nf">procedureRunToTemp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run the cryostat to the desired temperature.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        target : float</span>
+<span class="sd">            The desired temperature for the He3 pot in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># Enter the setpoint</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">procedureSetTemp</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+
+        <span class="c"># Wait for stability</span>
+        <span class="k">if</span> <span class="n">target</span> <span class="o">&lt;</span> <span class="mf">1E-5</span><span class="p">:</span>
+            <span class="n">timer</span> <span class="o">=</span> <span class="n">StabilityTrend</span><span class="p">(</span><span class="mi">180</span><span class="p">,</span> <span class="mf">0.005</span><span class="p">,</span> <span class="mf">115200.0</span><span class="p">)</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="n">timer</span><span class="o">.</span><span class="n">isFinished</span><span class="p">():</span>
+                <span class="n">newTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHe3</span><span class="p">()</span>
+                <span class="n">timer</span><span class="o">.</span><span class="n">addPoint</span><span class="p">(</span><span class="n">newTemp</span><span class="p">)</span>
+                <span class="n">sleep</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">stabilityTable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlTemp</span><span class="p">[</span><span class="s">&#39;stability_table&#39;</span><span class="p">]</span>
+            <span class="n">maxDeviation</span> <span class="o">=</span> <span class="n">searchStabilityTable</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">stabilityTable</span><span class="p">)</span>
+            <span class="n">timer</span> <span class="o">=</span> <span class="n">StabilitySetpoint</span><span class="p">(</span><span class="mi">180</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">maxDeviation</span><span class="p">,</span> <span class="mf">7200.0</span><span class="p">)</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="n">timer</span><span class="o">.</span><span class="n">isFinished</span><span class="p">():</span>
+                <span class="n">newTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHe3</span><span class="p">()</span>
+                <span class="n">timer</span><span class="o">.</span><span class="n">addPoint</span><span class="p">(</span><span class="n">newTemp</span><span class="p">)</span>
+                <span class="n">sleep</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">timer</span>
+
+        <span class="c"># Delay</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlTemp</span><span class="p">[</span><span class="s">&#39;delay_before_stable&#39;</span><span class="p">]</span>
+        <span class="n">startTime</span> <span class="o">=</span> <span class="n">currTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">currTime</span> <span class="o">-</span> <span class="n">startTime</span> <span class="o">&lt;</span> <span class="n">delay</span><span class="p">:</span>
+            <span class="n">currTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.getTemperature"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.getTemperature">[docs]</a>    <span class="k">def</span> <span class="nf">getTemperature</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the temperature of the He3 pot.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The temperature of the He3 pot in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHe3</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.setTemperature"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.setTemperature">[docs]</a>    <span class="k">def</span> <span class="nf">setTemperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the temperature for the He3 pot.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        temp : float</span>
+<span class="sd">            The desired temperature for the He3 pot in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">currTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directGetTemperatureHe3</span><span class="p">()</span>
+        <span class="n">cutoff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctrlTemp</span><span class="p">[</span><span class="s">&#39;he3_upper_temp&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">temp</span> <span class="o">&lt;</span> <span class="n">currTemp</span> <span class="o">-</span> <span class="mi">25</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">procedureCooldown</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">temp</span> <span class="o">&lt;</span> <span class="n">currTemp</span> <span class="ow">and</span> <span class="n">currTemp</span> <span class="o">&gt;</span> <span class="n">cutoff</span> <span class="ow">and</span> <span class="n">temp</span> <span class="o">&lt;</span> <span class="n">cutoff</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">procedureRecondense</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">procedureRunToTemp</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VectorMagnet.getActions"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.getActions">[docs]</a>    <span class="k">def</span> <span class="nf">getActions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the list of supported actions.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;get_field&#39;</span><span class="p">,</span> <span class="n">Action</span><span class="p">,</span>
+                <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                 <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span>
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Get field&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;outputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;field&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                        <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Magnetic field&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.4f</span><span class="s">&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="s">&#39;Field&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;column&#39;</span><span class="p">})</span>
+                 <span class="p">],</span>
+                 <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;Read the magnetic field.&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getField</span><span class="p">}</span>
+            <span class="p">),</span>
+            <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;set_field&#39;</span><span class="p">,</span> <span class="n">Action</span><span class="p">,</span>
+                <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                 <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span>
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Set field&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;inputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;field&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                        <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Magnetic field&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.4f</span><span class="s">&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="s">&#39;Field&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;column&#39;</span><span class="p">}</span>
+                    <span class="p">),</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;wait&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                        <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Following action&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                        <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                        <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;wait&#39;</span><span class="p">,</span> <span class="s">&#39;proceed&#39;</span><span class="p">],</span>
+                        <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;wait&#39;</span><span class="p">}</span>
+                    <span class="p">)</span>
+                 <span class="p">],</span>
+                 <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;Set the magnetic field to $field T and $wait.&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">setField</span><span class="p">}</span>
+            <span class="p">),</span>
+            <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;scan_field&#39;</span><span class="p">,</span> <span class="n">ActionScan</span><span class="p">,</span>
+                <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                 <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span>
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Scan field&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;inputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;field&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span>
+                        <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Magnetic field&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.4f</span><span class="s">[]&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="s">&#39;Field&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;column&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)]}</span>
+                    <span class="p">)</span>
+                 <span class="p">],</span>
+                 <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;Scan the magnetic field&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">setField</span><span class="p">}</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+
+
+    <span class="c">#===========================================================================</span>
+    <span class="c"># Class methods</span>
+    <span class="c">#===========================================================================</span>
+</div>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getRequiredParameters</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="VectorMagnet.isSingleton"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.VectorMagnet.isSingleton">[docs]</a>    <span class="k">def</span> <span class="nf">isSingleton</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether at most one instance of the instrument may exist.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether only zero or one instance of the instrument may exist.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div></div>
+<span class="k">def</span> <span class="nf">_auxToggleHeater</span><span class="p">(</span><span class="n">dev</span><span class="p">,</span> <span class="n">heaterOn</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Turn the PT2 or heat switch heater on or off.</span>
+<span class="sd">    </span>
+<span class="sd">    Note that if the heater is off, this creates an &quot;open thermal circuit&quot;,</span>
+<span class="sd">    so there is no thermal contact.</span>
+<span class="sd">    </span>
+<span class="sd">    This method does **not** acquire the lock.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dev : dict</span>
+<span class="sd">        A dictionary of configuration parameters for the heater to toggle. </span>
+<span class="sd">        It should probably be either _pt2 or _heatSwitch.</span>
+<span class="sd">    heaterOn : bool</span>
+<span class="sd">        Whether the heater should be turned on. If `False`, the heater</span>
+<span class="sd">        will be turned off.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_auxSetSetpointAndPID</span><span class="p">(</span><span class="n">dev</span><span class="p">,</span> <span class="n">dev</span><span class="p">[</span><span class="s">&#39;setpoint_on&#39;</span><span class="p">],</span> <span class="n">heaterOn</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_auxSetSetpointAndPID</span><span class="p">(</span><span class="n">dev</span><span class="p">,</span> <span class="n">setpoint</span><span class="p">,</span> <span class="n">heaterOn</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">checkAutoPID</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">forcePID</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Set the temperature setpoint and PID values.</span>
+<span class="sd">    </span>
+<span class="sd">    Set the setpoint and the PID values for the sensor specified by</span>
+<span class="sd">    `dev`, which should be a dictionary which specifies the ITC503</span>
+<span class="sd">    to use, the channel of the appropriate sensor, and either individual</span>
+<span class="sd">    PID values (i.e. the keys &#39;p&#39;, &#39;i&#39;, and &#39;d&#39;) or a table of PID values</span>
+<span class="sd">    specified as a list of tuples, where the elements of each tuple are,</span>
+<span class="sd">    in order, the upper temperature bound for the specified sensor, P, I,</span>
+<span class="sd">    and D.</span>
+<span class="sd">    </span>
+<span class="sd">    This method does **not** acquire the lock.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dev : dict</span>
+<span class="sd">        The sensor configuration dictionary.</span>
+<span class="sd">    setpoint : float</span>
+<span class="sd">        The desired temperature setpoint in Kelvin.</span>
+<span class="sd">    heaterOn : bool</span>
+<span class="sd">        Whether to turn the heater on. If `False`, the heater will be</span>
+<span class="sd">        turned off. It should be set to `False` only for items which</span>
+<span class="sd">        control a thermal link (e.g. the PT2 plate and the switch heater),</span>
+<span class="sd">        and then only if the heater is to be turned off, causing thermal</span>
+<span class="sd">        isolation. The default is `True`.</span>
+<span class="sd">    checkAutoPID : bool</span>
+<span class="sd">        Whether to make sure auto-PID is disabled before setting the PID</span>
+<span class="sd">        values. The default is `True`.</span>
+<span class="sd">    forcePID : bool</span>
+<span class="sd">        Whether the PID values should be set regardless of the value of</span>
+<span class="sd">        `heaterOn`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">devitc</span> <span class="o">=</span> <span class="n">dev</span><span class="p">[</span><span class="s">&#39;itc&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s">&#39;pid_table&#39;</span> <span class="ow">in</span> <span class="n">dev</span><span class="p">:</span>
+        <span class="n">foundPID</span><span class="p">,</span> <span class="n">newPID</span> <span class="o">=</span> <span class="n">searchPIDTable</span><span class="p">(</span><span class="n">setpoint</span><span class="p">,</span> <span class="n">dev</span><span class="p">[</span><span class="s">&#39;pid_table&#39;</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">newPID</span> <span class="o">=</span> <span class="p">(</span><span class="n">dev</span><span class="p">[</span><span class="s">&#39;p&#39;</span><span class="p">],</span> <span class="n">dev</span><span class="p">[</span><span class="s">&#39;i&#39;</span><span class="p">],</span> <span class="n">dev</span><span class="p">[</span><span class="s">&#39;d&#39;</span><span class="p">])</span>
+            <span class="n">foundPID</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">newPID</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">foundPID</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">if</span> <span class="n">checkAutoPID</span> <span class="ow">and</span> <span class="n">devitc</span><span class="o">.</span><span class="n">getAutoPID</span><span class="p">():</span>
+        <span class="n">foundPID</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="n">channelChanged</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">devitc</span><span class="o">.</span><span class="n">getAutoStatus</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span>
+            <span class="n">devitc</span><span class="o">.</span><span class="n">getHeaterSensor</span><span class="p">()</span> <span class="o">==</span> <span class="n">dev</span><span class="p">[</span><span class="s">&#39;sensor&#39;</span><span class="p">]):</span>
+        <span class="n">devitc</span><span class="o">.</span><span class="n">setAutoStatus</span><span class="p">(</span><span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">devitc</span><span class="o">.</span><span class="n">setHeaterSensor</span><span class="p">(</span><span class="n">dev</span><span class="p">[</span><span class="s">&#39;sensor&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s">&#39;heater_limit&#39;</span> <span class="ow">in</span> <span class="n">dev</span><span class="p">:</span>
+            <span class="n">devitc</span><span class="o">.</span><span class="n">setMaximumHeaterVoltage</span><span class="p">(</span><span class="n">dev</span><span class="p">[</span><span class="s">&#39;heater_limit&#39;</span><span class="p">])</span>
+        <span class="n">channelChanged</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">if</span> <span class="n">heaterOn</span><span class="p">:</span>
+        <span class="n">devitc</span><span class="o">.</span><span class="n">setTemperature</span><span class="p">(</span><span class="n">setpoint</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">foundPID</span><span class="p">:</span>
+            <span class="n">devitc</span><span class="o">.</span><span class="n">setPID</span><span class="p">(</span><span class="o">*</span><span class="n">newPID</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">channelChanged</span><span class="p">:</span>
+            <span class="n">devitc</span><span class="o">.</span><span class="n">setAutoStatus</span><span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">forcePID</span> <span class="ow">and</span> <span class="n">foundPID</span><span class="p">:</span>
+        <span class="n">devitc</span><span class="o">.</span><span class="n">setPID</span><span class="p">(</span><span class="o">*</span><span class="n">newPID</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">devitc</span><span class="o">.</span><span class="n">setAutoStatus</span><span class="p">(</span><span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">devitc</span><span class="o">.</span><span class="n">setHeaterOutput</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">devitc</span><span class="o">.</span><span class="n">setTemperature</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_generalDelay</span><span class="p">(</span><span class="n">delayTime</span><span class="p">,</span> <span class="n">sleepTime</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wait for a specified amount of time.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    delayTime : float</span>
+<span class="sd">        The total time to wait, in seconds.</span>
+<span class="sd">    sleepTime : float</span>
+<span class="sd">        The time to sleep between checks, in seconds. This is so that</span>
+<span class="sd">        (1) the software can periodically update status information and (2)</span>
+<span class="sd">        the software can respond to user-generated &quot;skip&quot; events.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">startTime</span> <span class="o">=</span> <span class="n">currTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+    <span class="k">while</span> <span class="n">currTime</span> <span class="o">-</span> <span class="n">startTime</span> <span class="o">&lt;</span> <span class="n">delayTime</span><span class="p">:</span>
+        <span class="n">currTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="n">sleepTime</span><span class="p">)</span>
+
+<div class="viewcode-block" id="searchPIDTable"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.searchPIDTable">[docs]</a><span class="k">def</span> <span class="nf">searchPIDTable</span><span class="p">(</span><span class="n">targetTemp</span><span class="p">,</span> <span class="n">pidTable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the PID values appropriate for a specified setpoint.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    targetTemp : float</span>
+<span class="sd">        The setpoint for which PID values are desired.</span>
+<span class="sd">    pidTable : list of tuple of float</span>
+<span class="sd">        The PID table for the appropriate sensor. Each tuple should consist</span>
+<span class="sd">        of four values: the largest temperature for which the row applies</span>
+<span class="sd">        and the values of the P, I, and D control terms.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        Whether the supplied PID table contains a row suitable for the </span>
+<span class="sd">        specified setpoint.</span>
+<span class="sd">    tuple of float</span>
+<span class="sd">        The PID values appropriate for the specified setpoint if such values</span>
+<span class="sd">        are contained in the table. Otherwise, the PID values associated</span>
+<span class="sd">        with the largest upper-bound temperature in the table.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">for</span> <span class="n">upper</span><span class="p">,</span> <span class="n">pVal</span><span class="p">,</span> <span class="n">iVal</span><span class="p">,</span> <span class="n">dVal</span> <span class="ow">in</span> <span class="n">pidTable</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">upper</span> <span class="o">&gt;=</span> <span class="n">targetTemp</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="p">(</span><span class="n">pVal</span><span class="p">,</span> <span class="n">iVal</span><span class="p">,</span> <span class="n">dVal</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">(</span><span class="bp">False</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">pidTable</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]))</span>
+</div>
+<div class="viewcode-block" id="searchStabilityTable"><a class="viewcode-back" href="../../../api_instruments_vector_magnet.html#src.instruments.vector_magnet.searchStabilityTable">[docs]</a><span class="k">def</span> <span class="nf">searchStabilityTable</span><span class="p">(</span><span class="n">targetTemp</span><span class="p">,</span> <span class="n">stabilityTable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the allowed deviation for the specified setpoint.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    targetTemp : float</span>
+<span class="sd">        The desired temperature setpoint in Kelvin.</span>
+<span class="sd">    stabilityTable : list of tuple</span>
+<span class="sd">        A list of tuples, where each tuple contains three elements: a float</span>
+<span class="sd">        indicating the maximum temperature for which the row is applicable,</span>
+<span class="sd">        a float indicating the maximum deviation, and a string indicating how</span>
+<span class="sd">        the maximum deviation should be interpreted. If the string is &#39;value&#39;,</span>
+<span class="sd">        the deviation will be interpreted as an absolute value; otherwise, it</span>
+<span class="sd">        will be interpreted as a fraction of the setpoint.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        The maximum deviation from the setpoint a system can exhibit while</span>
+<span class="sd">        still be considered stable. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ans</span> <span class="o">=</span> <span class="n">stabilityTable</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="k">for</span> <span class="n">upper</span><span class="p">,</span> <span class="n">dev</span><span class="p">,</span> <span class="n">kind</span> <span class="ow">in</span> <span class="n">stabilityTable</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">upper</span> <span class="o">&gt;=</span> <span class="n">targetTemp</span><span class="p">:</span>
+            <span class="n">ans</span> <span class="o">=</span> <span class="p">[</span><span class="n">dev</span><span class="p">,</span> <span class="n">kind</span><span class="p">]</span>
+
+    <span class="n">dev</span><span class="p">,</span> <span class="n">kind</span> <span class="o">=</span> <span class="n">ans</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;value&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dev</span>
+    <span class="k">return</span> <span class="n">dev</span> <span class="o">*</span> <span class="n">targetTemp</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

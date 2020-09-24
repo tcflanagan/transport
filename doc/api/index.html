@@ -1,0 +1,200 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The src package &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="#" />
+    <link rel="next" title="The gui package" href="api_gui.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui.html" title="The gui package"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">Transport Experiment 1.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src">
+<span id="the-src-package"></span><h1>The <cite>src</cite> package<a class="headerlink" href="#module-src" title="Permalink to this headline">¶</a></h1>
+<p>Software sources.</p>
+<div class="section" id="the-objects">
+<h2>The objects<a class="headerlink" href="#the-objects" title="Permalink to this headline">¶</a></h2>
+<p>This software makes heavy use of the object-oriented paradigm. A typical
+experiment consists of a sequence of commands sent to and responses read from
+some collection of instruments. Each instrument is represented, naturally
+enough, by an <cite>Instrument</cite> object, and each operation on a given instrument
+is represented by an <cite>Action</cite> object (or an object of one of its subclasses).</p>
+</div>
+<div class="section" id="sub-packages">
+<h2>Sub-packages<a class="headerlink" href="#sub-packages" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt><cite>core</cite></dt>
+<dd>The <cite>core</cite> package contains the modules which are primarily responsible for
+the general operation of an experiment. This includes modules defining the
+prototypical <cite>Action</cite> and <cite>Experiment</cite>.</dd>
+<dt><cite>dev</cite></dt>
+<dd>The <cite>dev</cite> package contains a few modules which are useful for the
+development of the software, including scripts for generating the 
+documentation and updating the subversion repository. It also contains
+some components which are in the process of being written and not yet
+suitable for incorporation in the main program.</dd>
+<dt><cite>gui</cite></dt>
+<dd>The <cite>gui</cite> package contains the components of the graphical front-end to the
+contents of the <cite>core</cite> package.</dd>
+<dt><cite>instruments</cite></dt>
+<dd>The <cite>instruments</cite> package contains modules which define classes which  
+serve as explicit representations of specific instruments. Essentially,
+these classes act as high-level drivers for the instruments.</dd>
+<dt><cite>premades</cite></dt>
+<dd>The <cite>premades</cite> package provides a collection of graphical interfaces for
+quickly configuring the system to perform common measurements, like
+magnetoresistance measurements, which are performed so frequently and in
+such a uniform manner (i.e. they are performed in essentially the same way
+every time) that dealing with the full, customizable sequence editor would
+be excessive.</dd>
+<dt><cite>tools</cite></dt>
+<dd>The <cite>tools</cite> package consists of a number of utility modules for interacting
+with the computer or other computers, monitoring trends in data, and 
+performing calculations, among other things.</dd>
+</dl>
+</div>
+<div class="section" id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="packages">
+<h3>Packages<a class="headerlink" href="#packages" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api_gui.html">The <cite>gui</cite> package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_core.html">The <cite>core</cite> package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_dev.html">The <cite>dev</cite> package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_premades.html">The <cite>premades</cite> package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_tools.html">The <cite>tools</cite> package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_instruments.html">The <cite>instruments</cite> package</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="modules">
+<h3>Modules<a class="headerlink" href="#modules" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api_initialize.html">The <cite>initialize</cite> module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_about.html">The <cite>about</cite> module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_settings.html">The <cite>settings</cite> module</a></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>src</cite> package</a><ul>
+<li><a class="reference internal" href="#the-objects">The objects</a></li>
+<li><a class="reference internal" href="#sub-packages">Sub-packages</a></li>
+<li><a class="reference internal" href="#contents">Contents</a><ul>
+<li><a class="reference internal" href="#packages">Packages</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#modules">Modules</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_gui.html"
+                        title="next chapter">The <cite>gui</cite> package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui.html" title="The gui package"
+             >next</a> |</li>
+        <li><a href="#">Transport Experiment 1.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,584 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The ips120 module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The noauto package" href="api_instruments_noauto.html" />
+    <link rel="next" title="The oxford_common module" href="api_instruments_noauto_oxford_common.html" />
+    <link rel="prev" title="The oxford_valve module" href="api_instruments_noauto_oxford_valve.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_noauto_oxford_common.html" title="The oxford_common module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_noauto_oxford_valve.html" title="The oxford_valve module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" >The <cite>instruments</cite> package</a> &raquo;</li>
+          <li><a href="api_instruments_noauto.html" accesskey="U">The <cite>noauto</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.instruments.noauto.ips120">
+<span id="the-ips120-module"></span><h1>The <cite>ips120</cite> module<a class="headerlink" href="#module-src.instruments.noauto.ips120" title="Permalink to this headline">¶</a></h1>
+<p>Basic drivers for an Oxford Instruments model IPS120</p>
+<p>Note that this module does <strong>not</strong> represent an <cite>Instrument</cite> subclass, since
+the IPS120 is never used by itself&#8212;it is always part of a larger system 
+driving both a magnet power supply and temperature controllers, and the power 
+supply often cannot be used in an isolated way.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="ips120">
+<h3>IPS120<a class="headerlink" href="#ips120" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.instruments.noauto.ips120.IPS120">
+<em class="property">class </em><tt class="descclassname">src.instruments.noauto.ips120.</tt><tt class="descname">IPS120</tt><big>(</big><em>name='Magnet'</em>, <em>protocol='ISOBUS'</em>, <em>isobusAddress='0'</em>, <em>visaAddress='GPIB0::23'</em>, <em>serialConfig=None</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ips120.html#IPS120"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ips120.IPS120" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a basic driver for an Oxford Instruments model IPS120 power 
+supply. It should be included in an <cite>Instrument</cite> class representing a
+cryostat-magnet system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>A name to identify the instrument</p>
+</div></blockquote>
+<p><strong>protocol</strong> : {&#8216;ISOBUS&#8217;, &#8216;GPIB&#8217;, &#8216;Serial&#8217;, &#8216;Gateway Master&#8217;, &#8216;Gateway Slave&#8217;}</p>
+<blockquote>
+<div><p>The protocol for communication between the computer and the power
+supply.</p>
+</div></blockquote>
+<p><strong>isobusAddress</strong> : str</p>
+<blockquote>
+<div><p>An integer string representing the ISOBUS address, if relevant. An
+integer will be accepted and converted.</p>
+</div></blockquote>
+<p><strong>visaAddress</strong> : str</p>
+<blockquote>
+<div><p>A full VISA resource address (including the bus) to locate the 
+instrument (e.g. &#8220;GPIB0::27&#8221;).</p>
+</div></blockquote>
+<p><strong>serialConfig</strong> : dict</p>
+<blockquote class="last">
+<div><p>A dictionary to indicate how to configure a serial port, which is used
+with both the &#8216;ISOBUS&#8217; and &#8216;Serial&#8217; protocols.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.instruments.noauto.ips120.IPS120.getField">
+<tt class="descname">getField</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ips120.html#IPS120.getField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ips120.IPS120.getField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the magnetic field in Tesla.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The magnetic field in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ips120.IPS120.getFieldSetpoint">
+<tt class="descname">getFieldSetpoint</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ips120.html#IPS120.getFieldSetpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ips120.IPS120.getFieldSetpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the field setpoint in Tesla.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The magnetic field setpoint.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ips120.IPS120.getStatus">
+<tt class="descname">getStatus</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ips120.html#IPS120.getStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ips120.IPS120.getStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the power supply status.</p>
+<p>Read the power supply status, and set the local variables to reflect
+the new status.</p>
+<p class="rubric">Notes</p>
+<p>The power supply returns a string of the form <tt class="docutils literal"><span class="pre">XmnAnCnHnMmnPmn</span></tt>. The
+meanings and values of the parts of this are described here.</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">Xmn</span></tt>: System status</dt>
+<dd><dl class="first last docutils">
+<dt><tt class="docutils literal"><span class="pre">m</span></tt>: Status 1</dt>
+<dd><ul class="first last simple">
+<li>0: Normal</li>
+<li>1: Quenched</li>
+<li>2: Over-heated</li>
+<li>4: Warming up</li>
+<li>8: Fault</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">n</span></tt>: Status 2</dt>
+<dd><ul class="first last simple">
+<li>0: Normal</li>
+<li>1: On positive voltage limit</li>
+<li>2: On negative voltage limit</li>
+<li>4: Outside negative current limit</li>
+<li>8: Outside positive current limit</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">An</span></tt>: Activity</dt>
+<dd><ul class="first last simple">
+<li>0: Hold</li>
+<li>1: To setpoint</li>
+<li>2: To zero</li>
+<li>4: Output clamped</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">Cn</span></tt>: Control status</dt>
+<dd><ul class="first last simple">
+<li>0: Local and locked</li>
+<li>1: Remote and locked</li>
+<li>2: Local and unlocked</li>
+<li>3: Remote and unlocked</li>
+<li>4: Auto-run-down</li>
+<li>5: Auto-run-down</li>
+<li>6: Auto-run-down</li>
+<li>7: Auto-run-down</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">Hn</span></tt>: Switch heater status</dt>
+<dd><ul class="first last simple">
+<li>0: Off&#8212;magnet at zero (switch closed)</li>
+<li>1: On (switch open)</li>
+<li>2: Off&#8212;magnet at field (switch closed)</li>
+<li>5: Heater fault (heater is on, but current is low)</li>
+<li>8: No switch fitted</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">Mmn</span></tt>: Mode</dt>
+<dd><dl class="first last docutils">
+<dt><tt class="docutils literal"><span class="pre">m</span></tt>: Mode 1</dt>
+<dd><ul class="first last simple">
+<li>0: Amps, Fast</li>
+<li>1: Tesla, Fast</li>
+<li>4: Amps, Slow</li>
+<li>5: Tesla, Slow</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">n</span></tt>: Mode 2</dt>
+<dd><ul class="first last simple">
+<li>0: At rest (output constant)</li>
+<li>1: Sweeping (output changing)</li>
+<li>2: Rate limiting (output changing)</li>
+<li>3: Sweeping and rate limiting (output changing)</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">Pmn</span></tt>: Polarity</dt>
+<dd><dl class="first last docutils">
+<dt><tt class="docutils literal"><span class="pre">m</span></tt>: Polarity 1 (see below)</dt>
+<dd><ul class="first last simple">
+<li>0: pos, pos, pos</li>
+<li>1: pos, pos, neg</li>
+<li>2: pos, neg, pos</li>
+<li>3: pos, neg, neg</li>
+<li>4: neg, pos, pos</li>
+<li>5: neg, pos, neg</li>
+<li>6: neg, neg, pos</li>
+<li>7: neg, neg, neg</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">n</span></tt>: Polarity 2 (verification flags)</dt>
+<dd><ul class="first last simple">
+<li>1: Negative contactor closed</li>
+<li>2: Positive contactor closed</li>
+<li>3: Both contactors open</li>
+<li>4: Both contactors closed</li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unlike with the PS120, with the IPS120, Immediate mode is 
+indicated by Mode 2 returning the value &#8216;2&#8217; (sweep limiting, but not
+sweeping); it does not have its own flag.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For the IPS power supplied, the polarity flags have been
+superceded by signed numbers for currents and fields.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ips120.IPS120.getSweepRate">
+<tt class="descname">getSweepRate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ips120.html#IPS120.getSweepRate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ips120.IPS120.getSweepRate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the field sweep rate in Tesla/min.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The magnetic field sweep rate in Tesla/min.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ips120.IPS120.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ips120.html#IPS120.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ips120.IPS120.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare the power supply for use.</p>
+<dl class="docutils">
+<dt>Prepare the power supply for use by </dt>
+<dd><ol class="first last arabic simple">
+<li>opening the appropriate communication channel;</li>
+<li>setting the control mode to &#8216;remote and unlocked&#8217;;</li>
+<li>setting the activity to &#8216;hold&#8217;;</li>
+<li>setting the polarity to &#8216;forward&#8217;;</li>
+<li>setting the sweep rate to 0.5 T/min;</li>
+<li>setting the sweep mode to &#8216;Tesla, sweep, fast&#8217;; and</li>
+<li>setting the switch heater to &#8216;Off, magnet at zero&#8217;.</li>
+</ol>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ips120.IPS120.setActivity">
+<tt class="descname">setActivity</tt><big>(</big><em>activity='0'</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ips120.html#IPS120.setActivity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ips120.IPS120.setActivity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the activity mode of the power supply.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>activity</strong> : str</p>
+<blockquote class="last">
+<div><p>An integer string representing the desired activity. The accepted
+values are listed below.</p>
+<blockquote>
+<div><ul class="simple">
+<li>&#8216;0&#8217;: Hold at current field (default).</li>
+<li>&#8216;1&#8217;: Ramp the field to the setpoint.</li>
+<li>&#8216;2&#8217;: Ramp the field to zero.</li>
+<li>&#8216;4&#8217;: Clamp the output.</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ips120.IPS120.setControlMode">
+<tt class="descname">setControlMode</tt><big>(</big><em>controlMode='3'</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ips120.html#IPS120.setControlMode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ips120.IPS120.setControlMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the control mode for the power supply.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>controlMode</strong> : str, optional</p>
+<blockquote class="last">
+<div><p>An integer string representing the desired control mode. Allowed
+values are the following.</p>
+<blockquote>
+<div><ul class="simple">
+<li>&#8216;0&#8217;: Local and locked (power-up state).</li>
+<li>&#8216;1&#8217;: Remote and locked.</li>
+<li>&#8216;2&#8217;: Local and unlocked.</li>
+<li>&#8216;3&#8217;: Remote and unlocked (default).</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ips120.IPS120.setField">
+<tt class="descname">setField</tt><big>(</big><em>field</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ips120.html#IPS120.setField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ips120.IPS120.setField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnetic field in Tesla.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>field</strong> : float</p>
+<blockquote class="last">
+<div><p>The magnetic field setpoint in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ips120.IPS120.setPolarity">
+<tt class="descname">setPolarity</tt><big>(</big><em>polarity='0'</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ips120.html#IPS120.setPolarity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ips120.IPS120.setPolarity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the power supply polarity.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>polarity</strong> : str</p>
+<blockquote>
+<div><p>A string containing a single integer representing the desired
+polarity (or polarity-changing action). The following values are
+accepted.</p>
+<blockquote>
+<div><ul class="simple">
+<li>&#8216;0&#8217;: Do nothing (default).</li>
+<li>&#8216;1&#8217;: Set the polarity to forward.</li>
+<li>&#8216;2&#8217;: Set the polarity to reverse.</li>
+<li>&#8216;4&#8217;: Swap the polarity.</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+<p><strong>.. note:: This method is included for backward compatibility. The</strong> :</p>
+<blockquote class="last">
+<div><p>polarity has been deprecated in favor of signed numbers for the
+field or current setpoints.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ips120.IPS120.setSweepMode">
+<tt class="descname">setSweepMode</tt><big>(</big><em>sweepMode='9'</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ips120.html#IPS120.setSweepMode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ips120.IPS120.setSweepMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the power supply&#8217;s sweep mode.</p>
+<dl class="docutils">
+<dt>The power supply&#8217;s sweep mode consists of two parameters:</dt>
+<dd><dl class="first last docutils">
+<dt>Display:</dt>
+<dd>The instrument&#8217;s front-panel display units (amps or tesla)</dd>
+<dt>Magnet sweep rate:</dt>
+<dd>One of two user-defined sweep profiles: &#8220;fast&#8221; and &#8220;slow&#8221;; the
+&#8220;fast&#8221; mode is entered upon power supply startup. The names have
+no significance, and the actual rates are user-defined 
+variables.</dd>
+</dl>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>sweepMode</strong> : str, optional</p>
+<blockquote class="last">
+<div><p>The integer string code to specify the sweep mode of the power
+supply. The allowed codes are the following.</p>
+<blockquote>
+<div><ul class="simple">
+<li>0: Amps, Fast</li>
+<li>1: Tesla, Fast</li>
+<li>4: Amps, Slow</li>
+<li>5: Tesla, Slow</li>
+<li>8: Amps, Unaffected</li>
+<li>9: Tesla, Unaffected</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ips120.IPS120.setSweepRate">
+<tt class="descname">setSweepRate</tt><big>(</big><em>sweepRate=0.5</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ips120.html#IPS120.setSweepRate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ips120.IPS120.setSweepRate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnetic field sweep rate in Tesla/min.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>sweepRate</strong> : float, optional</p>
+<blockquote class="last">
+<div><p>The desired sweep rate for the magnet in Tesla/min (default 0.5).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ips120.IPS120.setSwitchHeater">
+<tt class="descname">setSwitchHeater</tt><big>(</big><em>heaterStatus='0'</em>, <em>delay=20.0</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ips120.html#IPS120.setSwitchHeater"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ips120.IPS120.setSwitchHeater" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the status of the switch heater.</p>
+<p>Turn the switch heater on or off, optionally checking whether it is
+safe to do so. Then wait a specified amount of time for the power
+supply to carry out the command.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>heaterStatus</strong> : {&#8216;0&#8217;, &#8216;1&#8217;, &#8216;2&#8217;}, optional</p>
+<blockquote>
+<div><p>An integer string representing the desired switch heater status.
+The following values are accepted.</p>
+<blockquote>
+<div><ul class="simple">
+<li>&#8216;0&#8217;: Turn the heater off (default).</li>
+<li>&#8216;1&#8217;: Turn the heater on if the power supply current and the 
+magnet current are equal. Otherwise, do nothing.</li>
+<li>&#8216;2&#8217;: Turn the heater on without checking the currents.</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+<p><strong>delay</strong> : float, optional</p>
+<blockquote class="last">
+<div><p>The time to wait (in seconds) after commanding the switch heater to
+adopt the specified status. The value should be <em>at least</em> 15s.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>ips120</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#ips120">IPS120</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_instruments_noauto_oxford_valve.html"
+                        title="previous chapter">The <cite>oxford_valve</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_instruments_noauto_oxford_common.html"
+                        title="next chapter">The <cite>oxford_common</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_instruments_noauto_ips120.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_noauto_oxford_common.html" title="The oxford_common module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_noauto_oxford_valve.html" title="The oxford_valve module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" >The <cite>instruments</cite> package</a> &raquo;</li>
+          <li><a href="api_instruments_noauto.html" >The <cite>noauto</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,309 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The progress module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The core package" href="api_core.html" />
+    <link rel="next" title="The configuration module" href="api_core_configuration.html" />
+    <link rel="prev" title="The errors module" href="api_core_errors.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_core_configuration.html" title="The configuration module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_core_errors.html" title="The errors module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_core.html" accesskey="U">The <cite>core</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.core.progress">
+<span id="the-progress-module"></span><h1>The <cite>progress</cite> module<a class="headerlink" href="#module-src.core.progress" title="Permalink to this headline">¶</a></h1>
+<p>A tool for processing information about an experiment&#8217;s status.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="statusmonitor">
+<h3>StatusMonitor<a class="headerlink" href="#statusmonitor" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.progress.StatusMonitor">
+<em class="property">class </em><tt class="descclassname">src.core.progress.</tt><tt class="descname">StatusMonitor</tt><big>(</big><em>name</em>, <em>timestampUpdate=False</em>, <em>timestampPost=True</em><big>)</big><a class="reference internal" href="_modules/src/core/progress.html#StatusMonitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.progress.StatusMonitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class for monitoring and displaying information to the user.</p>
+<p>Many actions performed by instruments can take a significant amount of
+execution time, and the user will typically want some information
+about what is happening at a given moment.</p>
+<p>This class allows information to be passed from the instruments (and the
+experiment or actions) and processed via <cite>Command</cite> objects, allowing the
+information to be redirected according to the program in question.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.progress.StatusMonitor.clear">
+<tt class="descname">clear</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/progress.html#StatusMonitor.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.progress.StatusMonitor.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the status monitor&#8217;s information.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.progress.StatusMonitor.getName">
+<tt class="descname">getName</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/progress.html#StatusMonitor.getName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.progress.StatusMonitor.getName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the name of the status monitor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>The name of the status monitor.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.progress.StatusMonitor.post">
+<tt class="descname">post</tt><big>(</big><em>message=None</em><big>)</big><a class="reference internal" href="_modules/src/core/progress.html#StatusMonitor.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.progress.StatusMonitor.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the list of messages detailing the experiment&#8217;s past actions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>message</strong> : str</p>
+<blockquote class="last">
+<div><p>A string which should be tacked onto the list of past actions. If
+<cite>None</cite>, the last update will be sent to the past message list.
+Regardless, the current status message will be cleared.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.progress.StatusMonitor.setCommands">
+<tt class="descname">setCommands</tt><big>(</big><em>updateCommands=None</em>, <em>postCommands=None</em><big>)</big><a class="reference internal" href="_modules/src/core/progress.html#StatusMonitor.setCommands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.progress.StatusMonitor.setCommands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the commands which will be executed upon updates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>updateCommands</strong> : list of Command</p>
+<blockquote>
+<div><p>A list of <cite>Command</cite> objects to be executed when the <cite>update</cite>
+method is executed. <cite>currentMessage</cite>, a string, will be passed as
+a keyword argument to each <cite>Command</cite>.</p>
+</div></blockquote>
+<p><strong>postCommands</strong> : list of Command</p>
+<blockquote class="last">
+<div><p>A list of <cite>Command</cite> objects to be executed when the <cite>post</cite> method
+is executed. <cite>postedMessage</cite>, a string indicating the last completed
+action, will be passed as a keyword argument to each <cite>Command</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.progress.StatusMonitor.setName">
+<tt class="descname">setName</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="_modules/src/core/progress.html#StatusMonitor.setName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.progress.StatusMonitor.setName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the name of the status monitor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote class="last">
+<div><p>The new name for the status monitor.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.progress.StatusMonitor.update">
+<tt class="descname">update</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="_modules/src/core/progress.html#StatusMonitor.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.progress.StatusMonitor.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the message indicating the experiment&#8217;s current state.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>message</strong> : str</p>
+<blockquote class="last">
+<div><p>A string indicating the experiment&#8217;s current status.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="textprompter">
+<h3>TextPrompter<a class="headerlink" href="#textprompter" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.progress.TextPrompter">
+<em class="property">class </em><tt class="descclassname">src.core.progress.</tt><tt class="descname">TextPrompter</tt><big>(</big><em>width=70</em><big>)</big><a class="reference internal" href="_modules/src/core/progress.html#TextPrompter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.progress.TextPrompter" title="Permalink to this definition">¶</a></dt>
+<dd><p>An object for prompting for user input from the command line.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.progress.TextPrompter.prompt">
+<tt class="descname">prompt</tt><big>(</big><em>prompt</em>, <em>options</em><big>)</big><a class="reference internal" href="_modules/src/core/progress.html#TextPrompter.prompt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.progress.TextPrompter.prompt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prompt the user for input.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.core.progress.getStatusMonitor">
+<tt class="descclassname">src.core.progress.</tt><tt class="descname">getStatusMonitor</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="_modules/src/core/progress.html#getStatusMonitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.progress.getStatusMonitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a status monitor, creating it if it does not exist.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the status monitor to get.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>StatusMonitor</strong> :</p>
+<blockquote class="last">
+<div><p>The <cite>StatusMonitor</cite> object with the specified name.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>progress</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#statusmonitor">StatusMonitor</a></li>
+<li><a class="reference internal" href="#textprompter">TextPrompter</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_core_errors.html"
+                        title="previous chapter">The <cite>errors</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_core_configuration.html"
+                        title="next chapter">The <cite>configuration</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_core_progress.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_core_configuration.html" title="The configuration module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_core_errors.html" title="The errors module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_core.html" >The <cite>core</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

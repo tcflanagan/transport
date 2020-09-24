@@ -1,0 +1,194 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The hp34401a module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The instruments package" href="api_instruments.html" />
+    <link rel="next" title="The initialize module" href="api_initialize.html" />
+    <link rel="prev" title="The keithley6220 module" href="api_instruments_keithley6220.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_initialize.html" title="The initialize module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_keithley6220.html" title="The keithley6220 module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" accesskey="U">The <cite>instruments</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.instruments.hp34401a">
+<span id="the-hp34401a-module"></span><h1>The <cite>hp34401a</cite> module<a class="headerlink" href="#module-src.instruments.hp34401a" title="Permalink to this headline">¶</a></h1>
+<p>Digital multimeter.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="hp34420a">
+<h3>HP34420A<a class="headerlink" href="#hp34420a" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.instruments.hp34401a.HP34420A">
+<em class="property">class </em><tt class="descclassname">src.instruments.hp34401a.</tt><tt class="descname">HP34420A</tt><big>(</big><em>experiment</em>, <em>name='HP34401A: Multimeter'</em>, <em>spec=None</em><big>)</big><a class="reference internal" href="_modules/src/instruments/hp34401a.html#HP34420A"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.hp34401a.HP34420A" title="Permalink to this definition">¶</a></dt>
+<dd><p>Driver for an HP34401A multimeter.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.instruments.hp34401a.HP34420A.finalize">
+<tt class="descname">finalize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/hp34401a.html#HP34420A.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.hp34401a.HP34420A.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the communication channel.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.hp34401a.HP34420A.getActions">
+<tt class="descname">getActions</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/hp34401a.html#HP34420A.getActions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.hp34401a.HP34420A.getActions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the list of supported actions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.hp34401a.HP34420A.getAddress">
+<tt class="descname">getAddress</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/hp34401a.html#HP34420A.getAddress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.hp34401a.HP34420A.getAddress" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the instrument&#8217;s VISA resource address.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="src.instruments.hp34401a.HP34420A.getRequiredParameters">
+<em class="property">classmethod </em><tt class="descname">getRequiredParameters</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/hp34401a.html#HP34420A.getRequiredParameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.hp34401a.HP34420A.getRequiredParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of required parameters for the HP34401A.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.hp34401a.HP34420A.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/hp34401a.html#HP34420A.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.hp34401a.HP34420A.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open communication with the multimeter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.hp34401a.HP34420A.readAverageVoltage">
+<tt class="descname">readAverageVoltage</tt><big>(</big><em>numavg</em>, <em>intertime</em><big>)</big><a class="reference internal" href="_modules/src/instruments/hp34401a.html#HP34420A.readAverageVoltage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.hp34401a.HP34420A.readAverageVoltage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the average voltage.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.hp34401a.HP34420A.readSingleVoltage">
+<tt class="descname">readSingleVoltage</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/hp34401a.html#HP34420A.readSingleVoltage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.hp34401a.HP34420A.readSingleVoltage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the voltage.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>hp34401a</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#hp34420a">HP34420A</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_instruments_keithley6220.html"
+                        title="previous chapter">The <cite>keithley6220</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_initialize.html"
+                        title="next chapter">The <cite>initialize</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_instruments_hp34401a.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_initialize.html" title="The initialize module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_keithley6220.html" title="The keithley6220 module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" >The <cite>instruments</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

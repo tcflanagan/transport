@@ -1,0 +1,446 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The general module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The tools package" href="api_tools.html" />
+    <link rel="next" title="The code_analysis module" href="api_tools_code_analysis.html" />
+    <link rel="prev" title="The stability module" href="api_tools_stability.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_tools_code_analysis.html" title="The code_analysis module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_tools_stability.html" title="The stability module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_tools.html" accesskey="U">The <cite>tools</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.tools.general">
+<span id="the-general-module"></span><h1>The <cite>general</cite> module<a class="headerlink" href="#module-src.tools.general" title="Permalink to this headline">¶</a></h1>
+<p>A set of multi-purpose tools.</p>
+<p>This module provides a handful of broadly-applicable functions for
+formatting, and parsing. It also provides some general-purpose classes which
+are not entirely necessary, but which are often helpful, for the functioning
+of the software.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="command">
+<h3>Command<a class="headerlink" href="#command" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.tools.general.Command">
+<em class="property">class </em><tt class="descclassname">src.tools.general.</tt><tt class="descname">Command</tt><big>(</big><em>method</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/src/tools/general.html#Command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.general.Command" title="Permalink to this definition">¶</a></dt>
+<dd><p>A container for runtime-specified commands.</p>
+<p>In many situations in this software, there arise situations in which
+one of the <cite>core</cite> classes needs to send output back to some graphical
+entity. This class provides a container in which the graphical objects
+can store some method or function which the <cite>core</cite> class will execute
+at the appropriate time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>method</strong> : method or function</p>
+<blockquote>
+<div><p>A method (bound to some object) or a function which may be executed
+at some later specified time.</p>
+</div></blockquote>
+<p><strong>args</strong> : positional arguments</p>
+<blockquote>
+<div><p>Comma-separated arguments which will be substituted into the method
+at execution time.</p>
+</div></blockquote>
+<p><strong>kwargs</strong> : keyword arguments</p>
+<blockquote class="last">
+<div><p>Keyword arguments which will be substituted into the method at
+execution time.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.tools.general.Command.execute">
+<tt class="descname">execute</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/src/tools/general.html#Command.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.general.Command.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the command contained within this class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>kwargs</strong> : keyword arguments</p>
+<blockquote class="last">
+<div><p>Additional keyword arguments which will be passed to the method at
+the time it is executed.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.general.Command.toString">
+<tt class="descname">toString</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/general.html#Command.toString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.general.Command.toString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the command into an explicit string.</p>
+<p>Print the function or method in a way which looks (in most cases)
+the way the command would look if printed explicitly (i.e. they
+way you would write it to execute it immediately), with the
+positional and keyword arguments written in.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.tools.general.frange">
+<tt class="descclassname">src.tools.general.</tt><tt class="descname">frange</tt><big>(</big><em>start</em>, <em>end=None</em>, <em>inc=None</em>, <em>includeEnd=True</em><big>)</big><a class="reference internal" href="_modules/src/tools/general.html#frange"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.general.frange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list representing a range where the inputs can be floats.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>start</strong> : float</p>
+<blockquote>
+<div><p>The first point in the list.</p>
+</div></blockquote>
+<p><strong>end</strong> : float</p>
+<blockquote>
+<div><p>The value signaling the end of the list.</p>
+</div></blockquote>
+<p><strong>inc</strong> : float</p>
+<blockquote>
+<div><p>The value by which to increment.</p>
+</div></blockquote>
+<p><strong>includeEnd</strong> : bool</p>
+<blockquote>
+<div><p>Whether the end of the range is inclusive.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list(float)</strong> :</p>
+<blockquote class="last">
+<div><p>A list of floats ranging from <cite>start</cite> to <cite>end</cite> in steps of <cite>inc</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.general.xfrange">
+<tt class="descclassname">src.tools.general.</tt><tt class="descname">xfrange</tt><big>(</big><em>start</em>, <em>end=None</em>, <em>inc=None</em><big>)</big><a class="reference internal" href="_modules/src/tools/general.html#xfrange"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.general.xfrange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a generator producing a range where the inputs can be floats.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.general.splitAtComma">
+<tt class="descclassname">src.tools.general.</tt><tt class="descname">splitAtComma</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="_modules/src/tools/general.html#splitAtComma"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.general.splitAtComma" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split a comma-separated string of numbers into a list of floats.</p>
+<p>Take a string consisting of floating-point or integer numbers separated by 
+commas, split the string at the commas, and cast all of the numbers to
+floats. All segments which cannot be cast to a float will be ignored.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>text</strong> : str</p>
+<blockquote>
+<div><p>The string to split. It should consist of numbers separated by commas.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list(float)</strong> :</p>
+<blockquote class="last">
+<div><p>A list of the numbers that were previously separated by commas.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.general.formatReSTHeading">
+<tt class="descclassname">src.tools.general.</tt><tt class="descname">formatReSTHeading</tt><big>(</big><em>heading</em>, <em>level=0</em><big>)</big><a class="reference internal" href="_modules/src/tools/general.html#formatReSTHeading"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.general.formatReSTHeading" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a heading string formatted as reStructuredText.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>heading</strong> : str</p>
+<blockquote>
+<div><p>The text of the heading.</p>
+</div></blockquote>
+<p><strong>level</strong> : int</p>
+<blockquote>
+<div><p>The nesting depth of the section labeled by the supplied heading.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>The heading formatted using reStructuredText syntax.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.general.gridArrangement">
+<tt class="descclassname">src.tools.general.</tt><tt class="descname">gridArrangement</tt><big>(</big><em>num</em><big>)</big><a class="reference internal" href="_modules/src/tools/general.html#gridArrangement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.general.gridArrangement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of rows and columns needed to display elements neatly.</p>
+<p>Given a specified number of items, determine an acceptable way to arrange
+them in a grid. The algorithm attempts to keep the grid as square as 
+possible, subject to the condition that the number of columns is always
+greater than or equal to the number of rows.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>num</strong> : int</p>
+<blockquote>
+<div><p>The number of elements which need to be arranged.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>tuple (int, int)</strong> :</p>
+<blockquote class="last">
+<div><p>A tuple consisting of the number of rows and the number of columns
+which would be a decent arrangement of <cite>num</cite> items.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.general.multilineStringToList">
+<tt class="descclassname">src.tools.general.</tt><tt class="descname">multilineStringToList</tt><big>(</big><em>string</em>, <em>removeBlanks=True</em><big>)</big><a class="reference internal" href="_modules/src/tools/general.html#multilineStringToList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.general.multilineStringToList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a multi-line string to a list of strings.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>string</strong> : str</p>
+<blockquote>
+<div><p>The string to split.</p>
+</div></blockquote>
+<p><strong>removeBlanks</strong> : bool</p>
+<blockquote>
+<div><p>Whether to remove all blank lines from the list.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of str</strong> :</p>
+<blockquote class="last">
+<div><p>A list of strings, each element being one line of the input string.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.general.prompt">
+<tt class="descclassname">src.tools.general.</tt><tt class="descname">prompt</tt><big>(</big><em>string</em>, <em>choices=None</em><big>)</big><a class="reference internal" href="_modules/src/tools/general.html#prompt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.general.prompt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Present a user with options.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>string</strong> : str</p>
+<blockquote>
+<div><p>A string to tell the user what he is choosing.</p>
+</div></blockquote>
+<p><strong>choices</strong> : list of str</p>
+<blockquote>
+<div><p>A list of strings representing the available choices. If <cite>None</cite>, the
+default list will be <cite>[&#8216;OK&#8217;, &#8216;Cancel&#8217;]</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>int</strong> :</p>
+<blockquote class="last">
+<div><p>The index of the selected option within the <cite>choices</cite> list. Note that
+for this purpose, the list is zero-indexed.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.general.simpleLinearRegression">
+<tt class="descclassname">src.tools.general.</tt><tt class="descname">simpleLinearRegression</tt><big>(</big><em>xPoints</em>, <em>yPoints</em><big>)</big><a class="reference internal" href="_modules/src/tools/general.html#simpleLinearRegression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.general.simpleLinearRegression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a simple linear regression on data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>xPoints</strong> : list of float</p>
+<blockquote>
+<div><p>The list of x-values of the points to fit.</p>
+</div></blockquote>
+<p><strong>yPoints</strong> : list of float</p>
+<blockquote>
+<div><p>The list of y-values of the points to fit.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote>
+<div><p>The slope of the trend line.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The y-intercept of the trend line.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The correlation coefficient (usually denoted by <em>R</em>) of the trend
+line.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The minimum y-value in the data set.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The maximum y-value in the data set.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>general</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#command">Command</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_tools_stability.html"
+                        title="previous chapter">The <cite>stability</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_tools_code_analysis.html"
+                        title="next chapter">The <cite>code_analysis</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_tools_general.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_tools_code_analysis.html" title="The code_analysis module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_tools_stability.html" title="The stability module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_tools.html" >The <cite>tools</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

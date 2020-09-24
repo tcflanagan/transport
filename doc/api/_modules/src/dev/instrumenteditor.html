@@ -1,0 +1,915 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.dev.instrumenteditor &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.dev.instrumenteditor</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;A program for creating and editing instrument implementations.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">wx</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
+<span class="kn">from</span> <span class="nn">src.gui</span> <span class="kn">import</span> <span class="n">gui_helpers</span> <span class="k">as</span> <span class="n">gh</span>
+<span class="kn">from</span> <span class="nn">src.gui.panels.keyvalpanels</span> <span class="kn">import</span> <span class="n">KeyValPanel</span>
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">path_tools</span> <span class="k">as</span> <span class="n">pt</span>
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">instrospection</span> <span class="k">as</span> <span class="n">inst</span>
+
+<span class="kn">from</span> <span class="nn">src.core.configuration</span> <span class="kn">import</span> <span class="n">openEditor</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;InstrumentFrame&#39;</span><span class="p">,</span> <span class="s">&#39;InstrumentPanel&#39;</span><span class="p">,</span> <span class="s">&#39;ActionPanel&#39;</span><span class="p">,</span> 
+           <span class="s">&#39;ParameterDialog&#39;</span><span class="p">]</span>
+
+    
+<span class="n">DEFAULT_BLANK_PATH</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;instruments&#39;</span><span class="p">,</span> <span class="s">&#39;newinstrument.py&#39;</span><span class="p">)</span>
+<span class="n">DEFAULT_BLANK_INSTRUMENT</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;&#39;&#39;&#39;Some new instrument</span>
+<span class="s">&#39;&#39;&#39;</span>
+<span class="s">__all__ = [&#39;NewInstrument&#39;]</span>
+
+<span class="s">from src.core.instrument import Instrument</span>
+<span class="s">from src.core.action import Action</span>
+<span class="s">from src.core.action import ActionScan</span>
+<span class="s">from src.core.action import Parameter</span>
+<span class="s">from src.instruments.pyvisa import visa</span>
+
+
+<span class="s">class NewInstrument(Instrument):</span>
+<span class="s">    </span>
+<span class="s">    def __init__ (self, experiment, name=&#39;Unknown Instrument&#39;, spec=None):</span>
+<span class="s">        super(NewInstrument,self).__init__(experiment, name, spec)</span>
+<span class="s">    </span>
+<span class="s">    def initialize (self):</span>
+<span class="s">        self.__instrument = visa.instrument(self.getSpecification()[&#39;Address&#39;])</span>
+<span class="s">        self.__info = &#39;Instrument: &#39; + self.getName()</span>
+<span class="s">        self.__info += &#39;Unknown Instrument&#39;</span>
+<span class="s">        self.__info += &#39;</span><span class="se">\\</span><span class="s">n&#39; + self.__instrument.ask(&#39;*IDN?&#39;)</span>
+<span class="s">    </span>
+<span class="s">    def getAddress (self):</span>
+<span class="s">        return self.getSpecification()[&#39;Address&#39;]</span>
+<span class="s">    </span>
+<span class="s">    def getInformation (self):</span>
+<span class="s">        return self.__info</span>
+<span class="s">        </span>
+<span class="s">    def getActions (self):</span>
+<span class="s">        return [</span>
+<span class="s">        ]</span>
+<span class="s">    #===========================================================================</span>
+<span class="s">    # Class methods</span>
+<span class="s">    #===========================================================================</span>
+<span class="s">    @classmethod</span>
+<span class="s">    def getRequiredParameters (cls):</span>
+<span class="s">        return { &#39;order&#39;   : [&#39;Address&#39;],</span>
+<span class="s">                 &#39;Address&#39; : &#39;GPIB::9&#39; }</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+
+<span class="n">FORMATS</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Exponential&#39;</span><span class="p">,</span> <span class="s">&#39;Float&#39;</span><span class="p">,</span> <span class="s">&#39;Integer&#39;</span><span class="p">,</span> <span class="s">&#39;String&#39;</span><span class="p">]</span>
+<span class="n">TYPES</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Column&#39;</span><span class="p">,</span> <span class="s">&#39;Parameter&#39;</span><span class="p">,</span> <span class="s">&#39;None&#39;</span><span class="p">]</span>
+
+
+<span class="c"># KNOWN ISSUES</span>
+<span class="c"># Deleting instrument parameters doesn&#39;t work right.</span>
+<span class="c"># Methd names in the aciton panel are not update to reflect changes in the</span>
+<span class="c">#    instrument panel</span>
+
+<span class="n">ID_ACTADD</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_ACTEDIT</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_ACTDEL</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_INADD</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_INEDIT</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_INDEL</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_OUTADD</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_OUTEDIT</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_OUTDEL</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+
+<span class="n">KVTuple</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;KVTuple&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;value&#39;</span><span class="p">,</span> <span class="s">&#39;type&#39;</span><span class="p">])</span>
+
+<div class="viewcode-block" id="unquote"><a class="viewcode-back" href="../../../api_dev_instrumenteditor.html#src.dev.instrumenteditor.unquote">[docs]</a><span class="k">def</span> <span class="nf">unquote</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">((</span><span class="n">string</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">string</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">))</span> <span class="ow">or</span>
+        <span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;&quot;&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">string</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;&quot;&#39;</span><span class="p">))):</span>
+        <span class="k">return</span> <span class="n">string</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">string</span></div>
+<div class="viewcode-block" id="requote"><a class="viewcode-back" href="../../../api_dev_instrumenteditor.html#src.dev.instrumenteditor.requote">[docs]</a><span class="k">def</span> <span class="nf">requote</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&quot;&#39;&quot;</span> <span class="o">+</span> <span class="n">string</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span>
+</div>
+<div class="viewcode-block" id="unself"><a class="viewcode-back" href="../../../api_dev_instrumenteditor.html#src.dev.instrumenteditor.unself">[docs]</a><span class="k">def</span> <span class="nf">unself</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">string</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;self.&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">string</span><span class="p">[</span><span class="mi">5</span><span class="p">:]</span>
+    <span class="k">return</span> <span class="n">string</span></div>
+<div class="viewcode-block" id="reself"><a class="viewcode-back" href="../../../api_dev_instrumenteditor.html#src.dev.instrumenteditor.reself">[docs]</a><span class="k">def</span> <span class="nf">reself</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&#39;self.&#39;</span> <span class="o">+</span> <span class="n">string</span>
+        
+</div>
+<div class="viewcode-block" id="ParameterDialog"><a class="viewcode-back" href="../../../api_dev_instrumenteditor.html#src.dev.instrumenteditor.ParameterDialog">[docs]</a><span class="k">class</span> <span class="nc">ParameterDialog</span><span class="p">(</span><span class="n">gh</span><span class="o">.</span><span class="n">BaseDialog</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">parameter</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ParameterDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter</span> <span class="o">=</span> <span class="n">parameter</span>
+        
+        <span class="n">parpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">parsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">FlexGridSizer</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">parpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">parsizer</span><span class="p">)</span>
+        
+        <span class="n">formatpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">parpanel</span><span class="p">)</span>
+        <span class="n">formatsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">formatpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">formatsizer</span><span class="p">)</span>
+        
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Name&#39;</span><span class="p">,</span> <span class="s">&#39;Description&#39;</span><span class="p">,</span> <span class="s">&#39;Format&#39;</span><span class="p">,</span> <span class="s">&#39;Default Storage Name&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;Default Storage Type&#39;</span><span class="p">,</span> <span class="s">&#39;Default Value&#39;</span><span class="p">,</span> <span class="s">&#39;Allowed Values&#39;</span><span class="p">]</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">parpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">parpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ComboBox</span><span class="p">(</span><span class="n">formatpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s">&#39;Exponential&#39;</span><span class="p">,</span>
+                                  <span class="n">choices</span><span class="o">=</span><span class="n">FORMATS</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">CB_READONLY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">precision</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">formatpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">binname</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">parpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bintype</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ComboBox</span><span class="p">(</span><span class="n">parpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s">&#39;Column&#39;</span><span class="p">,</span>
+                                   <span class="n">choices</span><span class="o">=</span><span class="n">TYPES</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">CB_READONLY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">parpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allowed</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">parpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">TE_MULTILINE</span><span class="p">)</span>
+        
+        <span class="n">formatsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">)</span>
+        <span class="n">formatsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">formatpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;   Precision: &#39;</span><span class="p">),</span>
+                        <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="p">)</span>
+        <span class="n">formatsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">)</span>
+        
+        <span class="n">controls</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="n">formatpanel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">binname</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">bintype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed</span><span class="p">]</span>
+        
+        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">control</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">controls</span><span class="p">):</span>
+            <span class="n">statictext</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">parpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="o">+</span><span class="s">&#39;: &#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">control</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed</span><span class="p">:</span> <span class="n">AL</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_TOP</span>
+            <span class="k">else</span><span class="p">:</span> <span class="n">AL</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span>
+            <span class="n">parsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">statictext</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">AL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span><span class="p">)</span>
+            <span class="n">parsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">control</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">)</span>
+        
+        <span class="n">parsizer</span><span class="o">.</span><span class="n">AddGrowableRow</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">setPanel</span><span class="p">(</span><span class="n">parpanel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">insertValues</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">insertValues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">unquote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">unquote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">description</span><span class="p">))</span>
+        
+        <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;%(.*)\.(\d*)(\w)&#39;</span><span class="p">)</span>
+        <span class="n">format_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">format_string</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">format_string</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+            <span class="n">value_type</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="n">value_precision</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;(\w)&#39;</span><span class="p">)</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">format_string</span><span class="p">)</span>
+            <span class="n">value_type</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">value_precision</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        
+        <span class="k">if</span> <span class="s">&#39;d&#39;</span> <span class="o">==</span> <span class="n">value_type</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;Integer&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s">&#39;e&#39;</span> <span class="o">==</span> <span class="n">value_type</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;Exponential&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s">&#39;f&#39;</span> <span class="o">==</span> <span class="n">value_type</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;Float&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;String&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">format_string</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">value_precision</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;String&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">unquote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        
+        <span class="n">bt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">bin_type</span>
+        <span class="k">if</span> <span class="n">bt</span> <span class="o">==</span> <span class="s">&quot;&#39;column&#39;&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bintype</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;Column&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">bt</span> <span class="o">==</span> <span class="s">&quot;&#39;parameter&#39;&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bintype</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;Parameter&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bintype</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;None&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">binname</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">unquote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">bin_name</span><span class="p">))</span>
+    
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">requote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">requote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">binname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">binname</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">bintype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bintype</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">bintype</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">bin_name</span> <span class="o">=</span> <span class="s">&#39;None&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">=</span> <span class="s">&#39;None&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">binname</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">bin_name</span> <span class="o">=</span> <span class="n">binname</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">=</span> <span class="n">bintype</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;String&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">requote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        
+        <span class="n">format_string</span> <span class="o">=</span> <span class="s">&#39;%&#39;</span>
+        <span class="n">fm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="n">pre</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">fm</span> <span class="o">==</span> <span class="s">&#39;Float&#39;</span><span class="p">:</span>
+            <span class="n">format_string</span> <span class="o">+=</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">pre</span> <span class="o">+</span> <span class="s">&#39;f&#39;</span>
+        <span class="k">elif</span> <span class="n">fm</span> <span class="o">==</span> <span class="s">&#39;Exponential&#39;</span><span class="p">:</span>
+            <span class="n">format_string</span> <span class="o">+=</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">pre</span> <span class="o">+</span> <span class="s">&#39;e&#39;</span>
+        <span class="k">elif</span> <span class="n">fm</span> <span class="o">==</span> <span class="s">&#39;Integer&#39;</span><span class="p">:</span>
+            <span class="n">format_string</span> <span class="o">+=</span> <span class="s">&#39;d&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">format_string</span> <span class="o">+=</span> <span class="s">&#39;s&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">format_string</span> <span class="o">=</span> <span class="n">requote</span><span class="p">(</span><span class="n">format_string</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="ActionPanel"><a class="viewcode-back" href="../../../api_dev_instrumenteditor.html#src.dev.instrumenteditor.ActionPanel">[docs]</a><span class="k">class</span> <span class="nc">ActionPanel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">instr</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ActionPanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span> <span class="o">=</span> <span class="n">instr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actionlist</span> <span class="o">=</span> <span class="n">instr</span><span class="o">.</span><span class="n">actions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inputlist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputlist</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        
+        <span class="n">mainsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        
+        <span class="n">browsepanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">browsesizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">browsepanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">browsesizer</span><span class="p">)</span>
+        
+        <span class="n">browsebuttonpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">browsepanel</span><span class="p">)</span>
+        <span class="n">browsebuttonsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">browsebuttonpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">browsebuttonsizer</span><span class="p">)</span>
+        
+        <span class="n">actionpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">actionsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">actionpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">actionsizer</span><span class="p">)</span>
+                
+        <span class="n">detailpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">actionpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="n">detailsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">FlexGridSizer</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">detailpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">detailsizer</span><span class="p">)</span>
+        <span class="n">detailsizer</span><span class="o">.</span><span class="n">AddGrowableCol</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        
+        <span class="n">bottompanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">actionpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="n">bottomsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">bottompanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">bottomsizer</span><span class="p">)</span>
+        
+        <span class="n">inpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBox</span><span class="p">(</span><span class="n">bottompanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;Inputs&#39;</span><span class="p">)</span>
+        <span class="n">insizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBoxSizer</span><span class="p">(</span><span class="n">inpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        
+        <span class="n">inbuttonpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">bottompanel</span><span class="p">)</span>
+        <span class="n">inbuttonsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">inbuttonpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">inbuttonsizer</span><span class="p">)</span>
+        
+        <span class="n">outpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBox</span><span class="p">(</span><span class="n">bottompanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;Outputs&#39;</span><span class="p">)</span>
+        <span class="n">outsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBoxSizer</span><span class="p">(</span><span class="n">outpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        
+        <span class="n">outbuttonpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">bottompanel</span><span class="p">)</span>
+        <span class="n">outbuttonsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">outbuttonpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">outbuttonsizer</span><span class="p">)</span>
+        
+        <span class="c">#-----------------------------------------------------------------------</span>
+        <span class="c"># Create controls</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">actions</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ListBox</span><span class="p">(</span><span class="n">browsepanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        
+        <span class="c"># Action Type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actiontype</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">RadioBox</span><span class="p">(</span><span class="n">actionpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;Action Type&#39;</span><span class="p">,</span>
+                                      <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Simple&#39;</span><span class="p">,</span> <span class="s">&#39;Scan&#39;</span><span class="p">],</span>
+                                      <span class="n">majorDimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                      <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        
+        
+        <span class="c"># Buttons</span>
+        <span class="n">actadd</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">browsebuttonpanel</span><span class="p">,</span> <span class="n">ID_ACTADD</span><span class="p">,</span> <span class="s">&#39;Add&#39;</span><span class="p">)</span>
+        <span class="n">actdel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">browsebuttonpanel</span><span class="p">,</span> <span class="n">ID_ACTDEL</span><span class="p">,</span> <span class="s">&#39;Delete&#39;</span><span class="p">)</span>
+        
+        <span class="n">inadd</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">inbuttonpanel</span><span class="p">,</span> <span class="n">ID_INADD</span><span class="p">,</span> <span class="s">&#39;Add&#39;</span><span class="p">)</span>
+        <span class="n">inedit</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">inbuttonpanel</span><span class="p">,</span> <span class="n">ID_INEDIT</span><span class="p">,</span> <span class="s">&#39;Edit&#39;</span><span class="p">)</span>
+        <span class="n">indel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">inbuttonpanel</span><span class="p">,</span> <span class="n">ID_INDEL</span><span class="p">,</span> <span class="s">&#39;Delete&#39;</span><span class="p">)</span>
+        
+        <span class="n">outadd</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">outbuttonpanel</span><span class="p">,</span> <span class="n">ID_OUTADD</span><span class="p">,</span> <span class="s">&#39;Add&#39;</span><span class="p">)</span>
+        <span class="n">outedit</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">outbuttonpanel</span><span class="p">,</span> <span class="n">ID_OUTEDIT</span><span class="p">,</span> <span class="s">&#39;Edit&#39;</span><span class="p">)</span>
+        <span class="n">outdel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">outbuttonpanel</span><span class="p">,</span> <span class="n">ID_OUTDEL</span><span class="p">,</span> <span class="s">&#39;Delete&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">btns</span> <span class="o">=</span> <span class="p">[</span><span class="n">inadd</span><span class="p">,</span> <span class="n">inedit</span><span class="p">,</span> <span class="n">indel</span><span class="p">,</span> <span class="n">outadd</span><span class="p">,</span> <span class="n">outedit</span><span class="p">,</span> <span class="n">outdel</span><span class="p">,</span> 
+                     <span class="n">actadd</span><span class="p">,</span> <span class="n">actdel</span><span class="p">]</span>
+        
+        <span class="c"># Data controls</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">detailpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">detailpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ComboBox</span><span class="p">(</span><span class="n">detailpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">CB_READONLY</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ListBox</span><span class="p">(</span><span class="n">bottompanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ListBox</span><span class="p">(</span><span class="n">bottompanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        
+        <span class="c">#-----------------------------------------------------------------------</span>
+        <span class="c"># Add bindings</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_LISTBOX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onSelectAction</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actiontype</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_RADIOBOX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_changeType</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_LISTBOX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_updateButtons</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_LISTBOX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_updateButtons</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_KILL_FOCUS</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onUpdateDescription</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_KILL_FOCUS</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">saveDetails</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_KILL_FOCUS</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">saveDetails</span><span class="p">)</span>
+        
+        <span class="n">actadd</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onAddAction</span><span class="p">)</span>
+        <span class="n">actdel</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onRemoveAction</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">btn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">btns</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">6</span><span class="p">]:</span>
+            <span class="n">btn</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onButton</span><span class="p">)</span>
+        
+        
+        <span class="c">#-----------------------------------------------------------------------</span>
+        <span class="c"># Add controls to panels</span>
+        
+        
+        <span class="n">detailsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">detailpanel</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Description:&#39;</span><span class="p">),</span> 
+                     <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span><span class="p">)</span>
+        <span class="n">detailsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">)</span>
+        <span class="n">detailsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">detailpanel</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Template String:&#39;</span><span class="p">),</span>
+                     <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span><span class="p">)</span>
+        <span class="n">detailsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">string</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">)</span>
+        <span class="n">detailsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">detailpanel</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Method:&#39;</span><span class="p">),</span>
+                     <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span><span class="p">)</span>
+        <span class="n">detailsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">)</span>
+        
+        <span class="n">browsebuttonsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">actadd</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">browsebuttonsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">actdel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">browsesizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">browsepanel</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Actions:&#39;</span><span class="p">),</span>
+                        <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">browsesizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">browsesizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">browsebuttonpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        <span class="n">inbuttonsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">inadd</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">inbuttonsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">inedit</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">inbuttonsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">indel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">insizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">insizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">inbuttonpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        <span class="n">outbuttonsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">outadd</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">outbuttonsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">outedit</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">outbuttonsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">outdel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">outsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">outsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">outbuttonpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        <span class="n">bottomsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">insizer</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">bottomsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">outsizer</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        <span class="n">actionsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">actiontype</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">actionsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">detailpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">actionsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">bottompanel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">browsepanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">actionpanel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">mainsizer</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateMethodList</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateActionList</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">actionlist</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">currentaction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actionlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setDetails</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">updateActionList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">actionstrings</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">actionlist</span><span class="p">:</span>
+            <span class="n">actionstrings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unquote</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">description</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">SetItems</span><span class="p">(</span><span class="n">actionstrings</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">setDetails</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentaction</span>
+        
+        <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">action_type</span> <span class="o">==</span> <span class="s">&#39;Scan&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">actiontype</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">actiontype</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">unquote</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">description</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">unquote</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">string</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">method</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">unself</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">method</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inputlist</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">inputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputlist</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">outputs</span>
+        
+        <span class="n">inputnames</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">outputnames</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputlist</span><span class="p">:</span>
+            <span class="n">inputnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unquote</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span> <span class="o">+</span> <span class="n">unquote</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">description</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputlist</span><span class="p">:</span>
+            <span class="n">outputnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unquote</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span> <span class="o">+</span> <span class="n">unquote</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">description</span><span class="p">))</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">SetItems</span><span class="p">(</span><span class="n">inputnames</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">SetItems</span><span class="p">(</span><span class="n">outputnames</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">saveDetails</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentaction</span>
+        <span class="n">action</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">requote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">action</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="n">requote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">action</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">action</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">reself</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">actiontype</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">action</span><span class="o">.</span><span class="n">action_type</span> <span class="o">=</span> <span class="s">&#39;Scan&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">action</span><span class="o">.</span><span class="n">action_type</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    
+    <span class="k">def</span> <span class="nf">updateMethodList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">methods</span> <span class="o">=</span> <span class="n">instrument</span><span class="o">.</span><span class="n">getMethods</span><span class="p">()</span>
+        <span class="n">method_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">methods</span><span class="p">:</span>
+            <span class="n">method_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unself</span><span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">SetItems</span><span class="p">(</span><span class="n">method_names</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_onSelectAction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currentaction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actionlist</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setDetails</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updateButtons</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_onUpdateDescription</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">Skip</span><span class="p">()</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currentaction</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">requote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">SetString</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">unquote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currentaction</span><span class="o">.</span><span class="n">description</span><span class="p">))</span>
+            
+    <span class="k">def</span> <span class="nf">_updateButtons</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">btns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">btns</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">actiontype</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">btn</span> <span class="ow">in</span> <span class="n">btns</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">6</span><span class="p">]:</span>
+                    <span class="n">btn</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputlist</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">btns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">btns</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">Enable</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">btns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                    <span class="n">btns</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">btns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">btns</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                    <span class="n">btns</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">btns</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+                    <span class="n">btns</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+                <span class="n">btns</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">btns</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                    <span class="n">btns</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">btns</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+                    <span class="n">btns</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">PyDeadObjectError</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">PyAssertionError</span><span class="p">):</span>
+            <span class="k">pass</span>
+        
+    <span class="k">def</span> <span class="nf">_changeType</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">newtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actiontype</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">newtype</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputlist</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputlist</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">dialog</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">MessageDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;Scan actions must have one &#39;</span> <span class="o">+</span> 
+                                          <span class="s">&#39;and only one input value, and &#39;</span> <span class="o">+</span> 
+                                          <span class="s">&#39;they may not have any output&#39;</span> <span class="o">+</span> 
+                                          <span class="s">&#39;values.&#39;</span><span class="p">,</span> <span class="s">&#39;Error&#39;</span><span class="p">,</span> 
+                                          <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">OK</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ICON_ERROR</span><span class="p">)</span>
+                <span class="n">dialog</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">actiontype</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                
+                <span class="bp">self</span><span class="o">.</span><span class="n">currentaction</span><span class="o">.</span><span class="n">action_type</span> <span class="o">=</span> <span class="s">&#39;Scan&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">actiontype</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">currentaction</span><span class="o">.</span><span class="n">action_type</span> <span class="o">=</span> <span class="s">&#39;Scan&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_updateButtons</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">currentaction</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">actiontype</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_updateButtons</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+            
+    <span class="k">def</span> <span class="nf">_onAddAction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">addAction</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateActionList</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currentaction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actionlist</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">GetCount</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_onRemoveAction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">removeAction</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateActionList</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">_onButton</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">ID</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">GetId</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ID</span> <span class="o">==</span> <span class="n">ID_INDEL</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputlist</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setDetails</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">ID</span> <span class="o">==</span> <span class="n">ID_OUTDEL</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputlist</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setDetails</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ID</span> <span class="o">==</span> <span class="n">ID_INADD</span> <span class="ow">or</span> <span class="n">ID</span> <span class="o">==</span> <span class="n">ID_OUTADD</span><span class="p">:</span>
+                <span class="n">param</span> <span class="o">=</span> <span class="n">inst</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">ID</span> <span class="o">==</span> <span class="n">ID_INEDIT</span><span class="p">:</span>
+                <span class="n">param</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputlist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()]</span>
+            <span class="k">elif</span> <span class="n">ID</span> <span class="o">==</span> <span class="n">ID_OUTEDIT</span><span class="p">:</span>
+                <span class="n">param</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputlist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()]</span>
+            <span class="n">pd</span> <span class="o">=</span> <span class="n">ParameterDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ID</span> <span class="o">==</span> <span class="n">ID_INADD</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">inputlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">ID</span> <span class="o">==</span> <span class="n">ID_OUTADD</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">outputlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pd</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setDetails</span><span class="p">()</span>
+                
+</div>
+<div class="viewcode-block" id="InstrumentPanel"><a class="viewcode-back" href="../../../api_dev_instrumenteditor.html#src.dev.instrumenteditor.InstrumentPanel">[docs]</a><span class="k">class</span> <span class="nc">InstrumentPanel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">instrument</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">InstrumentPanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span> <span class="o">=</span> <span class="n">instrument</span>
+        
+        <span class="n">methpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;Methods&#39;</span><span class="p">)</span>
+        <span class="n">methsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBoxSizer</span><span class="p">(</span><span class="n">methpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        
+        <span class="n">methdetpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">methdetsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">methdetpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">methdetsizer</span><span class="p">)</span>
+        
+        <span class="n">instpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s">&#39;Instrument Settings&#39;</span><span class="p">)</span>
+        <span class="n">instsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBoxSizer</span><span class="p">(</span><span class="n">instpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">methlist</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ListBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methname</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">methdetpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methargs</span> <span class="o">=</span> <span class="n">KeyValPanel</span><span class="p">(</span><span class="n">methdetpanel</span><span class="p">,</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">getMethods</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getArguments</span><span class="p">(),</span>
+                                    <span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methargs</span><span class="o">.</span><span class="n">bindUpdateAction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_onChangeMethArgs</span><span class="p">,</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methname</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_KILL_FOCUS</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onNameMethod</span><span class="p">)</span>
+        
+        <span class="n">methbtnpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">methdetpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">methbtnsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">methbtnpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">methbtnsizer</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">methadd</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">methbtnpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;Add Method&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methdel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">methbtnpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;Delete Method&#39;</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">methdel</span><span class="o">.</span><span class="n">GetSizeTuple</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ln</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticLine</span><span class="p">(</span><span class="n">methbtnpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">h</span><span class="p">),</span> <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">LI_VERTICAL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methcode</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">methbtnpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;Edit Code&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methadd</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onAddMethod</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methdel</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onRemoveMethod</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methcode</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onEditCode</span><span class="p">)</span>
+        
+        <span class="n">methbtnsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">methadd</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">methbtnsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">methdel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">methbtnsizer</span><span class="o">.</span><span class="n">Add</span>
+        <span class="n">methbtnsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">ln</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">methbtnsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">methcode</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">instclass</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instname</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instparams</span> <span class="o">=</span> <span class="n">KeyValPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">getRequiredParameters</span><span class="p">(),</span>
+                                      <span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instparams</span><span class="o">.</span><span class="n">bindUpdateAction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_onChangeInstParams</span><span class="p">,</span> <span class="p">(</span><span class="bp">None</span><span class="p">,))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instclass</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_KILL_FOCUS</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onChangeInstrumentName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instname</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_KILL_FOCUS</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onChangeDefaultName</span><span class="p">)</span>
+        
+        <span class="n">instsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;Instrument Class:&#39;</span><span class="p">),</span>
+                      <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">instsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instclass</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="n">instsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;Default Name:&#39;</span><span class="p">),</span>
+                      <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">instsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instname</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="n">instsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;Required Parameters:&#39;</span><span class="p">),</span>
+                      <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">instsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instparams</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+        
+        <span class="n">methdetsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">methdetpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;Method name: &#39;</span><span class="p">),</span>
+                         <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">methdetsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">methname</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">LEFT</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="n">methdetsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">methdetpanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;Arguments (space-separated):&#39;</span><span class="p">),</span>
+                         <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">methdetsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">methargs</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">LEFT</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="n">methdetsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">methbtnpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        <span class="n">methsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">methlist</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">methsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">methdetpanel</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+    
+    
+        <span class="n">mainsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">instsizer</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">methsizer</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateInstrumentData</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateMethodList</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methlist</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_LISTBOX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onSelectMethod</span><span class="p">)</span>
+        
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span> <span class="o">=</span> <span class="n">instrument</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methods</span> <span class="o">=</span> <span class="n">instrument</span><span class="o">.</span><span class="n">getMethods</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currmethod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">methods</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateMethodDetails</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizerAndFit</span><span class="p">(</span><span class="n">mainsizer</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">updateInstrumentData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instclass</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instname</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">getDefaultName</span><span class="p">())</span>
+        
+    <span class="k">def</span> <span class="nf">updateMethodList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">oldselection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">methlist</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methods</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">getMethods</span><span class="p">()</span>
+        <span class="n">method_strings</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">methods</span><span class="p">:</span>
+            <span class="n">method_strings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methlist</span><span class="o">.</span><span class="n">SetItems</span><span class="p">(</span><span class="n">method_strings</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methlist</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="n">oldselection</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">updateMethodDetails</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">methname</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currmethod</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">methargs</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currmethod</span><span class="o">.</span><span class="n">getArguments</span><span class="p">())</span>
+        <span class="k">except</span> <span class="n">wx</span><span class="o">.</span><span class="n">PyDeadObjectError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        
+    <span class="k">def</span> <span class="nf">_onChangeInstParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">setRequiredParameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instparams</span><span class="o">.</span><span class="n">getData</span><span class="p">())</span>
+        
+    <span class="k">def</span> <span class="nf">_onChangeMethArgs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currmethod</span><span class="o">.</span><span class="n">setArguments</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">methargs</span><span class="o">.</span><span class="n">getData</span><span class="p">())</span>
+                
+    <span class="k">def</span> <span class="nf">_onSelectMethod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currmethod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">methods</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">methlist</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateMethodDetails</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_onNameMethod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">newname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">methname</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">methlist</span><span class="o">.</span><span class="n">GetSelection</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s">&#39; &#39;</span> <span class="ow">in</span> <span class="n">newname</span><span class="p">:</span>
+            <span class="n">dialog</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">MessageDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;Method names may not &#39;</span> <span class="o">+</span> 
+                                      <span class="s">&#39;contain spaces&#39;</span><span class="p">,</span> <span class="s">&#39;Error&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">OK</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ICON_ERROR</span><span class="p">)</span>
+            <span class="n">dialog</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">methname</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currmethod</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">currmethod</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">methname</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">methlist</span><span class="o">.</span><span class="n">SetString</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">currmethod</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        
+    <span class="k">def</span> <span class="nf">_onAddMethod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">newmethod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">addMethod</span><span class="p">(</span><span class="s">&#39;pleaseNameMe&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateMethodList</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currmethod</span> <span class="o">=</span> <span class="n">newmethod</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methlist</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">methods</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">newmethod</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateMethodDetails</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_onRemoveMethod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">deleteMethod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currmethod</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateMethodList</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currmethod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">methods</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methlist</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateMethodDetails</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_onEditCode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">openEditor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currmethod</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">currmethod</span><span class="o">.</span><span class="n">body</span> <span class="o">=</span> <span class="n">data</span>
+        
+    <span class="k">def</span> <span class="nf">_onChangeInstrumentName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">newname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instclass</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">newname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GetParent</span><span class="p">()</span><span class="o">.</span><span class="n">setAll</span><span class="p">(</span><span class="n">newname</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_onChangeDefaultName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">newname</span> <span class="o">=</span> <span class="n">requote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instname</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">setDefaultName</span><span class="p">(</span><span class="n">newname</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="InstrumentNotebook"><a class="viewcode-back" href="../../../api_dev_instrumenteditor.html#src.dev.instrumenteditor.InstrumentNotebook">[docs]</a><span class="k">class</span> <span class="nc">InstrumentNotebook</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Notebook</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">InstrumentNotebook</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span>
+                                              <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">BK_DEFAULT</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">module</span> <span class="o">=</span> <span class="n">module</span>
+        <span class="n">instrument</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">getInstruments</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="n">insttab</span> <span class="o">=</span> <span class="n">InstrumentPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instrument</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AddPage</span><span class="p">(</span><span class="n">insttab</span><span class="p">,</span> <span class="s">&#39;Instrument&#39;</span><span class="p">)</span>
+        
+        <span class="n">actiontab</span> <span class="o">=</span> <span class="n">ActionPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instrument</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AddPage</span><span class="p">(</span><span class="n">actiontab</span><span class="p">,</span> <span class="s">&#39;Actions&#39;</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">setAll</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newvalue</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">module</span><span class="o">.</span><span class="n">setAll</span><span class="p">(</span><span class="n">newvalue</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="InstrumentFrame"><a class="viewcode-back" href="../../../api_dev_instrumenteditor.html#src.dev.instrumenteditor.InstrumentFrame">[docs]</a><span class="k">class</span> <span class="nc">InstrumentFrame</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">InstrumentFrame</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">module</span> <span class="o">=</span> <span class="n">module</span>
+        
+        <span class="n">menubar</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">MenuBar</span><span class="p">()</span>
+        
+        <span class="n">filemenu</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Menu</span><span class="p">()</span>
+        <span class="n">fileNew</span> <span class="o">=</span> <span class="n">filemenu</span><span class="o">.</span><span class="n">Append</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_NEW</span><span class="p">,</span> <span class="s">&#39;New&#39;</span><span class="p">,</span> <span class="s">&#39;Create a new instrument.&#39;</span><span class="p">)</span>
+        <span class="n">fileOpen</span> <span class="o">=</span> <span class="n">filemenu</span><span class="o">.</span><span class="n">Append</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_OPEN</span><span class="p">,</span> <span class="s">&#39;Open&#39;</span><span class="p">,</span> <span class="s">&#39;Open an existing instrument.&#39;</span><span class="p">)</span>
+        <span class="n">filemenu</span><span class="o">.</span><span class="n">AppendSeparator</span><span class="p">()</span>
+        <span class="n">filePreview</span> <span class="o">=</span> <span class="n">filemenu</span><span class="o">.</span><span class="n">Append</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_PREVIEW</span><span class="p">,</span> <span class="s">&#39;Preview&#39;</span><span class="p">,</span> <span class="s">&#39;Preview the new code.&#39;</span><span class="p">)</span>
+        <span class="n">fileSave</span> <span class="o">=</span> <span class="n">filemenu</span><span class="o">.</span><span class="n">Append</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_SAVE</span><span class="p">,</span> <span class="s">&#39;Save&#39;</span><span class="p">,</span> <span class="s">&#39;Save the current instrument.&#39;</span><span class="p">)</span>
+        <span class="n">filemenu</span><span class="o">.</span><span class="n">AppendSeparator</span><span class="p">()</span>
+        <span class="n">fileExit</span> <span class="o">=</span> <span class="n">filemenu</span><span class="o">.</span><span class="n">Append</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_EXIT</span><span class="p">,</span> <span class="s">&#39;Exit&#39;</span><span class="p">,</span> <span class="s">&#39;Exit the instrument tool.&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_MENU</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onNew</span><span class="p">,</span> <span class="n">fileNew</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_MENU</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onOpen</span><span class="p">,</span> <span class="n">fileOpen</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_MENU</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onPreviewCode</span><span class="p">,</span> <span class="n">filePreview</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_MENU</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onSave</span><span class="p">,</span> <span class="n">fileSave</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_MENU</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onClose</span><span class="p">,</span> <span class="n">fileExit</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_CLOSE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onClose</span><span class="p">)</span>
+        
+                
+        <span class="n">menubar</span><span class="o">.</span><span class="n">Append</span><span class="p">(</span><span class="n">filemenu</span><span class="p">,</span> <span class="s">&#39;File&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetMenuBar</span><span class="p">(</span><span class="n">menubar</span><span class="p">)</span>
+        
+        <span class="n">notebook</span> <span class="o">=</span> <span class="n">InstrumentNotebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
+        <span class="n">sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">notebook</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizerAndFit</span><span class="p">(</span><span class="n">sizer</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">onPreviewCode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">module</span><span class="o">.</span><span class="n">toCode</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">openEditor</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">onOpen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">FileDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;Open an Instrument&#39;</span><span class="p">,</span> 
+                               <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span><span class="s">&#39;instruments&#39;</span><span class="p">),</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;Instrument files (*.py)|*.py&#39;</span><span class="p">,</span> 
+                               <span class="n">wx</span><span class="o">.</span><span class="n">FD_OPEN</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">FD_FILE_MUST_EXIST</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dialog</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span> <span class="o">==</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">GetPath</span><span class="p">()</span>
+            <span class="n">newmodule</span> <span class="o">=</span> <span class="n">inst</span><span class="o">.</span><span class="n">Module</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="n">newinstrumentframe</span> <span class="o">=</span> <span class="n">InstrumentFrame</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">newmodule</span><span class="p">)</span>
+            <span class="n">newinstrumentframe</span><span class="o">.</span><span class="n">Show</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">onSave</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">oldpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">module</span><span class="o">.</span><span class="n">path</span>
+        <span class="n">pathlist</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">normalizePath</span><span class="p">(</span><span class="n">oldpath</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+        <span class="n">newname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">module</span><span class="o">.</span><span class="n">getInstruments</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;.py&#39;</span>
+        <span class="n">newpathlist</span> <span class="o">=</span> <span class="n">pathlist</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">newname</span><span class="p">]</span>
+        <span class="n">newpath</span> <span class="o">=</span> <span class="s">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">newpathlist</span><span class="p">)</span>
+        <span class="n">backuppath</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">newpath</span><span class="p">):</span>
+            <span class="n">backuppath</span> <span class="o">=</span> <span class="n">newpath</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span><span class="o">+</span><span class="s">&#39;.bak&#39;</span>
+            <span class="n">digit</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">backuppath</span><span class="p">):</span>
+                <span class="n">backuppath</span> <span class="o">=</span> <span class="n">newpath</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;.bak&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">digit</span><span class="p">)</span>
+                <span class="n">digit</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">newpath</span><span class="p">,</span> <span class="n">backuppath</span><span class="p">)</span> 
+            <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">),</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;Cannot move &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">error</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">newpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module</span><span class="o">.</span><span class="n">toCode</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+            <span class="k">print</span> <span class="s">&#39;saved&#39;</span>
+        <span class="k">print</span> <span class="n">newpath</span>
+        
+    <span class="k">def</span> <span class="nf">onNew</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">DEFAULT_BLANK_PATH</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">DEFAULT_BLANK_INSTRUMENT</span><span class="p">)</span>
+        <span class="n">newmodule</span> <span class="o">=</span> <span class="n">inst</span><span class="o">.</span><span class="n">Module</span><span class="p">(</span><span class="n">DEFAULT_BLANK_PATH</span><span class="p">)</span>
+        <span class="n">newinstrumentframe</span> <span class="o">=</span> <span class="n">InstrumentFrame</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">newmodule</span><span class="p">)</span>
+        <span class="n">newinstrumentframe</span><span class="o">.</span><span class="n">Show</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">onClose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">DEFAULT_BLANK_PATH</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">DEFAULT_BLANK_PATH</span><span class="p">)</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">Skip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Destroy</span><span class="p">()</span>
+        </div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">fn</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src/instruments/srs830.py&#39;</span><span class="p">)</span>
+    <span class="n">module</span> <span class="o">=</span> <span class="n">inst</span><span class="o">.</span><span class="n">Module</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+    <span class="n">instrument</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">getInstruments</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="n">instrument</span><span class="o">.</span><span class="n">actions</span>
+    <span class="n">some_action</span> <span class="o">=</span> <span class="n">actions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">some_action</span><span class="o">.</span><span class="n">inputs</span>
+    <span class="k">print</span> <span class="n">module</span><span class="o">.</span><span class="n">contents</span>
+    <span class="n">some_parameter</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    
+    <span class="n">app</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">App</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c">#pd = ParameterDialog(None, some_parameter)</span>
+    <span class="c">#pd.ShowModal()</span>
+    
+    <span class="n">tf</span> <span class="o">=</span> <span class="n">InstrumentFrame</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">Show</span><span class="p">()</span>
+    
+    <span class="n">app</span><span class="o">.</span><span class="n">MainLoop</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

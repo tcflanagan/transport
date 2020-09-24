@@ -1,0 +1,746 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The stability module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The tools package" href="api_tools.html" />
+    <link rel="next" title="The general module" href="api_tools_general.html" />
+    <link rel="prev" title="The parsing module" href="api_tools_parsing.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_tools_general.html" title="The general module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_tools_parsing.html" title="The parsing module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_tools.html" accesskey="U">The <cite>tools</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.tools.stability">
+<span id="the-stability-module"></span><h1>The <cite>stability</cite> module<a class="headerlink" href="#module-src.tools.stability" title="Permalink to this headline">¶</a></h1>
+<p>Classes to monitor stability in some value.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="stabilitytrend">
+<h3>StabilityTrend<a class="headerlink" href="#stabilitytrend" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.tools.stability.StabilityTrend">
+<em class="property">class </em><tt class="descclassname">src.tools.stability.</tt><tt class="descname">StabilityTrend</tt><big>(</big><em>bufferSize</em>, <em>tolerance</em>, <em>timeout=None</em><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilityTrend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilityTrend" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class for tracking stability based on trend.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>bufferSize</strong> : int</p>
+<blockquote>
+<div><p>The number of data points of which to keep track.</p>
+</div></blockquote>
+<p><strong>tolerance</strong> : float</p>
+<blockquote>
+<div><p>The maximum deviation from zero which the slope can have while still
+being considered stable.</p>
+</div></blockquote>
+<p><strong>timeout</strong> : float</p>
+<blockquote class="last">
+<div><p>The maximum amount of time to monitor the system.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.tools.stability.StabilityTrend.addPoint">
+<tt class="descname">addPoint</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilityTrend.addPoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilityTrend.addPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a point to the monitor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>value</strong> : float</p>
+<blockquote class="last">
+<div><p>The value to add to the monitor.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.StabilityTrend.getTrend">
+<tt class="descname">getTrend</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilityTrend.getTrend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilityTrend.getTrend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the slope of the line formed by the data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The slope of the line formed by the data.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.StabilityTrend.isBufferFull">
+<tt class="descname">isBufferFull</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilityTrend.isBufferFull"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilityTrend.isBufferFull" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the buffer is full.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the monitor&#8217;s buffer has been filled.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.StabilityTrend.isFinished">
+<tt class="descname">isFinished</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilityTrend.isFinished"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilityTrend.isFinished" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the wait for stability can end.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the software can proceed, meaning either that the buffer
+is full and the system is stable or that the monitor has timed out.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.StabilityTrend.isStable">
+<tt class="descname">isStable</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilityTrend.isStable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilityTrend.isStable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the system is stable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the system is stable.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.StabilityTrend.isTimedOut">
+<tt class="descname">isTimedOut</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilityTrend.isTimedOut"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilityTrend.isTimedOut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the monitor has timed out.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the system has passed the timeout.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="stabilitysetpoint">
+<h3>StabilitySetpoint<a class="headerlink" href="#stabilitysetpoint" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.tools.stability.StabilitySetpoint">
+<em class="property">class </em><tt class="descclassname">src.tools.stability.</tt><tt class="descname">StabilitySetpoint</tt><big>(</big><em>bufferSize</em>, <em>setpoint</em>, <em>tolerance</em>, <em>timeout=None</em><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilitySetpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilitySetpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class for tracking stability based on proximity to a setpoint.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>bufferSize</strong> : int</p>
+<blockquote>
+<div><p>The number of data points of which to keep track.</p>
+</div></blockquote>
+<p><strong>setpoint</strong> : float</p>
+<blockquote>
+<div><p>The desired value for the system values.</p>
+</div></blockquote>
+<p><strong>tolerance</strong> : float</p>
+<blockquote>
+<div><p>The maximum deviation from zero which the slope can have while still
+being considered stable.</p>
+</div></blockquote>
+<p><strong>timeout</strong> : float</p>
+<blockquote class="last">
+<div><p>The maximum amount of time to monitor the system.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.tools.stability.StabilitySetpoint.addPoint">
+<tt class="descname">addPoint</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilitySetpoint.addPoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilitySetpoint.addPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a point to the monitor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>value</strong> : float</p>
+<blockquote class="last">
+<div><p>The value to add to the monitor.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.StabilitySetpoint.getTrend">
+<tt class="descname">getTrend</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilitySetpoint.getTrend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilitySetpoint.getTrend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the slope of the line formed by the data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The slope of the line formed by the data.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.StabilitySetpoint.isBufferFull">
+<tt class="descname">isBufferFull</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilitySetpoint.isBufferFull"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilitySetpoint.isBufferFull" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the buffer is full.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the monitor&#8217;s buffer has been filled.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.StabilitySetpoint.isFinished">
+<tt class="descname">isFinished</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilitySetpoint.isFinished"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilitySetpoint.isFinished" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the wait for stability can end.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the software can proceed, meaning either that the buffer
+is full and the system is stable or that the monitor has timed out.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.StabilitySetpoint.isStable">
+<tt class="descname">isStable</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilitySetpoint.isStable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilitySetpoint.isStable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the system is stable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the system is stable.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.StabilitySetpoint.isTimedOut">
+<tt class="descname">isTimedOut</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilitySetpoint.isTimedOut"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilitySetpoint.isTimedOut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the monitor has timed out.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the system has passed the timeout.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="stabilitytimer">
+<h3>StabilityTimer<a class="headerlink" href="#stabilitytimer" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.tools.stability.StabilityTimer">
+<em class="property">class </em><tt class="descclassname">src.tools.stability.</tt><tt class="descname">StabilityTimer</tt><big>(</big><em>duration</em>, <em>stability</em>, <em>timeout=None</em><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilityTimer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilityTimer" title="Permalink to this definition">¶</a></dt>
+<dd><p>A timer for checking for stability.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>duration</strong> : float</p>
+<blockquote>
+<div><p>The time in seconds over which the values should be stable before
+the timer asserts that it is finished.</p>
+</div></blockquote>
+<p><strong>stability</strong> : float</p>
+<blockquote>
+<div><p>The largest separation between the maximum and minimum known values
+for which the timer may consider itself to be stable.</p>
+</div></blockquote>
+<p><strong>timeout</strong> : float</p>
+<blockquote class="last">
+<div><p>The maximum time in seconds to wait for the values to become 
+stable.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.tools.stability.StabilityTimer.addValue">
+<tt class="descname">addValue</tt><big>(</big><em>newValue</em><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilityTimer.addValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilityTimer.addValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Associate a new value with the timer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>newValue</strong> : float</p>
+<blockquote class="last">
+<div><p>The value to add to the timer.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.StabilityTimer.getStableTime">
+<tt class="descname">getStableTime</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilityTimer.getStableTime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilityTimer.getStableTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return how long the timer has been stable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>How long the values associated with the timer have been
+close enough to be considered stable. If the values are
+<em>not</em> stable, return -1.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.StabilityTimer.getStats">
+<tt class="descname">getStats</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilityTimer.getStats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilityTimer.getStats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the maximum and minimum values and the slope of the line.</p>
+<p>Note that whenever a new value is added to the timer, if the new
+value is outside the stability range defined by previous values, the
+arrays are cleared and the maximum and minimum values are both set to
+the newly added value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote>
+<div><p>The maximum known value.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The minimum known value.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The slope of the line formed by the known values and the times
+at which the respective values were added, in units/s.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.StabilityTimer.isFinished">
+<tt class="descname">isFinished</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilityTimer.isFinished"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilityTimer.isFinished" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the desired conditions have been met.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the desired conditions have been met. Return <cite>True</cite>
+if either the timeout has elapsed or the value has remained
+stable for the specified length of time. Otherwise, return
+<cite>False</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.StabilityTimer.isStable">
+<tt class="descname">isStable</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilityTimer.isStable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilityTimer.isStable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the values are stable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the values associated with the specified timer are
+close enough to be considered stable.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.StabilityTimer.isTimeoutElapsed">
+<tt class="descname">isTimeoutElapsed</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#StabilityTimer.isTimeoutElapsed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.StabilityTimer.isTimeoutElapsed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the timer has timed out.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the timer has timed out.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="bufferedstabilitytimer">
+<h3>BufferedStabilityTimer<a class="headerlink" href="#bufferedstabilitytimer" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.tools.stability.BufferedStabilityTimer">
+<em class="property">class </em><tt class="descclassname">src.tools.stability.</tt><tt class="descname">BufferedStabilityTimer</tt><big>(</big><em>stability</em>, <em>bufferSize</em>, <em>timeout=None</em><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#BufferedStabilityTimer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.BufferedStabilityTimer" title="Permalink to this definition">¶</a></dt>
+<dd><p>A timer for checking for stability, which keeps only new points.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>stability</strong> : float</p>
+<blockquote>
+<div><p>The largest separation between the maximum and minimum known values
+for which the timer may consider itself to be stable.</p>
+</div></blockquote>
+<p><strong>bufferSize</strong> : int</p>
+<blockquote>
+<div><p>The maximum number of points to keep at any given time.</p>
+</div></blockquote>
+<p><strong>timeout</strong> : float</p>
+<blockquote class="last">
+<div><p>The maximum time in seconds to wait for the values to become 
+stable.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.tools.stability.BufferedStabilityTimer.addValue">
+<tt class="descname">addValue</tt><big>(</big><em>newValue</em><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#BufferedStabilityTimer.addValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.BufferedStabilityTimer.addValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Associate a new value with the timer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>newValue</strong> : float</p>
+<blockquote class="last">
+<div><p>The value to add to the timer.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.BufferedStabilityTimer.getStats">
+<tt class="descname">getStats</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#BufferedStabilityTimer.getStats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.BufferedStabilityTimer.getStats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the maximum and minimum values and the slope of the line.</p>
+<p>Note that whenever a new value is added to the timer, if the new
+value is outside the stability range defined by previous values, the
+arrays are cleared and the maximum and minimum values are both set to
+the newly added value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote>
+<div><p>The maximum known value.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The minimum known value.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The slope of the line formed by the known values and the times
+at which the respective values were added, in units/s.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.BufferedStabilityTimer.isBufferFull">
+<tt class="descname">isBufferFull</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#BufferedStabilityTimer.isBufferFull"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.BufferedStabilityTimer.isBufferFull" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the buffer is full.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the buffer is full.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.BufferedStabilityTimer.isFinished">
+<tt class="descname">isFinished</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#BufferedStabilityTimer.isFinished"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.BufferedStabilityTimer.isFinished" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the desired conditions have been met.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the desired conditions have been met. Return <cite>True</cite>
+if either the timeout has elapsed or the value has remained
+stable for the specified length of time. Otherwise, return
+<cite>False</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.BufferedStabilityTimer.isStable">
+<tt class="descname">isStable</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#BufferedStabilityTimer.isStable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.BufferedStabilityTimer.isStable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the values are stable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the values associated with the specified timer are
+close enough to be considered stable.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.stability.BufferedStabilityTimer.isTimeoutElapsed">
+<tt class="descname">isTimeoutElapsed</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/tools/stability.html#BufferedStabilityTimer.isTimeoutElapsed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.stability.BufferedStabilityTimer.isTimeoutElapsed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the timer has timed out.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the timer has timed out.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>stability</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#stabilitytrend">StabilityTrend</a></li>
+<li><a class="reference internal" href="#stabilitysetpoint">StabilitySetpoint</a></li>
+<li><a class="reference internal" href="#stabilitytimer">StabilityTimer</a></li>
+<li><a class="reference internal" href="#bufferedstabilitytimer">BufferedStabilityTimer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_tools_parsing.html"
+                        title="previous chapter">The <cite>parsing</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_tools_general.html"
+                        title="next chapter">The <cite>general</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_tools_stability.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_tools_general.html" title="The general module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_tools_parsing.html" title="The parsing module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_tools.html" >The <cite>tools</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

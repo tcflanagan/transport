@@ -1,0 +1,177 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.instruments.noauto.oxford_valve &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.instruments.noauto.oxford_valve</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Controller for an oxford valve.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">src.instruments.noauto.oxford_common</span> <span class="kn">import</span> <span class="n">OxfordCommon</span>
+
+<div class="viewcode-block" id="OxfordValve"><a class="viewcode-back" href="../../../../api_instruments_noauto_oxford_valve.html#src.instruments.noauto.oxford_valve.OxfordValve">[docs]</a><span class="k">class</span> <span class="nc">OxfordValve</span> <span class="p">(</span><span class="n">OxfordCommon</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This is a class to perform actions common to most Oxford Instruments</span>
+<span class="sd">    devices, including the ITC503, the PS120, and the IPS120.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        A name to identify the instrument</span>
+<span class="sd">    protocol : {&#39;ISOBUS&#39;, &#39;GPIB&#39;, &#39;Serial&#39;, &#39;Gateway Master&#39;, &#39;Gateway Slave&#39;}</span>
+<span class="sd">        The protocol for communication between the computer and the power</span>
+<span class="sd">        supply.</span>
+<span class="sd">    isobusAddress : str</span>
+<span class="sd">        An integer string representing the ISOBUS address, if relevant. An</span>
+<span class="sd">        integer will be accepted and converted.</span>
+<span class="sd">    visaAddress : str</span>
+<span class="sd">        A full VISA resource address (including the bus) to locate the </span>
+<span class="sd">        instrument (e.g. &quot;GPIB0::27&quot;).</span>
+<span class="sd">    serialConfig : dict</span>
+<span class="sd">        A dictionary to indicate how to configure a serial port, which is used</span>
+<span class="sd">        with both the &#39;ISOBUS&#39; and &#39;Serial&#39; protocols.</span>
+<span class="sd">    normallyClosed : bool</span>
+<span class="sd">        Whether the valve is normally closed. `False` means the valve is</span>
+<span class="sd">        normally open.</span>
+<span class="sd">        </span>
+<span class="sd">    Methods</span>
+<span class="sd">    -------</span>
+<span class="sd">    openCommunication()</span>
+<span class="sd">        Open a new (protocol-specific) communication channel between the</span>
+<span class="sd">        computer and the instrument, initializing initializing the ports</span>
+<span class="sd">        and sending device clears as appropriate.</span>
+<span class="sd">    closeCommunication()</span>
+<span class="sd">        Close the communication channel between the computer and the</span>
+<span class="sd">        instrument, freeing reserved resources.</span>
+<span class="sd">    communicate(command)</span>
+<span class="sd">        Send a command (str) to the instrument and read its response.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;Valve&#39;</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="s">&#39;ISOBUS&#39;</span><span class="p">,</span> <span class="n">isobusAddress</span><span class="o">=</span><span class="s">&#39;0&#39;</span><span class="p">,</span> 
+                 <span class="n">visaAddress</span><span class="o">=</span><span class="s">&#39;GPIB0::23&#39;</span><span class="p">,</span> <span class="n">serialConfig</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+                 <span class="n">present</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">normallyClosed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="s">&#39;1&#39;</span><span class="p">):</span>
+        
+        <span class="nb">super</span><span class="p">(</span><span class="n">OxfordValve</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">isobusAddress</span><span class="p">,</span>
+                                          <span class="n">visaAddress</span><span class="p">,</span> <span class="n">serialConfig</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_present</span> <span class="o">=</span> <span class="n">present</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_channel</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">int</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">normallyClosed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_openCommand</span> <span class="o">=</span> <span class="s">&#39;S&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel</span> <span class="o">+</span> <span class="s">&#39;1&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_closeCommand</span> <span class="o">=</span> <span class="s">&#39;S&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel</span> <span class="o">+</span> <span class="s">&#39;0&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_openCondition</span> <span class="o">=</span> <span class="s">&#39;1&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_openCommand</span> <span class="o">=</span> <span class="s">&#39;S&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel</span> <span class="o">+</span> <span class="s">&#39;0&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_closeCommand</span> <span class="o">=</span> <span class="s">&#39;S&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel</span> <span class="o">+</span> <span class="s">&#39;1&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_openCondition</span> <span class="o">=</span> <span class="s">&#39;0&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_normallyClosed</span> <span class="o">=</span> <span class="n">normallyClosed</span>
+    
+<div class="viewcode-block" id="OxfordValve.openValve"><a class="viewcode-back" href="../../../../api_instruments_noauto_oxford_valve.html#src.instruments.noauto.oxford_valve.OxfordValve.openValve">[docs]</a>    <span class="k">def</span> <span class="nf">openValve</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Open the valve.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_openCommand</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="OxfordValve.closeValve"><a class="viewcode-back" href="../../../../api_instruments_noauto_oxford_valve.html#src.instruments.noauto.oxford_valve.OxfordValve.closeValve">[docs]</a>    <span class="k">def</span> <span class="nf">closeValve</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close the valve.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_closeCommand</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="OxfordValve.getOpen"><a class="viewcode-back" href="../../../../api_instruments_noauto_oxford_valve.html#src.instruments.noauto.oxford_valve.OxfordValve.getOpen">[docs]</a>    <span class="k">def</span> <span class="nf">getOpen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether the valve is open.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            `True` if the valve is open, or `False` if it is closed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;R&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_openCondition</span>
+        </div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,219 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.instruments.keithley6220 &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.instruments.keithley6220</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">``Instrument`` representation of a Keithley 6220 DC Current Source</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Keithley6220&#39;</span><span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">fabs</span>
+
+<span class="kn">from</span> <span class="nn">src.core</span> <span class="kn">import</span> <span class="n">instrument</span> <span class="k">as</span> <span class="n">inst</span>
+<span class="kn">from</span> <span class="nn">src.core.action</span> <span class="kn">import</span> <span class="n">Action</span><span class="p">,</span> <span class="n">ActionSpec</span><span class="p">,</span> <span class="n">ParameterSpec</span>
+
+<span class="kn">from</span> <span class="nn">src.core.instrument</span> <span class="kn">import</span> <span class="n">visa</span>
+
+<span class="n">MIN_CURRENT</span> <span class="o">=</span> <span class="mf">0.105</span>
+<span class="n">CURRENT_STRING</span> <span class="o">=</span> <span class="s">&#39;:SOURce:CURRent:LEVel:IMMediate:AMPlitude&#39;</span>
+
+<div class="viewcode-block" id="Keithley6220"><a class="viewcode-back" href="../../../api_instruments_keithley6220.html#src.instruments.keithley6220.Keithley6220">[docs]</a><span class="k">class</span> <span class="nc">Keithley6220</span><span class="p">(</span><span class="n">inst</span><span class="o">.</span><span class="n">Instrument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Driver for a Keithley 6220 current source.&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;Keithley6220: DC current source&#39;</span><span class="p">,</span> 
+                 <span class="n">spec</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Keithley6220</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">=</span> <span class="s">&#39;Name: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Model: Keithley6220 DC current source&#39;</span>
+
+<div class="viewcode-block" id="Keithley6220.initialize"><a class="viewcode-back" href="../../../api_instruments_keithley6220.html#src.instruments.keithley6220.Keithley6220.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Open the communication channel.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span> <span class="o">=</span> <span class="n">visa</span><span class="o">.</span><span class="n">instrument</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getSpecification</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s">&#39;*IDN?&#39;</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="Keithley6220.finalize"><a class="viewcode-back" href="../../../api_instruments_keithley6220.html#src.instruments.keithley6220.Keithley6220.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close the communication channel.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">CURRENT_STRING</span> <span class="o">+</span> <span class="s">&#39; 0&#39;</span><span class="p">)</span>
+                </div>
+<div class="viewcode-block" id="Keithley6220.getAddress"><a class="viewcode-back" href="../../../api_instruments_keithley6220.html#src.instruments.keithley6220.Keithley6220.getAddress">[docs]</a>    <span class="k">def</span> <span class="nf">getAddress</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the instrument&#39;s VISA resource address.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSpecification</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+    </div>
+<div class="viewcode-block" id="Keithley6220.setCurrent"><a class="viewcode-back" href="../../../api_instruments_keithley6220.html#src.instruments.keithley6220.Keithley6220.setCurrent">[docs]</a>    <span class="k">def</span> <span class="nf">setCurrent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the current source&#39;s output current.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">fabs</span><span class="p">(</span><span class="n">current</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">MIN_CURRENT</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;: Current &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">current</span><span class="p">)</span> <span class="o">+</span> 
+                          <span class="s">&#39; out of range. Setting to zero.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">CURRENT_STRING</span> <span class="o">+</span> <span class="s">&#39; 0&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">CURRENT_STRING</span> <span class="o">+</span> <span class="s">&#39; </span><span class="si">%.6e</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">current</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">()</span>
+        </div>
+<div class="viewcode-block" id="Keithley6220.getCurrent"><a class="viewcode-back" href="../../../api_instruments_keithley6220.html#src.instruments.keithley6220.Keithley6220.getCurrent">[docs]</a>    <span class="k">def</span> <span class="nf">getCurrent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the output current from the current source.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">CURRENT_STRING</span> <span class="o">+</span> <span class="s">&#39;?&#39;</span><span class="p">)),</span> <span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="Keithley6220.setOutput"><a class="viewcode-back" href="../../../api_instruments_keithley6220.html#src.instruments.keithley6220.Keithley6220.setOutput">[docs]</a>    <span class="k">def</span> <span class="nf">setOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Toggle the output current on and off.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;:OUTPut &#39;</span> <span class="o">+</span> <span class="n">output</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="Keithley6220.getActions"><a class="viewcode-back" href="../../../api_instruments_keithley6220.html#src.instruments.keithley6220.Keithley6220.getActions">[docs]</a>    <span class="k">def</span> <span class="nf">getActions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the list of supported actions.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span>
+                <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;set_current&#39;</span><span class="p">,</span> <span class="n">Action</span><span class="p">,</span>
+                    <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                     <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span> 
+                     <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Set current&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;inputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                         <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;current&#39;</span><span class="p">,</span>
+                             <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                              <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Current&#39;</span><span class="p">,</span> 
+                              <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.6e</span><span class="s">&#39;</span><span class="p">,</span> 
+                              <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="s">&#39;Current&#39;</span><span class="p">,</span>
+                              <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;column&#39;</span><span class="p">})</span>
+                     <span class="p">],</span>
+                     <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;Set current to $current.&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">setCurrent</span><span class="p">}</span>
+                <span class="p">),</span>
+                <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;get_current&#39;</span><span class="p">,</span> <span class="n">Action</span><span class="p">,</span>
+                    <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                     <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span> 
+                     <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Get current&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;outputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                         <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;current&#39;</span><span class="p">,</span>
+                            <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                             <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Current&#39;</span><span class="p">,</span> 
+                             <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.6e</span><span class="s">&#39;</span><span class="p">,</span> 
+                             <span class="s">&#39;binName&#39;</span><span class="p">:</span> <span class="s">&#39;Current&#39;</span><span class="p">,</span>
+                             <span class="s">&#39;binType&#39;</span><span class="p">:</span> <span class="s">&#39;column&#39;</span><span class="p">})</span>
+                     <span class="p">],</span>
+                     <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;Read current.&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getCurrent</span><span class="p">}</span>
+                <span class="p">),</span>
+                <span class="n">ActionSpec</span><span class="p">(</span><span class="s">&#39;set_outp&#39;</span><span class="p">,</span> <span class="n">Action</span><span class="p">,</span>
+                    <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                     <span class="s">&#39;instrument&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span> 
+                     <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Toggle current output&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;inputs&#39;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="n">ParameterSpec</span><span class="p">(</span><span class="s">&#39;output&#39;</span><span class="p">,</span>
+                            <span class="p">{</span><span class="s">&#39;experiment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span><span class="p">,</span> 
+                             <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;Output&#39;</span><span class="p">,</span> 
+                             <span class="s">&#39;formatString&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span>
+                             <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;On&#39;</span><span class="p">,</span> 
+                             <span class="s">&#39;allowed&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;On&#39;</span><span class="p">,</span> <span class="s">&#39;Off&#39;</span><span class="p">]})</span>
+                     <span class="p">],</span>
+                     <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;Turn current output $output.&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">setOutput</span><span class="p">}</span>
+                <span class="p">)</span>
+        <span class="p">]</span>
+                
+                
+
+            
+    <span class="c">#===========================================================================</span>
+    <span class="c"># Class methods</span>
+    <span class="c">#===========================================================================</span></div>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getRequiredParameters</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">inst</span><span class="o">.</span><span class="n">InstrumentParameter</span><span class="p">(</span><span class="s">&#39;VISA Address&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> 
+                                         <span class="n">inst</span><span class="o">.</span><span class="n">getVisaAddresses</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">)]</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,591 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The old_config_parser module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.tools.old_config_parser">
+<span id="the-old-config-parser-module"></span><h1>The <cite>old_config_parser</cite> module<a class="headerlink" href="#module-src.tools.old_config_parser" title="Permalink to this headline">¶</a></h1>
+<p>An improved version of ConfigParser</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="configparser">
+<h3>ConfigParser<a class="headerlink" href="#configparser" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.tools.old_config_parser.ConfigParser">
+<em class="property">class </em><tt class="descclassname">src.tools.old_config_parser.</tt><tt class="descname">ConfigParser</tt><big>(</big><em>filename</em>, <em>optionDefaults</em>, <em>substitutionDefaults=None</em><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.ConfigParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper class for a configuration file parser.</p>
+<p><cite>MyConfigParser</cite> wraps the <cite>ConfigParser.ConfigParser</cite> object to add some
+extra functionality, including getting lists of tuples and automatically
+writing to the configuration file when values are changed (or when
+the requested data is not present).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>filename</strong> : str</p>
+<blockquote>
+<div><p>The path to the configuration file.</p>
+</div></blockquote>
+<p><strong>optionDefaults</strong> : dict</p>
+<blockquote>
+<div><p>A dictionary of default values for the configuration parameters. The
+keys should be tuples of the form (section name, option name).</p>
+</div></blockquote>
+<p><strong>substitutionDefaults</strong> : dict</p>
+<blockquote class="last">
+<div><p>A dictionary of values to be used in variable substitutions in the
+configuration file.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.tools.old_config_parser.ConfigParser.get">
+<tt class="descname">get</tt><big>(</big><em>section</em>, <em>option</em><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.ConfigParser.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a string value for a specified key in a specified section.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>section</strong> : str</p>
+<blockquote>
+<div><p>The section from which to read the value.</p>
+</div></blockquote>
+<p><strong>option</strong> : str</p>
+<blockquote>
+<div><p>The key within <cite>section</cite> whose value should be read.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>The value associated with the key <cite>option</cite> in section <cite>section</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.old_config_parser.ConfigParser.getBoolean">
+<tt class="descname">getBoolean</tt><big>(</big><em>section</em>, <em>option</em><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.ConfigParser.getBoolean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a boolean value for a specified key in a specified section.</p>
+<p>If the specified key does not exist, it will be added (adding the
+section, also, if necessary).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>section</strong> : str</p>
+<blockquote>
+<div><p>The section from which to read the value.</p>
+</div></blockquote>
+<p><strong>option</strong> : str</p>
+<blockquote>
+<div><p>The key within <cite>section</cite> whose value should be read.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>The value associated with the key <cite>option</cite> in section <cite>section</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.old_config_parser.ConfigParser.getFloat">
+<tt class="descname">getFloat</tt><big>(</big><em>section</em>, <em>option</em><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.ConfigParser.getFloat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a float value for a specified key in a specified section.</p>
+<p>If the specified key does not exist, it will be added (adding the
+section, also, if necessary).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>section</strong> : str</p>
+<blockquote>
+<div><p>The section from which to read the value.</p>
+</div></blockquote>
+<p><strong>option</strong> : str</p>
+<blockquote>
+<div><p>The key within <cite>section</cite> whose value should be read.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The value associated with the key <cite>option</cite> in section <cite>section</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.old_config_parser.ConfigParser.getInt">
+<tt class="descname">getInt</tt><big>(</big><em>section</em>, <em>option</em><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.ConfigParser.getInt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read an integer value for a specified key in a specified section.</p>
+<p>If the specified key does not exist, it will be added (adding the
+section, also, if necessary).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>section</strong> : str</p>
+<blockquote>
+<div><p>The section from which to read the value.</p>
+</div></blockquote>
+<p><strong>option</strong> : str</p>
+<blockquote>
+<div><p>The key within <cite>section</cite> whose value should be read.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>int</strong> :</p>
+<blockquote class="last">
+<div><p>The value associated with the key <cite>option</cite> in section <cite>section</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.old_config_parser.ConfigParser.getSpecial">
+<tt class="descname">getSpecial</tt><big>(</big><em>section</em>, <em>option</em><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.ConfigParser.getSpecial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a more complicated structure associated with a specified key.</p>
+<p>If the specified key does not exist, it will be added (adding the
+section, also, if necessary).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>section</strong> : str</p>
+<blockquote>
+<div><p>The section from which to read the value.</p>
+</div></blockquote>
+<p><strong>option</strong> : str</p>
+<blockquote>
+<div><p>The key within <cite>section</cite> whose value should be read.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>variable</strong> :</p>
+<blockquote class="last">
+<div><p>The value associated with the key <cite>option</cite> in section <cite>section</cite>,
+passed through the <cite>eval</cite> function.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.old_config_parser.ConfigParser.set">
+<tt class="descname">set</tt><big>(</big><em>section</em>, <em>option</em>, <em>value</em>, <em>addSection=False</em><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.ConfigParser.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value of some key, and update the file accordingly.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>section</strong> : str</p>
+<blockquote>
+<div><p>The name of the section into which the value should be saved.</p>
+</div></blockquote>
+<p><strong>option</strong> : str</p>
+<blockquote>
+<div><p>The key within <cite>section</cite> with which the value should be associated.</p>
+</div></blockquote>
+<p><strong>value</strong> : variable</p>
+<blockquote>
+<div><p>The value which should be associated with the specified key.</p>
+</div></blockquote>
+<p><strong>addSection</strong> : bool</p>
+<blockquote>
+<div><p>Whether to create the specified section before setting the value.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>variable</strong> :</p>
+<blockquote class="last">
+<div><p>The unchanged value of <cite>value</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="autoparser">
+<h3>AutoParser<a class="headerlink" href="#autoparser" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.tools.old_config_parser.AutoParser">
+<em class="property">class </em><tt class="descclassname">src.tools.old_config_parser.</tt><tt class="descname">AutoParser</tt><big>(</big><em>filename</em>, <em>defaults=None</em><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.AutoParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>A configuration file parser which automatically loads sections.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>filename</strong> : str</p>
+<blockquote class="last">
+<div><p>The absolute path of the configuration file.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.tools.old_config_parser.AutoParser.getOptions">
+<tt class="descname">getOptions</tt><big>(</big><em>section</em><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.AutoParser.getOptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of the options within a section.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>section</strong> : str</p>
+<blockquote>
+<div><p>The name of the section whose options should be returned.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of str</strong> :</p>
+<blockquote class="last">
+<div><p>The names of the options within the specified section.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.old_config_parser.AutoParser.getSections">
+<tt class="descname">getSections</tt><big>(</big><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.AutoParser.getSections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of the sections in the configuration file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of str</strong> :</p>
+<blockquote class="last">
+<div><p>A list of strings, each of which is the title of a section in
+the configuration file.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.old_config_parser.AutoParser.hasSection">
+<tt class="descname">hasSection</tt><big>(</big><em>section</em><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.AutoParser.hasSection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the configuration file contains the named section.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>section</strong> : str</p>
+<blockquote>
+<div><p>The section for which to check.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the specified section exists in the configuration file.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.old_config_parser.AutoParser.loadSection">
+<tt class="descname">loadSection</tt><big>(</big><em>section</em><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.AutoParser.loadSection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the data from a section, converting to the correct types.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>section</strong> : str</p>
+<blockquote>
+<div><p>The name of the section from which to load the data.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>dict</strong> :</p>
+<blockquote class="last">
+<div><p>A dictionary in which the keys are the names of the options in the
+section, and the values are the values associated with the
+respective option. The type conversion understands strings, floats,
+integers, booleans (True, False, Yes, and No, case insensitive),
+None, and lists of these.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="evalparser">
+<h3>EvalParser<a class="headerlink" href="#evalparser" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.tools.old_config_parser.EvalParser">
+<em class="property">class </em><tt class="descclassname">src.tools.old_config_parser.</tt><tt class="descname">EvalParser</tt><big>(</big><em>configFile</em>, <em>defaults=None</em>, <em>preserveCase=True</em><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.EvalParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>A configuration parser which uses eval and repr to deal with types.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>configFile</strong> : str</p>
+<blockquote>
+<div><p>The absolute path to the configuration file.</p>
+</div></blockquote>
+<p><strong>defaults</strong> : dict</p>
+<blockquote class="last">
+<div><p>A dictionary of default substitution parameters for the configuration
+file.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.tools.old_config_parser.EvalParser.get">
+<tt class="descname">get</tt><big>(</big><em>section</em>, <em>option</em>, <em>default=None</em><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.EvalParser.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value associated with the specified option.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>section</strong> : str</p>
+<blockquote>
+<div><p>The section containing the option whose value is sought.</p>
+</div></blockquote>
+<p><strong>option</strong> : str</p>
+<blockquote>
+<div><p>The option whose value is sought.</p>
+</div></blockquote>
+<p><strong>default</strong> : variant</p>
+<blockquote>
+<div><p>The value to return if the requested section and option are not
+present in the file.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>variant</strong> :</p>
+<blockquote class="last">
+<div><p>The value associated with the requested key.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.old_config_parser.EvalParser.getOptions">
+<tt class="descname">getOptions</tt><big>(</big><em>section</em><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.EvalParser.getOptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of options in a section of the configuration file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of str</strong> :</p>
+<blockquote class="last">
+<div><p>A list containing the keys in a specified section of the
+configuration file.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.old_config_parser.EvalParser.getSections">
+<tt class="descname">getSections</tt><big>(</big><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.EvalParser.getSections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of section names in the configuration file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of str</strong> :</p>
+<blockquote class="last">
+<div><p>A list containing the names of the sections in the configuration
+file.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.tools.old_config_parser.EvalParser.set">
+<tt class="descname">set</tt><big>(</big><em>section</em>, <em>option</em>, <em>value</em><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.EvalParser.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value associated with a specified key in a specified section.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.tools.old_config_parser.processValue">
+<tt class="descclassname">src.tools.old_config_parser.</tt><tt class="descname">processValue</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#src.tools.old_config_parser.processValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the loaded value to the correct type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>value</strong> : str</p>
+<blockquote>
+<div><p>The value to parse.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>variable</strong> :</p>
+<blockquote class="last">
+<div><p>The input <cite>value</cite> converted to the appropriate type.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>old_config_parser</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#configparser">ConfigParser</a></li>
+<li><a class="reference internal" href="#autoparser">AutoParser</a></li>
+<li><a class="reference internal" href="#evalparser">EvalParser</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_tools_old_config_parser.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

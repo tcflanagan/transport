@@ -1,0 +1,1002 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The gui_helpers module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The gui package" href="api_gui.html" />
+    <link rel="next" title="The core package" href="api_core.html" />
+    <link rel="prev" title="The images module" href="api_gui_images.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_core.html" title="The core package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_images.html" title="The images module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" accesskey="U">The <cite>gui</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.gui.gui_helpers">
+<span id="the-gui-helpers-module"></span><h1>The <cite>gui_helpers</cite> module<a class="headerlink" href="#module-src.gui.gui_helpers" title="Permalink to this headline">¶</a></h1>
+<p>Classes and functions to facilitate general wx actions.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="keyvallistctrl">
+<h3>KeyValListCtrl<a class="headerlink" href="#keyvallistctrl" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.gui_helpers.KeyValListCtrl">
+<em class="property">class </em><tt class="descclassname">src.gui.gui_helpers.</tt><tt class="descname">KeyValListCtrl</tt><big>(</big><em>parent</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#KeyValListCtrl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.KeyValListCtrl" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list control for managing typed key-value pairs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote class="last">
+<div><p>The panel or frame which contains this control.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+</dd></dl>
+
+</div>
+<div class="section" id="basedialog">
+<h3>BaseDialog<a class="headerlink" href="#basedialog" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.gui_helpers.BaseDialog">
+<em class="property">class </em><tt class="descclassname">src.gui.gui_helpers.</tt><tt class="descname">BaseDialog</tt><big>(</big><em>parent</em>, <em>wxId=-1</em>, <em>title='Dialog'</em>, <em>info=None</em>, <em>minWidth=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#BaseDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.BaseDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>A base class to be extended by dialogs.</p>
+<p>Note: it is important to call this class&#8217;s <cite>finish</cite> method after all
+components have been added.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The panel or frame which spawns this dialog.</p>
+</div></blockquote>
+<p><strong>wxId</strong> : int</p>
+<blockquote>
+<div><p>The wxPython identification number for this dialog.</p>
+</div></blockquote>
+<p><strong>title</strong> : str</p>
+<blockquote>
+<div><p>The title to display in the dialog&#8217;s title bar.</p>
+</div></blockquote>
+<p><strong>info</strong> : tuple of str</p>
+<blockquote class="last">
+<div><p>A tuple of strings. The first is the title of the info bar, and the
+second is the text of the info bar. The info bar will not be displayed
+if <cite>infoBar</cite> is <cite>None</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.gui_helpers.BaseDialog.setPanel">
+<tt class="descname">setPanel</tt><big>(</big><em>panel</em>, <em>proportion=1</em>, <em>flags=8432</em>, <em>border=5</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#BaseDialog.setPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.BaseDialog.setPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finish laying out the panel.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.BaseDialog.update">
+<tt class="descname">update</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#BaseDialog.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.BaseDialog.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update whatever objects this dialog is supposed to modify.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the attempt to update the appropriate objects was
+successful.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="infobar">
+<h3>InfoBar<a class="headerlink" href="#infobar" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="staticwraptext">
+<h3>StaticWrapText<a class="headerlink" href="#staticwraptext" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="panel">
+<h3>Panel<a class="headerlink" href="#panel" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.gui_helpers.Panel">
+<em class="property">class </em><tt class="descclassname">src.gui.gui_helpers.</tt><tt class="descname">Panel</tt><big>(</big><em>parent</em>, <em>sizerType='vertical'</em>, <em>label=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#Panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.Panel" title="Permalink to this definition">¶</a></dt>
+<dd><p>A panel subclass which builds in sizer support.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.gui_helpers.Panel.add">
+<tt class="descname">add</tt><big>(</big><em>item</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#Panel.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.Panel.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an item to the panel&#8217;s sizer.</p>
+<p>All extra arguments are passed to the <cite>sizer.Add</cite> method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>item</strong> : wxWindow</p>
+<blockquote class="last">
+<div><p>The control to add to the panel.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.Panel.addButton">
+<tt class="descname">addButton</tt><big>(</big><em>label</em>, <em>wxId=-1</em>, <em>border=3</em>, <em>handler=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#Panel.addButton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.Panel.addButton" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new button and add it to the panel.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>label</strong> : str</p>
+<blockquote>
+<div><p>The text which should go on the button.</p>
+</div></blockquote>
+<p><strong>wxId</strong> : int</p>
+<blockquote>
+<div><p>The ID for the button.</p>
+</div></blockquote>
+<p><strong>border</strong> : int</p>
+<blockquote>
+<div><p>The size in pixels of the border to go around the button.</p>
+</div></blockquote>
+<p><strong>handler</strong> : method</p>
+<blockquote>
+<div><p>The method to execute when the button is clicked.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>wxButton</strong> :</p>
+<blockquote class="last">
+<div><p>The button created by this method.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.Panel.addGrowableColumn">
+<tt class="descname">addGrowableColumn</tt><big>(</big><em>index</em>, <em>proportion=1</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#Panel.addGrowableColumn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.Panel.addGrowableColumn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a column growable in a flexible sizer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>index</strong> : int</p>
+<blockquote>
+<div><p>The index of the column to allow to expand.</p>
+</div></blockquote>
+<p><strong>proportion</strong> : int</p>
+<blockquote class="last">
+<div><p>The weighting factor for expansion.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.Panel.addLabel">
+<tt class="descname">addLabel</tt><big>(</big><em>text</em>, <em>border=3</em>, <em>flag=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#Panel.addLabel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.Panel.addLabel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a text label to the control using default options.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>text</strong> : str</p>
+<blockquote>
+<div><p>The text of the label to add.</p>
+</div></blockquote>
+<p><strong>border</strong> : int</p>
+<blockquote>
+<div><p>The width in pixels of the border which will surround the new
+text label.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>wxStaticText</strong> :</p>
+<blockquote class="last">
+<div><p>The added text label.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.Panel.addLabeledComboBox">
+<tt class="descname">addLabeledComboBox</tt><big>(</big><em>label</em>, <em>initialValue=''</em>, <em>choices=None</em>, <em>border=0</em>, <em>style=0</em>, <em>defocusHandler=None</em>, <em>valueHandler=None</em>, <em>proportion=1</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#Panel.addLabeledComboBox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.Panel.addLabeledComboBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a label and a text control.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>label</strong> : str</p>
+<blockquote>
+<div><p>The text to label the combo box.</p>
+</div></blockquote>
+<p><strong>initialValue</strong> : str</p>
+<blockquote>
+<div><p>The initial value of the combo box.</p>
+</div></blockquote>
+<p><strong>choices</strong> : list of str</p>
+<blockquote>
+<div><p>The accepted values for the combo box.</p>
+</div></blockquote>
+<p><strong>border</strong> : int</p>
+<blockquote>
+<div><p>The width in pixels of the border which will surround both the
+new label and the new combo box.</p>
+</div></blockquote>
+<p><strong>style</strong> : int</p>
+<blockquote>
+<div><p>The style (in terms of <cite>wx</cite> constants) of the combo box.</p>
+</div></blockquote>
+<p><strong>defocusHandler</strong> : method</p>
+<blockquote>
+<div><p>The method to execute when the combo box loses focus.</p>
+</div></blockquote>
+<p><strong>valueHandler</strong> : method</p>
+<blockquote>
+<div><p>The method to execute when the selection of the combo box changes.</p>
+</div></blockquote>
+<p><strong>proportion</strong> : int</p>
+<blockquote class="last">
+<div><p>The weighting factor for sizing the combo box.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.Panel.addLabeledMultiCtrl">
+<tt class="descname">addLabeledMultiCtrl</tt><big>(</big><em>label</em>, <em>initialValue=None</em>, <em>allowed=None</em>, <em>border=0</em>, <em>style=0</em>, <em>defocusHandler=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#Panel.addLabeledMultiCtrl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.Panel.addLabeledMultiCtrl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a label and text controls to the panel.</p>
+<p>The number of controls to be added will be determined by
+<cite>initialValue</cite>. There will be one item for each value of <cite>initialValue</cite>,
+If the value of <cite>allowed</cite> at the same position as a value of
+<cite>initialValue</cite> is a list, the created control will be a <cite>wxComboBox</cite>
+with the listed choices available.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>label</strong> : str</p>
+<blockquote>
+<div><p>The text to label the text control.</p>
+</div></blockquote>
+<p><strong>initialValue</strong> : list of str</p>
+<blockquote>
+<div><p>The initial values of the text controls.</p>
+</div></blockquote>
+<p><strong>allowed</strong> : list of list of str</p>
+<blockquote>
+<div><p>A list of lists of strings. Each element in the outer list
+corresponds to a single control. The strings in the inner
+list correspond to the allowed values for the control. If
+any element of the outer list is <cite>None</cite>, that list item will
+create a <cite>wxTextCtrl</cite> instead of a <cite>wxComboBox</cite>.</p>
+</div></blockquote>
+<p><strong>border</strong> : int</p>
+<blockquote>
+<div><p>The width in pixels of the border which will surround both the
+new label and the new text control.</p>
+</div></blockquote>
+<p><strong>style</strong> : int</p>
+<blockquote>
+<div><p>The style (in terms of <cite>wx</cite> constants) of the text control.</p>
+</div></blockquote>
+<p><strong>defocusHandler</strong> : method or list of method</p>
+<blockquote>
+<div><p>The method to execute when the text control loses focus. If it is
+a list, the handlers will be applied sequentially to the controls
+created for each element in <cite>initialValue</cite>. If it is a single
+method, the same method will be bound to all controls.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of (wxTextCtrl or wxComboBox)</strong> :</p>
+<blockquote class="last">
+<div><p>The list of text controls and combo box controls which have been 
+created and added to the panel.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.Panel.addLabeledText">
+<tt class="descname">addLabeledText</tt><big>(</big><em>label</em>, <em>initialValue=None</em>, <em>border=0</em>, <em>style=0</em>, <em>defocusHandler=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#Panel.addLabeledText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.Panel.addLabeledText" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a label and a text control.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>label</strong> : str</p>
+<blockquote>
+<div><p>The text to label the text control.</p>
+</div></blockquote>
+<p><strong>initialValue</strong> : str</p>
+<blockquote>
+<div><p>The initial value of the text control.</p>
+</div></blockquote>
+<p><strong>border</strong> : int</p>
+<blockquote>
+<div><p>The width in pixels of the border which will surround both the
+new label and the new text control.</p>
+</div></blockquote>
+<p><strong>style</strong> : int</p>
+<blockquote>
+<div><p>The style (in terms of <cite>wx</cite> constants) of the text control.</p>
+</div></blockquote>
+<p><strong>defocusHandler</strong> : method</p>
+<blockquote>
+<div><p>The method to execute when the text control loses focus.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>wxTextCtrl</strong> :</p>
+<blockquote class="last">
+<div><p>The text control which has been created and added to the panel.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.Panel.addStretchSpacer">
+<tt class="descname">addStretchSpacer</tt><big>(</big><em>proportion</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#Panel.addStretchSpacer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.Panel.addStretchSpacer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a stretchable spacer to the panel.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>proportion</strong> : int</p>
+<blockquote class="last">
+<div><p>The weighting factor for expansion.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.Panel.setLabel">
+<tt class="descname">setLabel</tt><big>(</big><em>newLabel</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#Panel.setLabel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.Panel.setLabel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the label for the border.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>newLabel</strong> : str</p>
+<blockquote class="last">
+<div><p>The new label for the panel&#8217;s border.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="scanpanel">
+<h3>ScanPanel<a class="headerlink" href="#scanpanel" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.gui_helpers.ScanPanel">
+<em class="property">class </em><tt class="descclassname">src.gui.gui_helpers.</tt><tt class="descname">ScanPanel</tt><big>(</big><em>parent</em>, <em>wxId=-1</em>, <em>initialData=None</em>, <em>formatString='%.3f'</em>, <em>buttonIcons=True</em>, <em>label=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#ScanPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.ScanPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>A scan panel with extra options.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The panel or frame which contains this panel.</p>
+</div></blockquote>
+<p><strong>wxId</strong> : int</p>
+<blockquote>
+<div><p>The ID of this panel.</p>
+</div></blockquote>
+<p><strong>initialData</strong> : list of tuple of float</p>
+<blockquote>
+<div><p>The data the table should contain initially. Each tuple is one row
+and should be of the form (initial point, final point, step size),
+where all are in the same units.</p>
+</div></blockquote>
+<p><strong>formatString</strong> : str</p>
+<blockquote>
+<div><p>The string used to format the floats into appropriate strings.</p>
+</div></blockquote>
+<p><strong>buttonIcons</strong> : bool</p>
+<blockquote>
+<div><p>Whether to use icons for the editing buttons. If <cite>False</cite>, text will
+be used instead.</p>
+</div></blockquote>
+<p><strong>label</strong> : str</p>
+<blockquote class="last">
+<div><p>The label to surround the panel. If <cite>None</cite>, the panel will not have
+either a label or a border.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.gui_helpers.ScanPanel.formatData">
+<tt class="descname">formatData</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#ScanPanel.formatData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.ScanPanel.formatData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format the data in the control using the format string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.ScanPanel.getData">
+<tt class="descname">getData</tt><big>(</big><em>formatData=False</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#ScanPanel.getData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.ScanPanel.getData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the data values from the table control.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>formatData</strong> : bool</p>
+<blockquote>
+<div><p>Whether to format the data before returning it from the table.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of tuple of str</strong> :</p>
+<blockquote class="last">
+<div><p>The data from the list control. Each tuple represents one row.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.ScanPanel.getRowData">
+<tt class="descname">getRowData</tt><big>(</big><em>index</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#ScanPanel.getRowData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.ScanPanel.getRowData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the data from one row of the table.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>index</strong> : int</p>
+<blockquote>
+<div><p>The index of the row whose data should be returned.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of str</strong> :</p>
+<blockquote class="last">
+<div><p>A list of strings containing the data from the specified row.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.ScanPanel.onAdd">
+<tt class="descname">onAdd</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#ScanPanel.onAdd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.ScanPanel.onAdd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a new item.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.ScanPanel.onInsert">
+<tt class="descname">onInsert</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#ScanPanel.onInsert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.ScanPanel.onInsert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert an item at the current position</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.ScanPanel.onMoveDown">
+<tt class="descname">onMoveDown</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#ScanPanel.onMoveDown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.ScanPanel.onMoveDown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move the selected item down.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.ScanPanel.onMoveUp">
+<tt class="descname">onMoveUp</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#ScanPanel.onMoveUp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.ScanPanel.onMoveUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move the currently selected item up.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.ScanPanel.onRemove">
+<tt class="descname">onRemove</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#ScanPanel.onRemove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.ScanPanel.onRemove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the selected item.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.gui_helpers.ScanPanel.setData">
+<tt class="descname">setData</tt><big>(</big><em>data</em>, <em>formatData=True</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#ScanPanel.setData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.ScanPanel.setData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the data values in the table control.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>data</strong> : list of tuple</p>
+<blockquote>
+<div><p>A list of tuples, where each tuple contains the data for one row.
+The data type of the elements in the tuples can be <cite>str</cite>, <cite>int</cite>, or
+<cite>float</cite>, as long as it can be cast to <cite>float</cite>.</p>
+</div></blockquote>
+<p><strong>formatData</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether to format the data before passing it to the table control.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="errordialog">
+<h3>ErrorDialog<a class="headerlink" href="#errordialog" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.gui_helpers.ErrorDialog">
+<em class="property">class </em><tt class="descclassname">src.gui.gui_helpers.</tt><tt class="descname">ErrorDialog</tt><big>(</big><em>parent</em>, <em>error</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#ErrorDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.ErrorDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dialog for displaying general sequence errors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The panel or frame which spawns this dialog.</p>
+</div></blockquote>
+<p><strong>error</strong> : GeneralExperimentError</p>
+<blockquote class="last">
+<div><p>The exception whose contents should be displayed in the dialog.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+</dd></dl>
+
+</div>
+<div class="section" id="comboboxprompter">
+<h3>ComboBoxPrompter<a class="headerlink" href="#comboboxprompter" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.gui_helpers.ComboBoxPrompter">
+<em class="property">class </em><tt class="descclassname">src.gui.gui_helpers.</tt><tt class="descname">ComboBoxPrompter</tt><big>(</big><em>parent=None</em>, <em>width=60</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#ComboBoxPrompter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.ComboBoxPrompter" title="Permalink to this definition">¶</a></dt>
+<dd><p>An object for prompting for user input from a combo box dialog.</p>
+<p class="rubric">Methods</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.gui.gui_helpers.createButton">
+<tt class="descclassname">src.gui.gui_helpers.</tt><tt class="descname">createButton</tt><big>(</big><em>parent</em>, <em>sizer</em>, <em>wxId=-1</em>, <em>icon=None</em>, <em>label=''</em>, <em>tooltip=None</em>, <em>border=2</em>, <em>handler=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#createButton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.createButton" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new button.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The button&#8217;s parent frame or panel.</p>
+</div></blockquote>
+<p><strong>sizer</strong> : wxSizer</p>
+<blockquote>
+<div><p>The sizer to which the button should be added.</p>
+</div></blockquote>
+<p><strong>wxId</strong> : int</p>
+<blockquote>
+<div><p>The ID number of the control (default: wx.ID_ANY).</p>
+</div></blockquote>
+<p><strong>icon</strong> : wxBitmap</p>
+<blockquote>
+<div><p>A bitmap object to use as the icon for the button (default: <cite>None</cite>). If
+<cite>None</cite>, the label will be used instead of an icon.</p>
+</div></blockquote>
+<p><strong>label</strong> : str</p>
+<blockquote>
+<div><p>The label for the button. If <cite>icon</cite> is provided, then <cite>label</cite> will be
+ignored.</p>
+</div></blockquote>
+<p><strong>tooltip</strong> : str</p>
+<blockquote>
+<div><p>The tooltip to display when the user hovers over the button.</p>
+</div></blockquote>
+<p><strong>border</strong> : int</p>
+<blockquote>
+<div><p>The amount of space in pixels to display around all sides of the button.</p>
+</div></blockquote>
+<p><strong>handler</strong> : method</p>
+<blockquote>
+<div><p>The method which will be invoked when the user clicks on the button.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>wxButton</strong> :</p>
+<blockquote class="last">
+<div><p>The newly created button.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.gui.gui_helpers.createMenuItem">
+<tt class="descclassname">src.gui.gui_helpers.</tt><tt class="descname">createMenuItem</tt><big>(</big><em>parent</em>, <em>menu</em>, <em>wxId</em>, <em>label</em>, <em>tooltip=None</em>, <em>handler=None</em>, <em>pos=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#createMenuItem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.createMenuItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new menu item and add it to the appropriate menu.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The frame or control which contains the appropriate menu bar.</p>
+</div></blockquote>
+<p><strong>menu</strong> : wxMenu</p>
+<blockquote>
+<div><p>The menu to which the item should be added.</p>
+</div></blockquote>
+<p><strong>wxId</strong> : int</p>
+<blockquote>
+<div><p>The ID of the menu item.</p>
+</div></blockquote>
+<p><strong>label</strong> : str</p>
+<blockquote>
+<div><p>The text which should label the item.</p>
+</div></blockquote>
+<p><strong>tooltip</strong> : str</p>
+<blockquote>
+<div><p>The text which should go in the tooltip and/or the status bar
+when the item is highlighted.</p>
+</div></blockquote>
+<p><strong>handler</strong> : method</p>
+<blockquote>
+<div><p>The method which should respond to clicks on the item.</p>
+</div></blockquote>
+<p><strong>pos</strong> : int</p>
+<blockquote>
+<div><p>The position before which the item should be inserted. If <cite>None</cite> (the
+default), the item will be appended to the end.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>wxMenuItem</strong> :</p>
+<blockquote class="last">
+<div><p>The newly created menu item.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.gui.gui_helpers.createMenu">
+<tt class="descclassname">src.gui.gui_helpers.</tt><tt class="descname">createMenu</tt><big>(</big><em>parent</em>, <em>menuBar</em>, <em>menuTitle</em>, <em>menuItems</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#createMenu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.createMenu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new menu and populate it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The frame or control which contains the appropriate menu bar.</p>
+</div></blockquote>
+<p><strong>menuBar</strong> : wxMenuBar</p>
+<blockquote>
+<div><p>The menu bar which should contain the new menu.</p>
+</div></blockquote>
+<p><strong>menuTitle</strong> : str</p>
+<blockquote>
+<div><p>The title of the menu.</p>
+</div></blockquote>
+<p><strong>menuItems</strong> : list of tuple</p>
+<blockquote>
+<div><p>A list of tuples, where each tuple describes one item for the menu.
+The tuples should contain, in order, wxId, label, tooltip, and
+handler. For the meanings, see <cite>createMenuItem</cite>. If an element in
+the list is <cite>None</cite>, a separator will be appended at that point.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of wxMenuItem</strong> :</p>
+<blockquote class="last">
+<div><p>The menu item objects which constitute the menu.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.gui.gui_helpers.createLabeledTextControl">
+<tt class="descclassname">src.gui.gui_helpers.</tt><tt class="descname">createLabeledTextControl</tt><big>(</big><em>parent</em>, <em>sizer</em>, <em>wxId=-1</em>, <em>label='Input:'</em>, <em>initialValue=''</em>, <em>border=0</em>, <em>style=0</em>, <em>defocusHandler=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#createLabeledTextControl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.createLabeledTextControl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a label and a text control and add them to the sizer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The panel or frame which should serve as the parent for the label
+and control.</p>
+</div></blockquote>
+<p><strong>sizer</strong> : wxSizer</p>
+<blockquote>
+<div><p>The sizer to which the label and text control should be added. Usually,
+it should be a wxFlexGridSizer or wxGridSizer.</p>
+</div></blockquote>
+<p><strong>wxId</strong> : int</p>
+<blockquote>
+<div><p>The ID for the text control (default: wx.ID_ANY).</p>
+</div></blockquote>
+<p><strong>label</strong> : str</p>
+<blockquote>
+<div><p>The text that goes in the label (default: &#8220;Input:&#8221;).</p>
+</div></blockquote>
+<p><strong>initialValue</strong> : str</p>
+<blockquote>
+<div><p>The initial value for the control (default: &#8220;&#8221;).</p>
+</div></blockquote>
+<p><strong>border</strong> : int</p>
+<blockquote>
+<div><p>The border thickness in pixels (default: 0). The same border is applied
+around both the label and the control.</p>
+</div></blockquote>
+<p><strong>style</strong> : int</p>
+<blockquote>
+<div><p>The style (normally, use wx constants) to use for the text control
+(default: 0).</p>
+</div></blockquote>
+<p><strong>defocusHandler</strong> : method</p>
+<blockquote>
+<div><p>A method to be called when the text control loses focus (default: 
+<cite>None</cite>).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>wxTextCtrl</strong> :</p>
+<blockquote class="last">
+<div><p>The text control created by this function.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.gui.gui_helpers.createLabeledComboBox">
+<tt class="descclassname">src.gui.gui_helpers.</tt><tt class="descname">createLabeledComboBox</tt><big>(</big><em>parent</em>, <em>sizer</em>, <em>wxId=-1</em>, <em>label='Input:'</em>, <em>initialValue=''</em>, <em>choices=None</em>, <em>border=0</em>, <em>style=32</em>, <em>defocusHandler=None</em>, <em>valueHandler=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/gui_helpers.html#createLabeledComboBox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.gui_helpers.createLabeledComboBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a label and a combo box and add them to the sizer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The panel or frame which should serve as the parent for the label
+and control.</p>
+</div></blockquote>
+<p><strong>sizer</strong> : wxSizer</p>
+<blockquote>
+<div><p>The sizer to which the label and combo box should be added. Usually,
+it should be a wxFlexGridSizer or wxGridSizer.</p>
+</div></blockquote>
+<p><strong>wxId</strong> : int</p>
+<blockquote>
+<div><p>The ID for the combo box (default: wx.ID_ANY).</p>
+</div></blockquote>
+<p><strong>label</strong> : str</p>
+<blockquote>
+<div><p>The text that goes in the label (default: &#8220;Input:&#8221;).</p>
+</div></blockquote>
+<p><strong>initialValue</strong> : str</p>
+<blockquote>
+<div><p>The initial value for the control (default: &#8220;&#8221;).</p>
+</div></blockquote>
+<p><strong>choices</strong> : list of str</p>
+<blockquote>
+<div><p>A list of strings representing the values the combo box offers. If
+<cite>None</cite> (the default), no options will be available initially. (If
+<cite>None</cite>, make sure that <cite>style</cite> is not <cite>wx.CB_READONLY</cite>, or the combo
+box will be entirely useless.)</p>
+</div></blockquote>
+<p><strong>border</strong> : int</p>
+<blockquote>
+<div><p>The border thickness in pixels (default: 0). The same border is applied
+around both the label and the control.</p>
+</div></blockquote>
+<p><strong>style</strong> : int</p>
+<blockquote>
+<div><p>The style (normally, use wx constants) to use for the combo box
+(default: <cite>wx.CB_DROPDOWN</cite>; the other typical value is 
+<cite>wx.CB_READONLY</cite>).</p>
+</div></blockquote>
+<p><strong>defocusHandler</strong> : method</p>
+<blockquote>
+<div><p>A method to be called when the text control loses focus (default: 
+<cite>None</cite>).</p>
+</div></blockquote>
+<p><strong>valueHandler</strong> : method</p>
+<blockquote>
+<div><p>A method to be called when the value selection in the combo box
+changes (default: <cite>None</cite>)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>wxComboBox</strong> :</p>
+<blockquote class="last">
+<div><p>The combo box created by this function.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>gui_helpers</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#keyvallistctrl">KeyValListCtrl</a></li>
+<li><a class="reference internal" href="#basedialog">BaseDialog</a></li>
+<li><a class="reference internal" href="#infobar">InfoBar</a></li>
+<li><a class="reference internal" href="#staticwraptext">StaticWrapText</a></li>
+<li><a class="reference internal" href="#panel">Panel</a></li>
+<li><a class="reference internal" href="#scanpanel">ScanPanel</a></li>
+<li><a class="reference internal" href="#errordialog">ErrorDialog</a></li>
+<li><a class="reference internal" href="#comboboxprompter">ComboBoxPrompter</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_gui_images.html"
+                        title="previous chapter">The <cite>images</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_core.html"
+                        title="next chapter">The <cite>core</cite> package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_gui_gui_helpers.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_core.html" title="The core package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_images.html" title="The images module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

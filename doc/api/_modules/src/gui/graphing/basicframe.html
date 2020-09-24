@@ -1,0 +1,342 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.gui.graphing.basicframe &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.gui.graphing.basicframe</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;A basic, standalone, single-graph frame for displaying data.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="nn">Queue</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">wx</span>
+<span class="kn">from</span> <span class="nn">wx.lib</span> <span class="kn">import</span> <span class="n">newevent</span>
+
+<span class="kn">from</span> <span class="nn">src.core.configuration</span> <span class="kn">import</span> <span class="n">c</span>
+<span class="kn">from</span> <span class="nn">src.core.graph</span> <span class="kn">import</span> <span class="n">AbstractGraphManager</span>
+<span class="kn">from</span> <span class="nn">src.gui.graphing.basicpanel</span> <span class="kn">import</span> <span class="n">GraphPanel</span>
+<span class="kn">from</span> <span class="nn">src.tools.general</span> <span class="kn">import</span> <span class="n">gridArrangement</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;StandardGraphManager&#39;</span><span class="p">,</span> <span class="s">&#39;GraphThread&#39;</span><span class="p">,</span> <span class="s">&#39;GraphFrame&#39;</span><span class="p">]</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;transport&#39;</span><span class="p">)</span>
+
+<span class="n">ASCHECK</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span>
+<span class="n">FIG_WIDTH</span> <span class="o">=</span> <span class="mi">380</span>
+<span class="n">FIG_HEIGHT</span> <span class="o">=</span> <span class="mi">280</span>
+
+<span class="n">UPDATE_DELAY</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">getGraphDelay</span><span class="p">()</span>
+
+<div class="viewcode-block" id="StandardGraphManager"><a class="viewcode-back" href="../../../../api_gui_graphing_basicframe.html#src.gui.graphing.basicframe.StandardGraphManager">[docs]</a><span class="k">class</span> <span class="nc">StandardGraphManager</span><span class="p">(</span><span class="n">AbstractGraphManager</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A class for sending data from experiments to GUI panels.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parentFrame : wx.Window</span>
+<span class="sd">        The frame which will be used as the parent for the `GraphFrame` objects</span>
+<span class="sd">        spawned by this manager.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentFrame</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Instantiate a graph manager.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">StandardGraphManager</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parentFrame</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parentFrame</span> <span class="o">=</span> <span class="n">parentFrame</span>
+            
+<div class="viewcode-block" id="StandardGraphManager.setGraphs"><a class="viewcode-back" href="../../../../api_gui_graphing_basicframe.html#src.gui.graphing.basicframe.StandardGraphManager.setGraphs">[docs]</a>    <span class="k">def</span> <span class="nf">setGraphs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graphs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the graphs which will be managed.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        graphs : list of Graph</span>
+<span class="sd">            The `Graph` objects which will send their data to the frames</span>
+<span class="sd">            managed by this object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__graphs</span> <span class="o">=</span> <span class="n">graphs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dataQueues</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__graphThreads</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__figures</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__graphs</span><span class="p">:</span>
+            <span class="n">currdq</span> <span class="o">=</span> <span class="n">Queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__dataQueues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">currdq</span><span class="p">)</span>
+            <span class="n">g</span><span class="o">.</span><span class="n">setDataQueue</span><span class="p">(</span><span class="n">currdq</span><span class="p">)</span>
+            <span class="n">currgt</span> <span class="o">=</span> <span class="n">GraphThread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parentFrame</span><span class="p">,</span> <span class="n">currdq</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">getColumns</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__graphThreads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">currgt</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="StandardGraphManager.abort"><a class="viewcode-back" href="../../../../api_gui_graphing_basicframe.html#src.gui.graphing.basicframe.StandardGraphManager.abort">[docs]</a>    <span class="k">def</span> <span class="nf">abort</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Abort the update threads.&quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Ending graph manager.&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">gt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__graphThreads</span><span class="p">:</span>
+            <span class="n">gt</span><span class="o">.</span><span class="n">abort</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">gt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__graphThreads</span><span class="p">:</span>
+            <span class="n">gt</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gt</span><span class="o">.</span><span class="n">getFigure</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dataQueues</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__graphThreads</span> <span class="o">=</span> <span class="p">[]</span>
+        </div>
+<div class="viewcode-block" id="StandardGraphManager.start"><a class="viewcode-back" href="../../../../api_gui_graphing_basicframe.html#src.gui.graphing.basicframe.StandardGraphManager.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Start the update threads.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">gt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__graphThreads</span><span class="p">:</span>
+            <span class="n">gt</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="StandardGraphManager.getGraphs"><a class="viewcode-back" href="../../../../api_gui_graphing_basicframe.html#src.gui.graphing.basicframe.StandardGraphManager.getGraphs">[docs]</a>    <span class="k">def</span> <span class="nf">getGraphs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the figures from the graphing panels.&quot;&quot;&quot;</span>
+        <span class="n">figs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">figthread</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__graphThreads</span><span class="p">:</span>
+            <span class="n">figs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">figthread</span><span class="o">.</span><span class="n">getFigure</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">figs</span>
+        </div>
+<div class="viewcode-block" id="StandardGraphManager.saveGraphs"><a class="viewcode-back" href="../../../../api_gui_graphing_basicframe.html#src.gui.graphing.basicframe.StandardGraphManager.saveGraphs">[docs]</a>    <span class="k">def</span> <span class="nf">saveGraphs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save the graphs to a file.</span>
+<span class="sd">        </span>
+<span class="sd">        Resize all graphs to the appropriate size. Then arrange them into a</span>
+<span class="sd">        grid and save that grid to the file specified by `filename`.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            A string pointing to which the graph images should be saved. Note </span>
+<span class="sd">            that all graphs go to the same file. `filename` should be a </span>
+<span class="sd">            complete path name, including an extension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Preparing to save graphs to file </span><span class="si">%s</span><span class="s">...&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">figure</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__figures</span><span class="p">:</span>
+            <span class="n">subFile</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mktemp</span><span class="p">(</span><span class="s">&#39;.png&#39;</span><span class="p">)</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">figure</span><span class="p">,</span> <span class="n">subFile</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Attempting to save graphs to file </span><span class="si">%s</span><span class="s">...&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+            <span class="n">wx</span><span class="o">.</span><span class="n">CallAfter</span><span class="p">(</span><span class="n">_saveSub</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;No graphs present; aborting the save operation.&#39;</span><span class="p">)</span>
+
+        </div></div>
+<div class="viewcode-block" id="GraphThread"><a class="viewcode-back" href="../../../../api_gui_graphing_basicframe.html#src.gui.graphing.basicframe.GraphThread">[docs]</a><span class="k">class</span> <span class="nc">GraphThread</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A thread to update a particular graph at regular intervals.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parentFrame : wx.Window</span>
+<span class="sd">        The frame or panel which will contain the Frame managed by this thread.</span>
+<span class="sd">    dataQueue : Queue</span>
+<span class="sd">        The `Queue` object which will move data from the `Graph` object to the</span>
+<span class="sd">        `GraphFrame` associated with this thread (and, therefore, to the</span>
+<span class="sd">        `GraphPanel`.</span>
+<span class="sd">    columns : 2-tuple of str</span>
+<span class="sd">        Strings representing the column names which provide the x- and y-values</span>
+<span class="sd">        for the graph. These strings will label the axes in the `GraphPanel`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentFrame</span><span class="p">,</span> <span class="n">dataQueue</span><span class="p">,</span> <span class="n">columns</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GraphThread</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">setDaemon</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        
+        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">UpdateEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">EVT_UPDATE_GRAPH</span><span class="p">)</span> <span class="o">=</span> <span class="n">newevent</span><span class="o">.</span><span class="n">NewEvent</span><span class="p">()</span>
+        
+        <span class="n">graphFrame</span> <span class="o">=</span> <span class="n">GraphFrame</span><span class="p">(</span><span class="n">parentFrame</span><span class="p">,</span> <span class="n">dataQueue</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">columns</span><span class="p">)</span>
+        <span class="n">graphFrame</span><span class="o">.</span><span class="n">Show</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graphPanel</span> <span class="o">=</span> <span class="n">graphFrame</span><span class="o">.</span><span class="n">graphPanel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graphPanel</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">EVT_UPDATE_GRAPH</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphPanel</span><span class="o">.</span><span class="n">onUpdate</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">keepGoing</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="bp">False</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">figure</span> <span class="o">=</span> <span class="bp">None</span>
+        
+        <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span> 
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Graph frame shown.&#39;</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">abort</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keepGoing</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Beginning execution of graph thread.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">keepGoing</span><span class="p">:</span>
+            <span class="n">evt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">UpdateEvent</span><span class="p">()</span>
+            <span class="n">wx</span><span class="o">.</span><span class="n">PostEvent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graphPanel</span><span class="p">,</span> <span class="n">evt</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">UPDATE_DELAY</span><span class="p">)</span>
+        <span class="n">wx</span><span class="o">.</span><span class="n">PostEvent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graphPanel</span><span class="p">,</span> <span class="n">evt</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Ending execution of graph thread.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="bp">False</span>
+                    
+    <span class="k">def</span> <span class="nf">getFigure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphPanel</span><span class="o">.</span><span class="n">fig</span>
+    
+    <span class="k">def</span> <span class="nf">isRunning</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span>
+
+</div>
+<div class="viewcode-block" id="GraphFrame"><a class="viewcode-back" href="../../../../api_gui_graphing_basicframe.html#src.gui.graphing.basicframe.GraphFrame">[docs]</a><span class="k">class</span> <span class="nc">GraphFrame</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A frame for containing a single graph.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : Frame</span>
+<span class="sd">        This frame&#39;s parent (so that if the parent is closed, this will also</span>
+<span class="sd">        be closed).</span>
+<span class="sd">    dataQueue : Queue</span>
+<span class="sd">        The `Queue.Queue` object which will be passed to the panel for </span>
+<span class="sd">        transferring data from the `Graph`.</span>
+<span class="sd">    thread : Thread</span>
+<span class="sd">        The `threading.Thread` object in which the graph will run.</span>
+<span class="sd">    columns : iterable</span>
+<span class="sd">        A list or tuple containing the names of the columns relevent to this</span>
+<span class="sd">        graph. In order, they are the x-column, the y-column, and the column</span>
+<span class="sd">        which triggers new plots.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+        
+    <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;update&#39;</span><span class="p">,</span> <span class="s">&#39;getFigure&#39;</span><span class="p">]</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">dataQueue</span><span class="p">,</span> <span class="n">thread</span><span class="p">,</span> <span class="n">columns</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GraphFrame</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetTitle</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> vs </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">columns</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">thread</span> <span class="o">=</span> <span class="n">thread</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSize</span><span class="p">((</span><span class="mi">400</span><span class="p">,</span><span class="mi">350</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetMinSize</span><span class="p">((</span><span class="mi">400</span><span class="p">,</span><span class="mi">300</span><span class="p">))</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_CLOSE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onClose</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">graphPanel</span> <span class="o">=</span> <span class="n">GraphPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">dataQueue</span><span class="p">)</span>
+        <span class="n">mainbox</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">mainbox</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graphPanel</span><span class="p">,</span> <span class="n">proportion</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">flag</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">)</span>
+         
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetAutoLayout</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">mainbox</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span> 
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;GraphFrame created: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetTitle</span><span class="p">())</span>
+        
+    <span class="k">def</span> <span class="nf">getFigure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphPanel</span><span class="o">.</span><span class="n">fig</span>
+                
+    <span class="k">def</span> <span class="nf">onClose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">isRunning</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">abort</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Show</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_saveSub</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">outputFilename</span><span class="p">):</span>
+    <span class="n">filenames</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">fig</span><span class="p">,</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="n">filenames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">gridArrangement</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">filenames</span><span class="p">))</span>
+    <span class="n">outputImage</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&quot;RGBA&quot;</span><span class="p">,</span> 
+                            <span class="p">((</span><span class="n">FIG_WIDTH</span><span class="o">+</span><span class="mi">20</span><span class="p">)</span><span class="o">*</span><span class="n">cols</span><span class="p">,</span> <span class="p">(</span><span class="n">FIG_HEIGHT</span><span class="o">+</span><span class="mi">20</span><span class="p">)</span><span class="o">*</span><span class="n">rows</span><span class="p">))</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cols</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">filenames</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="n">curr</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filenames</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+            <span class="n">curr</span> <span class="o">=</span> <span class="n">curr</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">FIG_WIDTH</span><span class="p">,</span> <span class="n">FIG_HEIGHT</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">ANTIALIAS</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="mi">10</span> <span class="o">+</span> <span class="n">FIG_WIDTH</span><span class="p">)</span><span class="o">*</span><span class="n">col</span> <span class="o">+</span> <span class="mi">10</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="mi">10</span> <span class="o">+</span> <span class="n">FIG_HEIGHT</span><span class="p">)</span><span class="o">*</span><span class="n">row</span> <span class="o">+</span> <span class="mi">10</span>
+            <span class="n">outputImage</span><span class="o">.</span><span class="n">paste</span><span class="p">(</span><span class="n">curr</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">outputImage</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">outputFilename</span><span class="p">)</span>
+    
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

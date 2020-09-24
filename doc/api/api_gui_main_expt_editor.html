@@ -1,0 +1,1037 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The expt_editor module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The main package" href="api_gui_main.html" />
+    <link rel="next" title="The base_experiment module" href="api_gui_main_base_experiment.html" />
+    <link rel="prev" title="The premade_loader module" href="api_gui_main_premade_loader.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_main_base_experiment.html" title="The base_experiment module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_main_premade_loader.html" title="The premade_loader module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li>
+          <li><a href="api_gui_main.html" accesskey="U">The <cite>main</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.gui.main.expt_editor">
+<span id="the-expt-editor-module"></span><h1>The <cite>expt_editor</cite> module<a class="headerlink" href="#module-src.gui.main.expt_editor" title="Permalink to this headline">¶</a></h1>
+<p>A general frame for creating and editing experiments.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="sequenceframe">
+<h3>SequenceFrame<a class="headerlink" href="#sequenceframe" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.main.expt_editor.SequenceFrame">
+<em class="property">class </em><tt class="descclassname">src.gui.main.expt_editor.</tt><tt class="descname">SequenceFrame</tt><big>(</big><em>parent</em>, <em>experiment</em>, <em>sourceDefault=True</em>, <em>title='Experiment Editor'</em>, <em>experimentPath=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#SequenceFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>A frame for creating general experiments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : Transport</p>
+<blockquote>
+<div><p>The main Transport program frame (or anything which implements the
+same interface).</p>
+</div></blockquote>
+<p><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The <cite>Experiment</cite> object which this frame edits.</p>
+</div></blockquote>
+<p><strong>sourceDefault</strong> : bool</p>
+<blockquote>
+<div><p>Whether the sequence should be populated with the default items.</p>
+</div></blockquote>
+<p><strong>title</strong> : str</p>
+<blockquote>
+<div><p>The title of the experiment.</p>
+</div></blockquote>
+<p><strong>experimentPath</strong> : str</p>
+<blockquote class="last">
+<div><p>The path to the experiment, if it was opened from a file. The default
+is <cite>None</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.main.expt_editor.SequenceFrame.createSetupFrames">
+<tt class="descname">createSetupFrames</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#SequenceFrame.createSetupFrames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame.createSetupFrames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create frames for managing constants, instruments, and graphs.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.gui.main.expt_editor.SequenceFrame.edited">
+<tt class="descname">edited</tt><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame.edited" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the experiment has been edited.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the experiment has been edited.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.SequenceFrame.extendMenus">
+<tt class="descname">extendMenus</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#SequenceFrame.extendMenus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame.extendMenus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extend the menu bar with experiment editor-specific items.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.SequenceFrame.extendToolbar">
+<tt class="descname">extendToolbar</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#SequenceFrame.extendToolbar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame.extendToolbar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extend the toolbar with experiment editor-specific items.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.SequenceFrame.flagEdit">
+<tt class="descname">flagEdit</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#SequenceFrame.flagEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame.flagEdit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate that the experiment has been edited.</p>
+<p>This is a simple shorthand for <cite>self.edited = True</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.SequenceFrame.getEdited">
+<tt class="descname">getEdited</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#SequenceFrame.getEdited"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame.getEdited" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the experiment has been edited.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the experiment has been edited.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.SequenceFrame.onRun">
+<tt class="descname">onRun</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#SequenceFrame.onRun"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame.onRun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the experiment.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.SequenceFrame.onSetupConstants">
+<tt class="descname">onSetupConstants</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#SequenceFrame.onSetupConstants"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame.onSetupConstants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open the constants configuration tool.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.SequenceFrame.onSetupGraphs">
+<tt class="descname">onSetupGraphs</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#SequenceFrame.onSetupGraphs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame.onSetupGraphs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open the graphs configuration tool.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.SequenceFrame.onSetupInstruments">
+<tt class="descname">onSetupInstruments</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#SequenceFrame.onSetupInstruments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame.onSetupInstruments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open the instrument configuration tool.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.SequenceFrame.setClipboardButtonStatus">
+<tt class="descname">setClipboardButtonStatus</tt><big>(</big><em>cut=None</em>, <em>copy=None</em>, <em>paste=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#SequenceFrame.setClipboardButtonStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame.setClipboardButtonStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the enabled state of the clipboard-related buttons.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>cut</strong> : bool</p>
+<blockquote>
+<div><p>Whether the &#8216;cut&#8217; button should be enabled.</p>
+</div></blockquote>
+<p><strong>copy</strong> : bool</p>
+<blockquote>
+<div><p>Whether the &#8216;copy&#8217; button should be enabled.</p>
+</div></blockquote>
+<p><strong>paste</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether the &#8216;paste&#8217; button should be enabled.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.SequenceFrame.setEdited">
+<tt class="descname">setEdited</tt><big>(</big><em>newValue</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#SequenceFrame.setEdited"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame.setEdited" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set whether the experiment has been edited.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>newValue</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether the experiment has been edited.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.SequenceFrame.updateActionDisplay">
+<tt class="descname">updateActionDisplay</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#SequenceFrame.updateActionDisplay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame.updateActionDisplay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the list of actions for changes in selected instrument.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.SequenceFrame.updateExperimentDisplay">
+<tt class="descname">updateExperimentDisplay</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#SequenceFrame.updateExperimentDisplay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame.updateExperimentDisplay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refresh the sequence tree.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.SequenceFrame.updateInstrumentDisplay">
+<tt class="descname">updateInstrumentDisplay</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#SequenceFrame.updateInstrumentDisplay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame.updateInstrumentDisplay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the list of instruments.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.SequenceFrame.updateName">
+<tt class="descname">updateName</tt><big>(</big><em>newName=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#SequenceFrame.updateName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.SequenceFrame.updateName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the name of the experiment.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="dropdata">
+<h3>DropData<a class="headerlink" href="#dropdata" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.main.expt_editor.DropData">
+<em class="property">class </em><tt class="descclassname">src.gui.main.expt_editor.</tt><tt class="descname">DropData</tt><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#DropData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.DropData" title="Permalink to this definition">¶</a></dt>
+<dd><p>An object for storing data for drag-and-drop creation of actions.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.main.expt_editor.DropData.getObject">
+<tt class="descname">getObject</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#DropData.getObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.DropData.getObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the information necessary to construct the correct action.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>obj</strong> : tuple of int</p>
+<blockquote class="last">
+<div><p>A tuple consisting of the two integers: the index of the correct
+instrument in experiment&#8217;s list and the index of the correct
+action in the instrument&#8217;s list.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.DropData.setObject">
+<tt class="descname">setObject</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#DropData.setObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.DropData.setObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the information necessary to choose the correct action.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>obj</strong> : tuple of int</p>
+<blockquote class="last">
+<div><p>A tuple consisting of the two integers: the index of the correct
+instrument in experiment&#8217;s list and the index of the correct
+action in the instrument&#8217;s list.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="mydroptarget">
+<h3>MyDropTarget<a class="headerlink" href="#mydroptarget" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.main.expt_editor.MyDropTarget">
+<em class="property">class </em><tt class="descclassname">src.gui.main.expt_editor.</tt><tt class="descname">MyDropTarget</tt><big>(</big><em>tree</em>, <em>acts</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#MyDropTarget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.MyDropTarget" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class to handle drop actions on the tree.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>tree</strong> : ActionTree</p>
+<blockquote>
+<div><p>The tree into which actions may be dropped.</p>
+</div></blockquote>
+<p><strong>acts</strong> : ListBox</p>
+<blockquote class="last">
+<div><p>The list box of actions from which actions will be dragged.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.main.expt_editor.MyDropTarget.OnData">
+<tt class="descname">OnData</tt><big>(</big><em>x</em>, <em>y</em>, <em>defResult</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#MyDropTarget.OnData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.MyDropTarget.OnData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tell the tree to make the action.</p>
+<p>This method is called when <cite>self.OnDrop</cite> returns <cite>True</cite>. It tells the
+<cite>ActionTree</cite> to create the object based on the stored data tuple.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.MyDropTarget.OnDragOver">
+<tt class="descname">OnDragOver</tt><big>(</big><em>x</em>, <em>y</em>, <em>defResult</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#MyDropTarget.OnDragOver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.MyDropTarget.OnDragOver" title="Permalink to this definition">¶</a></dt>
+<dd><p>When data is dragged over a tree item, select that item.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.MyDropTarget.OnDrop">
+<tt class="descname">OnDrop</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#MyDropTarget.OnDrop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.MyDropTarget.OnDrop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reselect the previously selected items after data is dropped.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.MyDropTarget.OnEnter">
+<tt class="descname">OnEnter</tt><big>(</big><em>x</em>, <em>y</em>, <em>defResult</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#MyDropTarget.OnEnter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.MyDropTarget.OnEnter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle the situation with the user drags something over the tree.</p>
+<p>When the user drags the right data type over the tree, unselect
+all tree items and save them to a list.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.MyDropTarget.OnLeave">
+<tt class="descname">OnLeave</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#MyDropTarget.OnLeave"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.MyDropTarget.OnLeave" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle the situation when the user drags something off the tree.</p>
+<p>When the user drags the data from the action list outside of the tree
+window, restore the items that were selected before the tree window
+was entered.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="actiontree">
+<h3>ActionTree<a class="headerlink" href="#actiontree" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.main.expt_editor.ActionTree">
+<em class="property">class </em><tt class="descclassname">src.gui.main.expt_editor.</tt><tt class="descname">ActionTree</tt><big>(</big><em>parent</em>, <em>experiment</em>, <em>idnum=-1</em>, <em>style=10244</em>, <em>parentFrame=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree" title="Permalink to this definition">¶</a></dt>
+<dd><p>A tree control for displaying experiment sequences.</p>
+<p>This subclass of wxTreeCtrl implements a number of features, including
+drag-and-drop and copy-and-paste while ensuring that the underlying 
+experiment sequence remains in sync.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The panel or frame which contains this control.</p>
+</div></blockquote>
+<p><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The experiment which manages the action sequence represented in this
+control.</p>
+</div></blockquote>
+<p><strong>wxId</strong> : int</p>
+<blockquote>
+<div><p>The wxPython internal ID of this control.</p>
+</div></blockquote>
+<p><strong>style</strong> : int</p>
+<blockquote>
+<div><p>The style for the control in terms of wx constants.</p>
+</div></blockquote>
+<p><strong>parentFrame</strong> : ExperimentFrame</p>
+<blockquote class="last">
+<div><p>The ExperimentFrame (or a derived class thereof) which contains this
+control.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.addAction">
+<tt class="descname">addAction</tt><big>(</big><em>action</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.addAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.addAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an action to the end of the tree.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>action</strong> : Action</p>
+<blockquote class="last">
+<div><p>The action to add to the end of the tree (at the highest level).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.buildDefaultTree">
+<tt class="descname">buildDefaultTree</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.buildDefaultTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.buildDefaultTree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fill a tree with default values.</p>
+<p>Currently, the values are for testing purposes only and are not
+really useful. For the final, working version, everything except
+the set filename action will be removed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.clearClipboard">
+<tt class="descname">clearClipboard</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.clearClipboard"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.clearClipboard" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the clipboard, trashing its contents.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.copyAction">
+<tt class="descname">copyAction</tt><big>(</big><em>item</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.copyAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.copyAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy an item from the tree to the clipboard.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>item</strong> : wxTreeItemId</p>
+<blockquote class="last">
+<div><p>The item to copy from the tree.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.cutAction">
+<tt class="descname">cutAction</tt><big>(</big><em>item</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.cutAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.cutAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cut an item from the tree to the clipboard.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>item</strong> : wxTreeItemId</p>
+<blockquote class="last">
+<div><p>The item to cut from the tree.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.deleteAction">
+<tt class="descname">deleteAction</tt><big>(</big><em>item</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.deleteAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.deleteAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete the action contained within a given tree item.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>item</strong> : wxTreeItemId</p>
+<blockquote class="last">
+<div><p>The tree item which should be deleted, along with its associated
+action and all of their children.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.editAction">
+<tt class="descname">editAction</tt><big>(</big><em>item</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.editAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.editAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Edit the selected action.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>item</strong> : wxTreeItemId</p>
+<blockquote class="last">
+<div><p>The item whose action the user wants to edit.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.enableTree">
+<tt class="descname">enableTree</tt><big>(</big><em>top</em>, <em>enable</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.enableTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.enableTree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the color of a tree of actions based on the top.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.flagEdit">
+<tt class="descname">flagEdit</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.flagEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.flagEdit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate that the sequence has been edited.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.getItemAtPosition">
+<tt class="descname">getItemAtPosition</tt><big>(</big><em>parentItem</em>, <em>index</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.getItemAtPosition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.getItemAtPosition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the item at a position under a specified parent.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parentItem</strong> : wxTreeItemId</p>
+<blockquote>
+<div><p>The parent under which the desired item is located.</p>
+</div></blockquote>
+<p><strong>index</strong> : int</p>
+<blockquote>
+<div><p>The position of the item to get.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>wxTreeItemId</strong> :</p>
+<blockquote class="last">
+<div><p>The item at the specified position, or <cite>None</cite> if the position
+is out of range.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.getItemPosition">
+<tt class="descname">getItemPosition</tt><big>(</big><em>parentItem</em>, <em>item</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.getItemPosition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.getItemPosition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the position of an item within its list of siblings.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parentItem</strong> : wxTreeItemId</p>
+<blockquote>
+<div><p>The parent of the item in question.</p>
+</div></blockquote>
+<p><strong>item</strong> : wxTreeItemId</p>
+<blockquote>
+<div><p>The item whose position is sought.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>int</strong> :</p>
+<blockquote class="last">
+<div><p>The position of <cite>item</cite> in the list of children of <cite>parentItem</cite>. If
+<cite>item</cite> is not a child of <cite>parentItem</cite>, then <cite>None</cite> is returned.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.insertAction">
+<tt class="descname">insertAction</tt><big>(</big><em>actionTuple</em>, <em>targetItem</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.insertAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.insertAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert an action above the specified item.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>actionTuple</strong> : tuple of int</p>
+<blockquote>
+<div><p>A tuple consisting of two integers. The first should be the index
+of the instrument in the experiment&#8217;s list. The second should be
+the index of the action within the instrument&#8217;s list.</p>
+</div></blockquote>
+<p><strong>targetItem</strong> : wxTreeItemId</p>
+<blockquote class="last">
+<div><p>The tree item above which the new action should be added.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.moveAction">
+<tt class="descname">moveAction</tt><big>(</big><em>sourceItem</em>, <em>targetItem</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.moveAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.moveAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move the item and its action from one place to another.</p>
+<p>Essentially, this is just a cut and paste operation rolled into one,
+allowing for drag-and-drop move operations without messing with the
+clipboard.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>sourceItem</strong> : wxTreeItemId</p>
+<blockquote>
+<div><p>The item which is to be moved.</p>
+</div></blockquote>
+<p><strong>targetItem</strong> : wxTreeItemId</p>
+<blockquote class="last">
+<div><p>The item before which <cite>sourceItem</cite> should be placed.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.onCopy">
+<tt class="descname">onCopy</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.onCopy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.onCopy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy the selected item (pass the work to the tree).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.onCut">
+<tt class="descname">onCut</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.onCut"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.onCut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cut the item from the tree (pass the work to the tree).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.onEnable">
+<tt class="descname">onEnable</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.onEnable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.onEnable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable or disable the selected item.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.onPaste">
+<tt class="descname">onPaste</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.onPaste"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.onPaste" title="Permalink to this definition">¶</a></dt>
+<dd><p>Paste an item into the tree (pass the work to the tree).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.pasteAction">
+<tt class="descname">pasteAction</tt><big>(</big><em>item</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.pasteAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.pasteAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Paste an item from the clipboard onto the tree.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>item</strong> : wx.TreeItemId</p>
+<blockquote class="last">
+<div><p>The tree item before which to paste the clipboard&#8217;s contents.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>At the end of this operation, the clipboard&#8217;s <cite>operation</cite> flag is
+always &#8216;copy&#8217;, and its <cite>action</cite> is always a clone of whatever action
+was originally put there. That way, the user can continue to do paste
+operations even if the clipboard was filled using a cut (and clones
+do not need to be trashed, since they were never instantiated in the
+first place).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ActionTree.refresh">
+<tt class="descname">refresh</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ActionTree.refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ActionTree.refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fill in the entire tree from the experiment&#8217;s action sequence.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="instrumentframe">
+<h3>InstrumentFrame<a class="headerlink" href="#instrumentframe" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.main.expt_editor.InstrumentFrame">
+<em class="property">class </em><tt class="descclassname">src.gui.main.expt_editor.</tt><tt class="descname">InstrumentFrame</tt><big>(</big><em>parent</em>, <em>experiment</em>, <em>successAction=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#InstrumentFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.InstrumentFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>A frame for configuring the instruments in an experiment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wx.Window</p>
+<blockquote>
+<div><p>The panel or frame which contains this instrument frame.</p>
+</div></blockquote>
+<p><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The experiment whose instruments should be modified by this frame.</p>
+</div></blockquote>
+<p><strong>successAction</strong> : Command or list of Command</p>
+<blockquote class="last">
+<div><p>The action or actions to perform when the instruments are updated.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.main.expt_editor.InstrumentFrame.executeSuccessActions">
+<tt class="descname">executeSuccessActions</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#InstrumentFrame.executeSuccessActions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.InstrumentFrame.executeSuccessActions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute any success actions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.InstrumentFrame.onAdd">
+<tt class="descname">onAdd</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#InstrumentFrame.onAdd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.InstrumentFrame.onAdd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a new instrument.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.InstrumentFrame.onClose">
+<tt class="descname">onClose</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#InstrumentFrame.onClose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.InstrumentFrame.onClose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hide the frame.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.InstrumentFrame.onEdit">
+<tt class="descname">onEdit</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#InstrumentFrame.onEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.InstrumentFrame.onEdit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Edit the selected instrument.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.InstrumentFrame.onRemove">
+<tt class="descname">onRemove</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#InstrumentFrame.onRemove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.InstrumentFrame.onRemove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the selected instrument.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.InstrumentFrame.onSelection">
+<tt class="descname">onSelection</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#InstrumentFrame.onSelection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.InstrumentFrame.onSelection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the buttons to reflect selections.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.InstrumentFrame.populate">
+<tt class="descname">populate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#InstrumentFrame.populate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.InstrumentFrame.populate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fill the available and included instruments boxes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.InstrumentFrame.updateButtonEnabled">
+<tt class="descname">updateButtonEnabled</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#InstrumentFrame.updateButtonEnabled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.InstrumentFrame.updateButtonEnabled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable and disable buttons based on selections.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="graphframe">
+<h3>GraphFrame<a class="headerlink" href="#graphframe" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.main.expt_editor.GraphFrame">
+<em class="property">class </em><tt class="descclassname">src.gui.main.expt_editor.</tt><tt class="descname">GraphFrame</tt><big>(</big><em>parent</em>, <em>experiment</em>, <em>successAction=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#GraphFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.GraphFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>A frame for setting the graphs which the owning experiment will create.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wx.Window</p>
+<blockquote>
+<div><p>The panel or frame which contains this graph frame.</p>
+</div></blockquote>
+<p><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The experiment whose graphs should be modified by this frame.</p>
+</div></blockquote>
+<p><strong>successAction</strong> : list of Command</p>
+<blockquote class="last">
+<div><p>The action or actions to perform when the graphs are updated.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.main.expt_editor.GraphFrame.checkAbility">
+<tt class="descname">checkAbility</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#GraphFrame.checkAbility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.GraphFrame.checkAbility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether there are enough columns to create a graph.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.GraphFrame.executeSuccessActions">
+<tt class="descname">executeSuccessActions</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#GraphFrame.executeSuccessActions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.GraphFrame.executeSuccessActions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute any success actions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.GraphFrame.onAdd">
+<tt class="descname">onAdd</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#GraphFrame.onAdd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.GraphFrame.onAdd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a new graph.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.GraphFrame.onClose">
+<tt class="descname">onClose</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#GraphFrame.onClose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.GraphFrame.onClose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hide the frame.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.GraphFrame.onEdit">
+<tt class="descname">onEdit</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#GraphFrame.onEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.GraphFrame.onEdit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Edit an existing graph.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.GraphFrame.onRemove">
+<tt class="descname">onRemove</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#GraphFrame.onRemove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.GraphFrame.onRemove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete an existing graph.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.GraphFrame.onSelection">
+<tt class="descname">onSelection</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#GraphFrame.onSelection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.GraphFrame.onSelection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the buttons to reflect selections.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.GraphFrame.populate">
+<tt class="descname">populate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#GraphFrame.populate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.GraphFrame.populate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fill the list of graphs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.GraphFrame.updateButtonEnabled">
+<tt class="descname">updateButtonEnabled</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#GraphFrame.updateButtonEnabled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.GraphFrame.updateButtonEnabled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable or disable buttons based on current selection.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="constantframe">
+<h3>ConstantFrame<a class="headerlink" href="#constantframe" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.main.expt_editor.ConstantFrame">
+<em class="property">class </em><tt class="descclassname">src.gui.main.expt_editor.</tt><tt class="descname">ConstantFrame</tt><big>(</big><em>parent</em>, <em>experiment</em>, <em>successAction=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ConstantFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ConstantFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>A frame for setting the constants which the owning experiment can use.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wx.Window</p>
+<blockquote>
+<div><p>The panel or frame which contains this constant frame.</p>
+</div></blockquote>
+<p><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The experiment whose constants should be modified by this frame.</p>
+</div></blockquote>
+<p><strong>successAction</strong> : Command or list of Command</p>
+<blockquote class="last">
+<div><p>The action or actions to perform when the constants are updated.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ConstantFrame.checkValue">
+<tt class="descname">checkValue</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ConstantFrame.checkValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ConstantFrame.checkValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make sure the entered value is legitimate.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ConstantFrame.deselectAll">
+<tt class="descname">deselectAll</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ConstantFrame.deselectAll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ConstantFrame.deselectAll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deselect all items in the list.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ConstantFrame.executeSuccessActions">
+<tt class="descname">executeSuccessActions</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ConstantFrame.executeSuccessActions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ConstantFrame.executeSuccessActions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute any success actions which have been defined.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ConstantFrame.onAdd">
+<tt class="descname">onAdd</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ConstantFrame.onAdd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ConstantFrame.onAdd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a new constant with the entered name and value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ConstantFrame.onClear">
+<tt class="descname">onClear</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ConstantFrame.onClear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ConstantFrame.onClear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the name and value controls.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ConstantFrame.onClose">
+<tt class="descname">onClose</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ConstantFrame.onClose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ConstantFrame.onClose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hide the frame.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ConstantFrame.onEdit">
+<tt class="descname">onEdit</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ConstantFrame.onEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ConstantFrame.onEdit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update buttons based on the contents of the controls.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ConstantFrame.onRemove">
+<tt class="descname">onRemove</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ConstantFrame.onRemove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ConstantFrame.onRemove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the selected constant.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ConstantFrame.onSave">
+<tt class="descname">onSave</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ConstantFrame.onSave"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ConstantFrame.onSave" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the value if it is legitimate.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ConstantFrame.onSelection">
+<tt class="descname">onSelection</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ConstantFrame.onSelection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ConstantFrame.onSelection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update buttons and values as the list selection changes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.main.expt_editor.ConstantFrame.populate">
+<tt class="descname">populate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/main/expt_editor.html#ConstantFrame.populate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.expt_editor.ConstantFrame.populate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the constants (names and values) from the experiment.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>expt_editor</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#sequenceframe">SequenceFrame</a></li>
+<li><a class="reference internal" href="#dropdata">DropData</a></li>
+<li><a class="reference internal" href="#mydroptarget">MyDropTarget</a></li>
+<li><a class="reference internal" href="#actiontree">ActionTree</a></li>
+<li><a class="reference internal" href="#instrumentframe">InstrumentFrame</a></li>
+<li><a class="reference internal" href="#graphframe">GraphFrame</a></li>
+<li><a class="reference internal" href="#constantframe">ConstantFrame</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_gui_main_premade_loader.html"
+                        title="previous chapter">The <cite>premade_loader</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_gui_main_base_experiment.html"
+                        title="next chapter">The <cite>base_experiment</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_gui_main_expt_editor.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_main_base_experiment.html" title="The base_experiment module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_main_premade_loader.html" title="The premade_loader module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li>
+          <li><a href="api_gui_main.html" >The <cite>main</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

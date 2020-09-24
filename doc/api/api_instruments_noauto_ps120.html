@@ -1,0 +1,633 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The ps120 module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The noauto package" href="api_instruments_noauto.html" />
+    <link rel="next" title="The srs830 module" href="api_instruments_srs830.html" />
+    <link rel="prev" title="The itc503 module" href="api_instruments_noauto_itc503.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_srs830.html" title="The srs830 module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_noauto_itc503.html" title="The itc503 module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" >The <cite>instruments</cite> package</a> &raquo;</li>
+          <li><a href="api_instruments_noauto.html" accesskey="U">The <cite>noauto</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.instruments.noauto.ps120">
+<span id="the-ps120-module"></span><h1>The <cite>ps120</cite> module<a class="headerlink" href="#module-src.instruments.noauto.ps120" title="Permalink to this headline">¶</a></h1>
+<p>Basic drivers for an Oxford Instruments model PS120 power supply</p>
+<p>Note that this module does <strong>not</strong> represent an <cite>Instrument</cite> subclass, since
+the PS120 is never used by itself&#8212;it is always part of a larger system 
+driving both a magnet power supply and temperature controllers, and the
+power supply cannot usually be used in isolation.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="ps120">
+<h3>PS120<a class="headerlink" href="#ps120" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.instruments.noauto.ps120.PS120">
+<em class="property">class </em><tt class="descclassname">src.instruments.noauto.ps120.</tt><tt class="descname">PS120</tt><big>(</big><em>name='Magnet'</em>, <em>protocol='ISOBUS'</em>, <em>isobusAddress='0'</em>, <em>visaAddress='GPIB0::23'</em>, <em>serialConfig=None</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ps120.html#PS120"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ps120.PS120" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a basic driver for an Oxford Instruments model PS120 power
+supply. It should be included in an <cite>Instrument</cite> class representing a
+cryostat-magnet system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>A name to identify the instrument.</p>
+</div></blockquote>
+<p><strong>protocol</strong> : {&#8216;ISOBUS&#8217;, &#8216;GPIB&#8217;, &#8216;Serial&#8217;, &#8216;Gateway Master&#8217;, &#8216;Gateway Slave&#8217;}</p>
+<blockquote>
+<div><p>The protocol for communication between the computer and the temperature
+controller.</p>
+</div></blockquote>
+<p><strong>isobusAddress</strong> : str</p>
+<blockquote>
+<div><p>An integer string representing the ISOBUS address, if relevant. An
+integer will be accepted and converted.</p>
+</div></blockquote>
+<p><strong>visaAddress</strong> : str</p>
+<blockquote>
+<div><p>A full VISA resource address (including the bus) to locate the 
+instrument (e.g. &#8220;GPIB0::27&#8221;).</p>
+</div></blockquote>
+<p><strong>serialConfig</strong> : dict</p>
+<blockquote class="last">
+<div><p>A dictionary to indicate how to configure a serial port, which is used
+with both the &#8216;ISOBUS&#8217; and &#8216;Serial&#8217; protocols.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.instruments.noauto.ps120.PS120.getActivity">
+<tt class="descname">getActivity</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ps120.html#PS120.getActivity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ps120.PS120.getActivity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the activity status.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>An integer contained in a string representing the current 
+activity status. The recognized values are these:</p>
+<blockquote>
+<div><ul class="simple">
+<li>0: Hold at current field,</li>
+<li>1: Ramp the field to the setpoint,</li>
+<li>2: Ramp the field to zero, and</li>
+<li>4: Clamp the output.</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ps120.PS120.getField">
+<tt class="descname">getField</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ps120.html#PS120.getField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ps120.PS120.getField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the magnetic field in Tesla.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The magnetic field in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ps120.PS120.getFieldSetpoint">
+<tt class="descname">getFieldSetpoint</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ps120.html#PS120.getFieldSetpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ps120.PS120.getFieldSetpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the field setpoint in Tesla.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The magnetic field setpoint in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ps120.PS120.getStatus">
+<tt class="descname">getStatus</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ps120.html#PS120.getStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ps120.PS120.getStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the power supply status.</p>
+<p>Read the power supply status, and update the local polarity variables
+to reflect this change.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>dict</strong> :</p>
+<blockquote class="last">
+<div><p>The status dictionary, containing the following items:
+&#8216;system_status_1&#8217;, &#8216;system_status_2&#8217;, &#8216;activity&#8217;, &#8216;control_mode&#8217;,
+&#8216;switch_heater&#8217;, &#8216;mode_1&#8217;, &#8216;mode_2&#8217;, &#8216;polarity_1&#8217;, and
+&#8216;polarity_2&#8217;. The meanings are described in the Notes section.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The power supply returns a string of the form <tt class="docutils literal"><span class="pre">XmnAnCnHnMmnPmn</span></tt>. The
+meanings and values of the parts of this are described here.</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">Xmn</span></tt>: System status</dt>
+<dd><dl class="first last docutils">
+<dt><tt class="docutils literal"><span class="pre">m</span></tt>: Status 1</dt>
+<dd><ul class="first last simple">
+<li>0: Normal</li>
+<li>1: Quenched</li>
+<li>2: Over-heated</li>
+<li>4: Warming up</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">n</span></tt>: Status 2</dt>
+<dd><ul class="first last simple">
+<li>0: Normal</li>
+<li>1: On positive voltage limit</li>
+<li>2: On negative voltage limit</li>
+<li>4: Outside negative current limit</li>
+<li>8: Outside positive current limit</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">An</span></tt>: Activity</dt>
+<dd><ul class="first last simple">
+<li>0: Hold</li>
+<li>1: To setpoint</li>
+<li>2: To zero</li>
+<li>4: Output clamped</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">Cn</span></tt>: Control status</dt>
+<dd><ul class="first last simple">
+<li>0: Local and locked</li>
+<li>1: Remote and locked</li>
+<li>2: Local and unlocked</li>
+<li>3: Remote and unlocked</li>
+<li>4: Auto-run-down</li>
+<li>5: Auto-run-down</li>
+<li>6: Auto-run-down</li>
+<li>7: Auto-run-down</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">Hn</span></tt>: Switch heater status</dt>
+<dd><ul class="first last simple">
+<li>0: Off&#8212;magnet at zero (switch closed)</li>
+<li>1: On (switch open)</li>
+<li>2: Off&#8212;magnet at field (switch closed)</li>
+<li>8: No switch fitted</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">Mmn</span></tt>: Mode</dt>
+<dd><dl class="first last docutils">
+<dt><tt class="docutils literal"><span class="pre">m</span></tt>: Mode 1</dt>
+<dd><ul class="first last simple">
+<li>0: Amps, Immediate, Fast</li>
+<li>1: Tesla, Immediate, Fast</li>
+<li>2: Amps, Sweep, Fast</li>
+<li>3: Tesla, Sweep, Fast</li>
+<li>4: Amps, Immediate, Train</li>
+<li>5: Tesla, Immediate, Train</li>
+<li>6: Amps, Sweep, Train</li>
+<li>7: Tesla, Sweep, Train</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">n</span></tt>: Mode 2</dt>
+<dd><ul class="first last simple">
+<li>0: At rest (output constant)</li>
+<li>1: Sweeping (output changing)</li>
+<li>2: Rate limiting (output changing)</li>
+<li>3: Sweeping and rate limiting (output changing)</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">Pmn</span></tt>: Polarity</dt>
+<dd><dl class="first last docutils">
+<dt><tt class="docutils literal"><span class="pre">m</span></tt>: Polarity 1 (see below)</dt>
+<dd><ul class="first last simple">
+<li>0: pos, pos, pos</li>
+<li>1: pos, pos, neg</li>
+<li>2: pos, neg, pos</li>
+<li>3: pos, neg, neg</li>
+<li>4: neg, pos, pos</li>
+<li>5: neg, pos, neg</li>
+<li>6: neg, neg, pos</li>
+<li>7: neg, neg, neg</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">n</span></tt>: Polarity 2</dt>
+<dd><ul class="first last simple">
+<li>0: Output clamped (transition)</li>
+<li>1: Forward (verification)</li>
+<li>2: Reverse (verification)</li>
+<li>4: Output clamped (requested)</li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>The Polarity 1 value actually contains the values of three separate
+polarities: desired, magnet, and commanded (in order). &#8220;pos&#8221; represents
+forward polarity, and &#8220;neg&#8221; means reverse polarity. The three values
+are defined to be</p>
+<blockquote>
+<div><ul class="simple">
+<li>&#8220;desired&#8221;: the final or target polarity (polarity of the setpoint
+current)</li>
+<li>&#8220;magnet&#8221;: the polarity of the power supply last time the magnet 
+was left persistent</li>
+<li>&#8220;commanded&#8221;: the present polarity of the power supply unless the
+output is clamped</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ps120.PS120.getSweepRate">
+<tt class="descname">getSweepRate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ps120.html#PS120.getSweepRate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ps120.PS120.getSweepRate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the field sweep rate in Tesla/min.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The magnetic field sweep rate in Tesla/min.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ps120.PS120.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ps120.html#PS120.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ps120.PS120.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare the power supply for use.</p>
+<dl class="docutils">
+<dt>Prepare the power supply for use by </dt>
+<dd><ol class="first last arabic simple">
+<li>opening the appropriate communication channel;</li>
+<li>setting the control mode to &#8216;remote and unlocked&#8217;;</li>
+<li>setting the activity to &#8216;hold&#8217;;</li>
+<li>setting the polarity to &#8216;forward&#8217;;</li>
+<li>setting the sweep rate to 0.5 T/min;</li>
+<li>setting the sweep mode to its default (Tesla, auto, 
+unaffected); and</li>
+<li>setting the switch heater to &#8216;Off, magnet at zero&#8217;.</li>
+</ol>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ps120.PS120.setActivity">
+<tt class="descname">setActivity</tt><big>(</big><em>activity='0'</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ps120.html#PS120.setActivity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ps120.PS120.setActivity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the activity mode of the power supply.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>activity</strong> : str</p>
+<blockquote class="last">
+<div><p>An integer string representing the desired activity. The accepted
+values are listed below.</p>
+<blockquote>
+<div><ul class="simple">
+<li>&#8216;0&#8217;: Hold at current field (default).</li>
+<li>&#8216;1&#8217;: Ramp the field to the setpoint.</li>
+<li>&#8216;2&#8217;: Ramp the field to zero.</li>
+<li>&#8216;4&#8217;: Clamp the output.</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ps120.PS120.setControlMode">
+<tt class="descname">setControlMode</tt><big>(</big><em>controlMode='3'</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ps120.html#PS120.setControlMode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ps120.PS120.setControlMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the control mode for the power supply.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>controlMode</strong> : str, optional</p>
+<blockquote class="last">
+<div><p>An integer string representing the desired control mode. Allowed
+values are the following.</p>
+<blockquote>
+<div><ul class="simple">
+<li>&#8216;0&#8217;: Local and locked (power-up state).</li>
+<li>&#8216;1&#8217;: Remote and locked.</li>
+<li>&#8216;2&#8217;: Local and unlocked.</li>
+<li>&#8216;3&#8217;: Remote and unlocked (default).</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ps120.PS120.setField">
+<tt class="descname">setField</tt><big>(</big><em>field</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ps120.html#PS120.setField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ps120.PS120.setField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnetic field in Tesla.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>field</strong> : float</p>
+<blockquote class="last">
+<div><p>The magnetic field setpoint in Tesla.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ps120.PS120.setPolarity">
+<tt class="descname">setPolarity</tt><big>(</big><em>polarity='0'</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ps120.html#PS120.setPolarity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ps120.PS120.setPolarity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the power supply polarity.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>polarity</strong> : str</p>
+<blockquote class="last">
+<div><p>A string containing a single integer representing the desired
+polarity (or polarity-changing action). The following values are
+accepted.</p>
+<blockquote>
+<div><ul class="simple">
+<li>&#8216;0&#8217;: Do nothing (default).</li>
+<li>&#8216;1&#8217;: Set the polarity to forward.</li>
+<li>&#8216;2&#8217;: Set the polarity to reverse.</li>
+<li>&#8216;4&#8217;: Swap the polarity.</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ps120.PS120.setSweepMode">
+<tt class="descname">setSweepMode</tt><big>(</big><em>sweepMode='9'</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ps120.html#PS120.setSweepMode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ps120.PS120.setSweepMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the power supply&#8217;s sweep mode.</p>
+<dl class="docutils">
+<dt>The power supply&#8217;s sweep mode consists of three parameters:</dt>
+<dd><dl class="first last docutils">
+<dt>Display:</dt>
+<dd>The instrument&#8217;s front-panel display units (amps or tesla)</dd>
+<dt>Mode:</dt>
+<dd>Either &#8220;immediate&#8221; or &#8220;sweep&#8221;; in &#8220;immediate&#8221; mode, the power
+supply ramps current at its maximum allowed value, while in 
+&#8220;sweep&#8221; mode, the power supply uses a user-specified sweep rate</dd>
+<dt>Magnet sweep:</dt>
+<dd>One of two user-defined sweep profiles: &#8220;fast&#8221; and &#8220;train&#8221;; the
+&#8220;fast&#8221; mode is entered upon power supply startup</dd>
+</dl>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>sweepMode</strong> : str, optional</p>
+<blockquote class="last">
+<div><p>The integer string code to specify the sweep mode of the power
+supply. The allowed codes are the following.</p>
+<blockquote>
+<div><ul class="simple">
+<li>&#8216;0&#8217;: Amps, Immediate, Fast</li>
+<li>&#8216;1&#8217;: Tesla, Immediate, Fast</li>
+<li>&#8216;2&#8217;: Amps, Sweep, Fast</li>
+<li>&#8216;3&#8217;: Tesla, Sweep, Fast</li>
+<li>&#8216;4&#8217;: Amps, Immediate, Train</li>
+<li>&#8216;5&#8217;: Tesla, Immediate, Train</li>
+<li>&#8216;6&#8217;: Amps, Sweep, Train</li>
+<li>&#8216;7&#8217;: Tesla, Sweep, Train</li>
+<li>&#8216;8&#8217;: Amps, Auto, Unaffected</li>
+<li>&#8216;9&#8217;: Tesla, Auto, Unaffected (default)</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ps120.PS120.setSweepRate">
+<tt class="descname">setSweepRate</tt><big>(</big><em>sweepRate=0.5</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ps120.html#PS120.setSweepRate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ps120.PS120.setSweepRate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the magnetic field sweep rate in Tesla/min.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>sweepRate</strong> : float, optional</p>
+<blockquote class="last">
+<div><p>The desired sweep rate for the magnet in Tesla/min (default 0.5).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.instruments.noauto.ps120.PS120.setSwitchHeater">
+<tt class="descname">setSwitchHeater</tt><big>(</big><em>heaterStatus='0'</em>, <em>delay=20.0</em><big>)</big><a class="reference internal" href="_modules/src/instruments/noauto/ps120.html#PS120.setSwitchHeater"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.instruments.noauto.ps120.PS120.setSwitchHeater" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the status of the switch heater.</p>
+<p>Turn the switch heater on or off, optionally checking whether it is
+safe to do so. Then wait a specified amount of time for the power
+supply to carry out the command.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>heaterStatus</strong> : {&#8216;0&#8217;, &#8216;1&#8217;, &#8216;2&#8217;}, optional</p>
+<blockquote>
+<div><p>An integer string representing the desired switch heater status.
+The following values are accepted.</p>
+<blockquote>
+<div><ul class="simple">
+<li>&#8216;0&#8217;: Turn the heater off (default).</li>
+<li>&#8216;1&#8217;: Turn the heater on if the power supply current and the 
+magnet current are equal. Otherwise, do nothing.</li>
+<li>&#8216;2&#8217;: Turn the heater on without checking the currents.</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+<p><strong>delay</strong> : float, optional</p>
+<blockquote class="last">
+<div><p>The time to wait (in seconds) after commanding the switch heater to
+adopt the specified status. The value should be <em>at least</em> 15s.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>ps120</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#ps120">PS120</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_instruments_noauto_itc503.html"
+                        title="previous chapter">The <cite>itc503</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_instruments_srs830.html"
+                        title="next chapter">The <cite>srs830</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_instruments_noauto_ps120.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_srs830.html" title="The srs830 module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_instruments_noauto_itc503.html" title="The itc503 module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_instruments.html" >The <cite>instruments</cite> package</a> &raquo;</li>
+          <li><a href="api_instruments_noauto.html" >The <cite>noauto</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

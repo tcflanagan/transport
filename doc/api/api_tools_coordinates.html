@@ -1,0 +1,243 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The coordinates module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The tools package" href="api_tools.html" />
+    <link rel="next" title="The expt_loader module" href="api_tools_expt_loader.html" />
+    <link rel="prev" title="The subversion module" href="api_tools_subversion.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_tools_expt_loader.html" title="The expt_loader module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_tools_subversion.html" title="The subversion module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_tools.html" accesskey="U">The <cite>tools</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.tools.coordinates">
+<span id="the-coordinates-module"></span><h1>The <cite>coordinates</cite> module<a class="headerlink" href="#module-src.tools.coordinates" title="Permalink to this headline">¶</a></h1>
+<p>Tools for performing vector and coordinate conversions.</p>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.tools.coordinates.sphericalToCartesian">
+<tt class="descclassname">src.tools.coordinates.</tt><tt class="descname">sphericalToCartesian</tt><big>(</big><em>magnitude</em>, <em>azimuthal</em>, <em>polar</em><big>)</big><a class="reference internal" href="_modules/src/tools/coordinates.html#sphericalToCartesian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.coordinates.sphericalToCartesian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a vector from spherical to Cartesian coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>magnitude</strong> : float</p>
+<blockquote>
+<div><p>The magnitude of the vector.</p>
+</div></blockquote>
+<p><strong>azimuthal</strong> : float</p>
+<blockquote>
+<div><p>The angle in degrees of the vector, measured downward from the positive
+z-axis.</p>
+</div></blockquote>
+<p><strong>polar</strong> : float</p>
+<blockquote>
+<div><p>The angle in degrees of the vector, measured counter-clockwise from
+the positive x-axis.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote>
+<div><p>The x-coordinate of the vector.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The y-coordinate of the vector.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>THe z-coordinate of the vector.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.coordinates.cartesianToSpherical">
+<tt class="descclassname">src.tools.coordinates.</tt><tt class="descname">cartesianToSpherical</tt><big>(</big><em>xComp</em>, <em>yComp</em>, <em>zComp</em>, <em>negateMagnitude=False</em>, <em>tolerance=1e-10</em><big>)</big><a class="reference internal" href="_modules/src/tools/coordinates.html#cartesianToSpherical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.coordinates.cartesianToSpherical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a vector from Cartesian to spherical coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>xComp</strong> : float</p>
+<blockquote>
+<div><p>The x-component of the vector.</p>
+</div></blockquote>
+<p><strong>yComp</strong> : float</p>
+<blockquote>
+<div><p>The y-component of the vector.</p>
+</div></blockquote>
+<p><strong>zComp</strong> : float</p>
+<blockquote>
+<div><p>The z-component of the vector.</p>
+</div></blockquote>
+<p><strong>negateMagnitude</strong> : bool</p>
+<blockquote>
+<div><p>Whether to prefer a negative value of the magnitude, accounting for
+the reversed direction by adding 180 degrees to the azimuthal angle.</p>
+</div></blockquote>
+<p><strong>tolerance</strong> : float</p>
+<blockquote>
+<div><p>How maximum absolute value a number may have and still be treated as
+zero.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote>
+<div><p>The magnitude of the vector.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote>
+<div><p>The azimuthal angle in degrees.</p>
+</div></blockquote>
+<p><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The polar angle in degrees.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.coordinates.equalEnough">
+<tt class="descclassname">src.tools.coordinates.</tt><tt class="descname">equalEnough</tt><big>(</big><em>numA</em>, <em>numB</em>, <em>tol=1e-06</em><big>)</big><a class="reference internal" href="_modules/src/tools/coordinates.html#equalEnough"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.coordinates.equalEnough" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether two numbers are close enough to be considered equal.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.tools.coordinates.clean">
+<tt class="descclassname">src.tools.coordinates.</tt><tt class="descname">clean</tt><big>(</big><em>point</em><big>)</big><a class="reference internal" href="_modules/src/tools/coordinates.html#clean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.tools.coordinates.clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a float with digits farther out than fifth place truncated.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>coordinates</cite> module</a><ul>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_tools_subversion.html"
+                        title="previous chapter">The <cite>subversion</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_tools_expt_loader.html"
+                        title="next chapter">The <cite>expt_loader</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_tools_coordinates.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_tools_expt_loader.html" title="The expt_loader module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_tools_subversion.html" title="The subversion module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_tools.html" >The <cite>tools</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

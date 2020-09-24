@@ -1,0 +1,410 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.gui.main.base_experiment &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.gui.main.base_experiment</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Abstract base class for experiment frames.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">wx</span>
+
+<span class="kn">from</span> <span class="nn">src</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">src.core.errors</span> <span class="kn">import</span> <span class="n">GeneralExperimentError</span>
+<span class="kn">from</span> <span class="nn">src.gui</span> <span class="kn">import</span> <span class="n">gui_helpers</span> <span class="k">as</span> <span class="n">gh</span>
+<span class="kn">from</span> <span class="nn">src.gui</span> <span class="kn">import</span> <span class="n">images</span> <span class="k">as</span> <span class="n">img</span>
+<span class="kn">from</span> <span class="nn">src.tools.general</span> <span class="kn">import</span> <span class="n">Command</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;transport&#39;</span><span class="p">)</span>
+
+<span class="n">ID_PREMADE</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+
+<span class="n">ID_INSTRUMENTS</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_CONSTANTS</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_GRAPHS</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+
+<span class="n">ID_EXEC_RUN</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_EXEC_PAUSE</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+<span class="n">ID_EXEC_STOP</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+
+<span class="n">_EXTS_EXPERIMENT</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">EXTS_EXPERIMENT</span>
+
+<div class="viewcode-block" id="ExperimentFrame"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame">[docs]</a><span class="k">class</span> <span class="nc">ExperimentFrame</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A frame meant to be overridden by frames for developing experiments.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : Transport</span>
+<span class="sd">        The main Transport program frame (or anything which implements the</span>
+<span class="sd">        same interface).</span>
+<span class="sd">    experiment : Experiment</span>
+<span class="sd">        The `Experiment` object which this frame edits.</span>
+<span class="sd">    title : str</span>
+<span class="sd">        The default name for the experiment.</span>
+<span class="sd">    icon : code</span>
+<span class="sd">        Bitmap data in the form of Python code to use as the icon for this</span>
+<span class="sd">        frame.</span>
+<span class="sd">    premade : bool</span>
+<span class="sd">        Whether this `ExperimentFrame` represents a premade experiment frame.</span>
+<span class="sd">        Some features---like saving and manually editing the instruments---are </span>
+<span class="sd">        only available to custom experiments, so they are disabled in frames </span>
+<span class="sd">        for premade experiments. The default is `True`. </span>
+<span class="sd">    experimentPath : str</span>
+<span class="sd">        The path to the experiment, if it was opened from a file. The default</span>
+<span class="sd">        is `None`.</span>
+<span class="sd">    globalStatus : str</span>
+<span class="sd">        The status of the software, indicating whether any experiments are</span>
+<span class="sd">        running.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">experiment</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;Untitled Experiment&#39;</span><span class="p">,</span> 
+                 <span class="n">icon</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">premade</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">experimentPath</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+                 <span class="n">globalStatus</span><span class="o">=</span><span class="s">&#39;none-running&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ExperimentFrame</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+                                              <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">premade</span> <span class="o">=</span> <span class="n">premade</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">experiment</span> <span class="o">=</span> <span class="n">experiment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">experimentPath</span> <span class="o">=</span> <span class="n">experimentPath</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">_EXTS_EXPERIMENT</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">experimentPath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">experimentName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">experimentPath</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">experimentName</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">ext</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">experimentName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">experimentName</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">experimentName</span> <span class="o">=</span> <span class="n">title</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__edited</span> <span class="o">=</span> <span class="bp">False</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">menuBar</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fileMenu</span> <span class="o">=</span> <span class="bp">None</span>
+        
+        
+        <span class="k">if</span> <span class="n">icon</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetIcon</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">getExperimentIconIcon</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetIcon</span><span class="p">(</span><span class="n">icon</span><span class="p">)</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">controls</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">initializeMenus</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initializeToolbar</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notifyStatus</span><span class="p">(</span><span class="n">globalStatus</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_CLOSE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onClose</span><span class="p">)</span>
+    
+    
+<div class="viewcode-block" id="ExperimentFrame.initializeMenus"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.initializeMenus">[docs]</a>    <span class="k">def</span> <span class="nf">initializeMenus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create the menu bar.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">menuBar</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">MenuBar</span><span class="p">()</span>
+        
+        <span class="c">#--- File Menu </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fileMenu</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Menu</span><span class="p">()</span>
+        <span class="n">fileAdder</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">gh</span><span class="o">.</span><span class="n">createMenuItem</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fileMenu</span><span class="p">)</span>
+        <span class="n">fileAdder</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_HOME</span><span class="p">,</span> <span class="s">&#39;Open Home Screen&#39;</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onHome</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fileMenu</span><span class="o">.</span><span class="n">AppendSeparator</span><span class="p">()</span>
+        <span class="n">fileAdder</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_NEW</span><span class="p">,</span> <span class="s">&#39;New&#39;</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onNew</span><span class="p">)</span>
+        <span class="n">fileAdder</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_OPEN</span><span class="p">,</span> <span class="s">&#39;Open&#39;</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onOpen</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fileMenu</span><span class="o">.</span><span class="n">AppendSeparator</span><span class="p">()</span>
+        <span class="n">fileAdder</span><span class="p">(</span><span class="n">ID_PREMADE</span><span class="p">,</span> <span class="s">&#39;Open Premade&#39;</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onPremade</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fileMenu</span><span class="o">.</span><span class="n">AppendSeparator</span><span class="p">()</span>
+        <span class="n">fileAdder</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_CLOSE</span><span class="p">,</span> <span class="s">&#39;Close&#39;</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onClose</span><span class="p">)</span>
+        <span class="n">fileAdder</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_EXIT</span><span class="p">,</span> <span class="s">&#39;Exit&#39;</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onExit</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">menuBar</span><span class="o">.</span><span class="n">Append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fileMenu</span><span class="p">,</span> <span class="s">&#39;File&#39;</span><span class="p">)</span>        
+        
+        <span class="c">#-- Help Menu </span>
+        <span class="n">helpMenu</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Menu</span><span class="p">()</span>
+        <span class="n">helpAdder</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">gh</span><span class="o">.</span><span class="n">createMenuItem</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">helpMenu</span><span class="p">)</span>
+        <span class="n">helpAdder</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_HELP</span><span class="p">,</span> <span class="s">&#39;Help&#39;</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onHelp</span><span class="p">)</span>
+        <span class="n">helpAdder</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_ABOUT</span><span class="p">,</span> <span class="s">&#39;About&#39;</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onAbout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">menuBar</span><span class="o">.</span><span class="n">Append</span><span class="p">(</span><span class="n">helpMenu</span><span class="p">,</span> <span class="s">&#39;Help&#39;</span><span class="p">)</span>
+        
+        <span class="c">#-- Attach the menus</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetMenuBar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">menuBar</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ExperimentFrame.initializeToolbar"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.initializeToolbar">[docs]</a>    <span class="k">def</span> <span class="nf">initializeToolbar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create the toolbar.&quot;&quot;&quot;</span>
+        
+        <span class="n">toolbar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CreateToolBar</span><span class="p">()</span>
+        
+        <span class="c">#-- Home</span>
+        <span class="n">toolbar</span><span class="o">.</span><span class="n">AddSimpleTool</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_HOME</span><span class="p">,</span> <span class="n">img</span><span class="o">.</span><span class="n">getHomeButtonBitmap</span><span class="p">(),</span> <span class="s">&#39;Home&#39;</span><span class="p">,</span>
+                              <span class="s">&#39;Open the home screen.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_TOOL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onHome</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_HOME</span><span class="p">)</span>
+        
+        <span class="c">#-- Execution</span>
+        <span class="n">toolbar</span><span class="o">.</span><span class="n">AddSeparator</span><span class="p">()</span>
+        <span class="n">toolbar</span><span class="o">.</span><span class="n">AddSimpleTool</span><span class="p">(</span><span class="n">ID_EXEC_RUN</span><span class="p">,</span> <span class="n">img</span><span class="o">.</span><span class="n">getRunButtonBitmap</span><span class="p">(),</span> <span class="s">&#39;Run&#39;</span><span class="p">,</span>
+                              <span class="s">&#39;Begin execution of the experiment.&#39;</span><span class="p">)</span>
+        <span class="n">toolbar</span><span class="o">.</span><span class="n">AddSimpleTool</span><span class="p">(</span><span class="n">ID_EXEC_PAUSE</span><span class="p">,</span> <span class="n">img</span><span class="o">.</span><span class="n">getPauseButtonBitmap</span><span class="p">(),</span> 
+                              <span class="s">&#39;Pause&#39;</span><span class="p">,</span> <span class="s">&#39;Pause the experiment.&#39;</span><span class="p">)</span>
+        <span class="n">toolbar</span><span class="o">.</span><span class="n">AddSimpleTool</span><span class="p">(</span><span class="n">ID_EXEC_STOP</span><span class="p">,</span> <span class="n">img</span><span class="o">.</span><span class="n">getStopButtonBitmap</span><span class="p">(),</span> <span class="s">&#39;Stop&#39;</span><span class="p">,</span>
+                              <span class="s">&#39;Stop the experiment.&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_TOOL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onRun</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">ID_EXEC_RUN</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_TOOL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onPause</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">ID_EXEC_PAUSE</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_TOOL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onStop</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">ID_EXEC_STOP</span><span class="p">)</span>
+
+        <span class="n">toolbar</span><span class="o">.</span><span class="n">Realize</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">toolbar</span>
+        </div>
+<div class="viewcode-block" id="ExperimentFrame.appendControl"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.appendControl">[docs]</a>    <span class="k">def</span> <span class="nf">appendControl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newControl</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Append a control to the list to be disabled when run begins.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newControl : wxWindow</span>
+<span class="sd">            The control to add to the list.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">controls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newControl</span><span class="p">)</span>
+        
+        
+    <span class="c">#------------------------------------------------------------ Event handlers</span>
+    </div>
+<div class="viewcode-block" id="ExperimentFrame.onHome"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.onHome">[docs]</a>    <span class="k">def</span> <span class="nf">onHome</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Show the home screen, assuming it is the parent.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">IsShown</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">Show</span><span class="p">()</span>
+        </div>
+<div class="viewcode-block" id="ExperimentFrame.onNew"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.onNew">[docs]</a>    <span class="k">def</span> <span class="nf">onNew</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new experiment.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">newExperiment</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Parent does not implement newExperiment.&#39;</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ExperimentFrame.onOpen"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.onOpen">[docs]</a>    <span class="k">def</span> <span class="nf">onOpen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Open an experiment.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">openExperiment</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Parent does not implement openExperiment.&#39;</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ExperimentFrame.onSave"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.onSave">[docs]</a>    <span class="k">def</span> <span class="nf">onSave</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save the experiment.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">saveExperiment</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ExperimentFrame.onSaveAs"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.onSaveAs">[docs]</a>    <span class="k">def</span> <span class="nf">onSaveAs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save the experiment, prompting for a file name.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">saveExperimentAs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ExperimentFrame.onPremade"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.onPremade">[docs]</a>    <span class="k">def</span> <span class="nf">onPremade</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Open a premade experiment.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">openPremade</span><span class="p">()</span>
+        </div>
+<div class="viewcode-block" id="ExperimentFrame.onClose"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.onClose">[docs]</a>    <span class="k">def</span> <span class="nf">onClose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close the experiment.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">experiment</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">experiment</span><span class="o">.</span><span class="n">abort</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">closeExperiment</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Parent does not implement closeExperiment.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Destroy</span><span class="p">()</span>
+        </div>
+<div class="viewcode-block" id="ExperimentFrame.onExit"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.onExit">[docs]</a>    <span class="k">def</span> <span class="nf">onExit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Exit the software (this is mostly handled by the parent).&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">exitSoftware</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ExperimentFrame.onHelp"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.onHelp">[docs]</a>    <span class="k">def</span> <span class="nf">onHelp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Open the help system.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">onHelp</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ExperimentFrame.onAbout"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.onAbout">[docs]</a>    <span class="k">def</span> <span class="nf">onAbout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Open the About screen.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">onAbout</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="ExperimentFrame.onRun"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.onRun">[docs]</a>    <span class="k">def</span> <span class="nf">onRun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run the experiment.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether the experiment aws successfully initiated. The method</span>
+<span class="sd">            returns `False` if an unrecoverable error was detected or if the</span>
+<span class="sd">            user cancels in response to a recoverable error.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">command1</span> <span class="o">=</span> <span class="n">Command</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">runExperiment</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="n">command2</span> <span class="o">=</span> <span class="n">Command</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">endExperiment</span><span class="p">)</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">experiment</span><span class="o">.</span><span class="n">setInteractionParameters</span><span class="p">(</span>
+                    <span class="n">preSequenceCommands</span><span class="o">=</span><span class="p">[</span><span class="n">command1</span><span class="p">],</span>
+                    <span class="n">postSequenceCommands</span><span class="o">=</span><span class="p">[</span><span class="n">command2</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="n">Command</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">notifyStatus</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="s">&#39;none-running&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">experiment</span><span class="o">.</span><span class="n">setInteractionParameters</span><span class="p">(</span>
+                    <span class="n">postSequenceCommands</span><span class="o">=</span><span class="p">[</span><span class="n">command</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">experiment</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">GeneralExperimentError</span><span class="p">,</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">dialog</span> <span class="o">=</span> <span class="n">gh</span><span class="o">.</span><span class="n">ErrorDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">experiment</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">notifyStatus</span><span class="p">(</span><span class="s">&#39;none-running&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+        </div>
+<div class="viewcode-block" id="ExperimentFrame.onPause"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.onPause">[docs]</a>    <span class="k">def</span> <span class="nf">onPause</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pause the experiment.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">experiment</span><span class="o">.</span><span class="n">isPaused</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">experiment</span><span class="o">.</span><span class="n">resume</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">experiment</span><span class="o">.</span><span class="n">pause</span><span class="p">()</span>
+            </div>
+<div class="viewcode-block" id="ExperimentFrame.onStop"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.onStop">[docs]</a>    <span class="k">def</span> <span class="nf">onStop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Stop the experiment.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">experiment</span><span class="o">.</span><span class="n">abort</span><span class="p">()</span>
+        </div>
+<div class="viewcode-block" id="ExperimentFrame.notifyStatus"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.notifyStatus">[docs]</a>    <span class="k">def</span> <span class="nf">notifyStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update this frame to reflect the status of the software.</span>
+<span class="sd">        </span>
+<span class="sd">        Update the execution button status and the editability of panels</span>
+<span class="sd">        to reflect changes in the software status (e.g., whether the</span>
+<span class="sd">        experiment for this frame is running, whether the experiment</span>
+<span class="sd">        for another frame is running, or whether nothing is running).</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        status : str</span>
+<span class="sd">            The status of the software. Valid options are the following:</span>
+<span class="sd">                - self-running</span>
+<span class="sd">                - self-paused</span>
+<span class="sd">                - other-running</span>
+<span class="sd">                - none-running</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s">&#39;self-running&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">EnableTool</span><span class="p">(</span><span class="n">ID_EXEC_RUN</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">EnableTool</span><span class="p">(</span><span class="n">ID_EXEC_PAUSE</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">EnableTool</span><span class="p">(</span><span class="n">ID_EXEC_STOP</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">control</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">controls</span><span class="p">:</span>
+                <span class="n">control</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">status</span> <span class="o">==</span> <span class="s">&#39;self-paused&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">EnableTool</span><span class="p">(</span><span class="n">ID_EXEC_RUN</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">EnableTool</span><span class="p">(</span><span class="n">ID_EXEC_PAUSE</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">EnableTool</span><span class="p">(</span><span class="n">ID_EXEC_STOP</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">control</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">controls</span><span class="p">:</span>
+                <span class="n">control</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">status</span> <span class="o">==</span> <span class="s">&#39;other-running&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">EnableTool</span><span class="p">(</span><span class="n">ID_EXEC_RUN</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">EnableTool</span><span class="p">(</span><span class="n">ID_EXEC_PAUSE</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">EnableTool</span><span class="p">(</span><span class="n">ID_EXEC_STOP</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">control</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">controls</span><span class="p">:</span>
+                <span class="n">control</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">status</span> <span class="o">==</span> <span class="s">&#39;none-running&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">EnableTool</span><span class="p">(</span><span class="n">ID_EXEC_RUN</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">EnableTool</span><span class="p">(</span><span class="n">ID_EXEC_PAUSE</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">EnableTool</span><span class="p">(</span><span class="n">ID_EXEC_STOP</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">control</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">controls</span><span class="p">:</span>
+                <span class="n">control</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">EnableTool</span><span class="p">(</span><span class="n">ID_EXEC_RUN</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">EnableTool</span><span class="p">(</span><span class="n">ID_EXEC_PAUSE</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">EnableTool</span><span class="p">(</span><span class="n">ID_EXEC_STOP</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">control</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">controls</span><span class="p">:</span>
+                <span class="n">control</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+            </div>
+<div class="viewcode-block" id="ExperimentFrame.getEnded"><a class="viewcode-back" href="../../../../api_gui_main_base_experiment.html#src.gui.main.base_experiment.ExperimentFrame.getEnded">[docs]</a>    <span class="k">def</span> <span class="nf">getEnded</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether the experiment has finished running.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">experiment</span><span class="o">.</span><span class="n">isRunning</span><span class="p">()</span>
+        </div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

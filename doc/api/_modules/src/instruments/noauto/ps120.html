@@ -1,0 +1,473 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.instruments.noauto.ps120 &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.instruments.noauto.ps120</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Basic drivers for an Oxford Instruments model PS120 power supply</span>
+
+<span class="sd">Note that this module does **not** represent an `Instrument` subclass, since</span>
+<span class="sd">the PS120 is never used by itself---it is always part of a larger system </span>
+<span class="sd">driving both a magnet power supply and temperature controllers, and the</span>
+<span class="sd">power supply cannot usually be used in isolation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">src.instruments.noauto.oxford_common</span> <span class="kn">import</span> <span class="n">OxfordCommon</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">copysign</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+
+<div class="viewcode-block" id="PS120"><a class="viewcode-back" href="../../../../api_instruments_noauto_ps120.html#src.instruments.noauto.ps120.PS120">[docs]</a><span class="k">class</span> <span class="nc">PS120</span><span class="p">(</span><span class="n">OxfordCommon</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This is a basic driver for an Oxford Instruments model PS120 power</span>
+<span class="sd">    supply. It should be included in an `Instrument` class representing a</span>
+<span class="sd">    cryostat-magnet system.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        A name to identify the instrument.</span>
+<span class="sd">    protocol : {&#39;ISOBUS&#39;, &#39;GPIB&#39;, &#39;Serial&#39;, &#39;Gateway Master&#39;, &#39;Gateway Slave&#39;}</span>
+<span class="sd">        The protocol for communication between the computer and the temperature</span>
+<span class="sd">        controller.</span>
+<span class="sd">    isobusAddress : str</span>
+<span class="sd">        An integer string representing the ISOBUS address, if relevant. An</span>
+<span class="sd">        integer will be accepted and converted.</span>
+<span class="sd">    visaAddress : str</span>
+<span class="sd">        A full VISA resource address (including the bus) to locate the </span>
+<span class="sd">        instrument (e.g. &quot;GPIB0::27&quot;).</span>
+<span class="sd">    serialConfig : dict</span>
+<span class="sd">        A dictionary to indicate how to configure a serial port, which is used</span>
+<span class="sd">        with both the &#39;ISOBUS&#39; and &#39;Serial&#39; protocols.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;Magnet&quot;</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="s">&#39;ISOBUS&#39;</span><span class="p">,</span> <span class="n">isobusAddress</span><span class="o">=</span><span class="s">&#39;0&#39;</span><span class="p">,</span> 
+                 <span class="n">visaAddress</span><span class="o">=</span><span class="s">&#39;GPIB0::23&#39;</span><span class="p">,</span> <span class="n">serialConfig</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new power supply instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Initialization for this object really only involves passing all</span>
+<span class="sd">        arguments into the `OxfordCommon` superclass.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+         
+        <span class="nb">super</span><span class="p">(</span><span class="n">PS120</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">isobusAddress</span><span class="p">,</span>
+                                    <span class="n">visaAddress</span><span class="p">,</span> <span class="n">serialConfig</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_activity</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_polarity1</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_polarity2</span> <span class="o">=</span> <span class="bp">None</span>
+        
+<div class="viewcode-block" id="PS120.initialize"><a class="viewcode-back" href="../../../../api_instruments_noauto_ps120.html#src.instruments.noauto.ps120.PS120.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prepare the power supply for use.</span>
+<span class="sd">        </span>
+<span class="sd">        Prepare the power supply for use by </span>
+<span class="sd">            1. opening the appropriate communication channel;</span>
+<span class="sd">            2. setting the control mode to &#39;remote and unlocked&#39;;</span>
+<span class="sd">            3. setting the activity to &#39;hold&#39;;</span>
+<span class="sd">            4. setting the polarity to &#39;forward&#39;;</span>
+<span class="sd">            5. setting the sweep rate to 0.5 T/min;</span>
+<span class="sd">            6. setting the sweep mode to its default (Tesla, auto, </span>
+<span class="sd">               unaffected); and</span>
+<span class="sd">            7. setting the switch heater to &#39;Off, magnet at zero&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">openCommunication</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setControlMode</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setActivity</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setPolarity</span><span class="p">(</span><span class="s">&#39;1&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setSweepRate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setSweepMode</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setSwitchHeater</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="PS120.getStatus"><a class="viewcode-back" href="../../../../api_instruments_noauto_ps120.html#src.instruments.noauto.ps120.PS120.getStatus">[docs]</a>    <span class="k">def</span> <span class="nf">getStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the power supply status.</span>
+<span class="sd">        </span>
+<span class="sd">        Read the power supply status, and update the local polarity variables</span>
+<span class="sd">        to reflect this change.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            The status dictionary, containing the following items:</span>
+<span class="sd">            &#39;system_status_1&#39;, &#39;system_status_2&#39;, &#39;activity&#39;, &#39;control_mode&#39;,</span>
+<span class="sd">            &#39;switch_heater&#39;, &#39;mode_1&#39;, &#39;mode_2&#39;, &#39;polarity_1&#39;, and</span>
+<span class="sd">            &#39;polarity_2&#39;. The meanings are described in the Notes section.</span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The power supply returns a string of the form ``XmnAnCnHnMmnPmn``. The</span>
+<span class="sd">        meanings and values of the parts of this are described here.</span>
+<span class="sd">        </span>
+<span class="sd">        ``Xmn``: System status</span>
+<span class="sd">            ``m``: Status 1</span>
+<span class="sd">                - 0: Normal</span>
+<span class="sd">                - 1: Quenched</span>
+<span class="sd">                - 2: Over-heated</span>
+<span class="sd">                - 4: Warming up</span>
+<span class="sd">            ``n``: Status 2</span>
+<span class="sd">                - 0: Normal</span>
+<span class="sd">                - 1: On positive voltage limit</span>
+<span class="sd">                - 2: On negative voltage limit</span>
+<span class="sd">                - 4: Outside negative current limit</span>
+<span class="sd">                - 8: Outside positive current limit </span>
+<span class="sd">        ``An``: Activity</span>
+<span class="sd">            - 0: Hold</span>
+<span class="sd">            - 1: To setpoint</span>
+<span class="sd">            - 2: To zero</span>
+<span class="sd">            - 4: Output clamped</span>
+<span class="sd">        ``Cn``: Control status</span>
+<span class="sd">            - 0: Local and locked</span>
+<span class="sd">            - 1: Remote and locked</span>
+<span class="sd">            - 2: Local and unlocked</span>
+<span class="sd">            - 3: Remote and unlocked</span>
+<span class="sd">            - 4: Auto-run-down</span>
+<span class="sd">            - 5: Auto-run-down</span>
+<span class="sd">            - 6: Auto-run-down</span>
+<span class="sd">            - 7: Auto-run-down</span>
+<span class="sd">        ``Hn``: Switch heater status</span>
+<span class="sd">            - 0: Off---magnet at zero (switch closed)</span>
+<span class="sd">            - 1: On (switch open)</span>
+<span class="sd">            - 2: Off---magnet at field (switch closed)</span>
+<span class="sd">            - 8: No switch fitted</span>
+<span class="sd">        ``Mmn``: Mode</span>
+<span class="sd">            ``m``: Mode 1</span>
+<span class="sd">                - 0: Amps, Immediate, Fast</span>
+<span class="sd">                - 1: Tesla, Immediate, Fast</span>
+<span class="sd">                - 2: Amps, Sweep, Fast</span>
+<span class="sd">                - 3: Tesla, Sweep, Fast</span>
+<span class="sd">                - 4: Amps, Immediate, Train</span>
+<span class="sd">                - 5: Tesla, Immediate, Train</span>
+<span class="sd">                - 6: Amps, Sweep, Train</span>
+<span class="sd">                - 7: Tesla, Sweep, Train</span>
+<span class="sd">            ``n``: Mode 2</span>
+<span class="sd">                - 0: At rest (output constant)</span>
+<span class="sd">                - 1: Sweeping (output changing)</span>
+<span class="sd">                - 2: Rate limiting (output changing)</span>
+<span class="sd">                - 3: Sweeping and rate limiting (output changing)</span>
+<span class="sd">        ``Pmn``: Polarity</span>
+<span class="sd">            ``m``: Polarity 1 (see below)</span>
+<span class="sd">                - 0: pos, pos, pos</span>
+<span class="sd">                - 1: pos, pos, neg</span>
+<span class="sd">                - 2: pos, neg, pos</span>
+<span class="sd">                - 3: pos, neg, neg</span>
+<span class="sd">                - 4: neg, pos, pos</span>
+<span class="sd">                - 5: neg, pos, neg</span>
+<span class="sd">                - 6: neg, neg, pos</span>
+<span class="sd">                - 7: neg, neg, neg</span>
+<span class="sd">            ``n``: Polarity 2</span>
+<span class="sd">                - 0: Output clamped (transition)</span>
+<span class="sd">                - 1: Forward (verification)</span>
+<span class="sd">                - 2: Reverse (verification)</span>
+<span class="sd">                - 4: Output clamped (requested)</span>
+<span class="sd">                </span>
+<span class="sd">        The Polarity 1 value actually contains the values of three separate</span>
+<span class="sd">        polarities: desired, magnet, and commanded (in order). &quot;pos&quot; represents</span>
+<span class="sd">        forward polarity, and &quot;neg&quot; means reverse polarity. The three values</span>
+<span class="sd">        are defined to be</span>
+<span class="sd">            - &quot;desired&quot;: the final or target polarity (polarity of the setpoint</span>
+<span class="sd">              current)</span>
+<span class="sd">            - &quot;magnet&quot;: the polarity of the power supply last time the magnet </span>
+<span class="sd">              was left persistent</span>
+<span class="sd">            - &quot;commanded&quot;: the present polarity of the power supply unless the</span>
+<span class="sd">              output is clamped</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;X&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_activity</span> <span class="o">=</span> <span class="n">status</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_polarity1</span> <span class="o">=</span> <span class="n">status</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_polarity2</span> <span class="o">=</span> <span class="n">status</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span>
+        
+        <span class="k">return</span> <span class="p">{</span><span class="s">&#39;system_status_1&#39;</span><span class="p">:</span> <span class="n">status</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="s">&#39;system status 2&#39;</span><span class="p">:</span> <span class="n">status</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="s">&#39;activity&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activity</span><span class="p">,</span>
+                <span class="s">&#39;control_mode&#39;</span><span class="p">:</span> <span class="n">status</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span>
+                <span class="s">&#39;switch_heater&#39;</span><span class="p">:</span> <span class="n">status</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span>
+                <span class="s">&#39;mode_1&#39;</span><span class="p">:</span> <span class="n">status</span><span class="p">[</span><span class="mi">10</span><span class="p">],</span>
+                <span class="s">&#39;mode_2&#39;</span><span class="p">:</span> <span class="n">status</span><span class="p">[</span><span class="mi">11</span><span class="p">],</span>
+                <span class="s">&#39;polarity_1&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_polarity1</span><span class="p">,</span>
+                <span class="s">&#39;polarity_2&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_polarity2</span><span class="p">}</span>
+        </div>
+<div class="viewcode-block" id="PS120.setControlMode"><a class="viewcode-back" href="../../../../api_instruments_noauto_ps120.html#src.instruments.noauto.ps120.PS120.setControlMode">[docs]</a>    <span class="k">def</span> <span class="nf">setControlMode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">controlMode</span><span class="o">=</span><span class="s">&#39;3&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the control mode for the power supply.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        controlMode : str, optional</span>
+<span class="sd">            An integer string representing the desired control mode. Allowed</span>
+<span class="sd">            values are the following.</span>
+<span class="sd">                - &#39;0&#39;: Local and locked (power-up state).</span>
+<span class="sd">                - &#39;1&#39;: Remote and locked.</span>
+<span class="sd">                - &#39;2&#39;: Local and unlocked.</span>
+<span class="sd">                - &#39;3&#39;: Remote and unlocked (default).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;C&#39;</span> <span class="o">+</span> <span class="n">controlMode</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="PS120.setActivity"><a class="viewcode-back" href="../../../../api_instruments_noauto_ps120.html#src.instruments.noauto.ps120.PS120.setActivity">[docs]</a>    <span class="k">def</span> <span class="nf">setActivity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">activity</span><span class="o">=</span><span class="s">&#39;0&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the activity mode of the power supply.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        activity : str</span>
+<span class="sd">            An integer string representing the desired activity. The accepted</span>
+<span class="sd">            values are listed below.</span>
+<span class="sd">                - &#39;0&#39;: Hold at current field (default).</span>
+<span class="sd">                - &#39;1&#39;: Ramp the field to the setpoint.</span>
+<span class="sd">                - &#39;2&#39;: Ramp the field to zero.</span>
+<span class="sd">                - &#39;4&#39;: Clamp the output.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;A&#39;</span> <span class="o">+</span> <span class="n">activity</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="PS120.getActivity"><a class="viewcode-back" href="../../../../api_instruments_noauto_ps120.html#src.instruments.noauto.ps120.PS120.getActivity">[docs]</a>    <span class="k">def</span> <span class="nf">getActivity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the activity status.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            An integer contained in a string representing the current </span>
+<span class="sd">            activity status. The recognized values are these:</span>
+<span class="sd">                - 0: Hold at current field, </span>
+<span class="sd">                - 1: Ramp the field to the setpoint, </span>
+<span class="sd">                - 2: Ramp the field to zero, and</span>
+<span class="sd">                - 4: Clamp the output.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activity</span>
+    </div>
+<div class="viewcode-block" id="PS120.setPolarity"><a class="viewcode-back" href="../../../../api_instruments_noauto_ps120.html#src.instruments.noauto.ps120.PS120.setPolarity">[docs]</a>    <span class="k">def</span> <span class="nf">setPolarity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">polarity</span><span class="o">=</span><span class="s">&#39;0&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the power supply polarity.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        polarity : str</span>
+<span class="sd">            A string containing a single integer representing the desired</span>
+<span class="sd">            polarity (or polarity-changing action). The following values are</span>
+<span class="sd">            accepted.</span>
+<span class="sd">                - &#39;0&#39;: Do nothing (default).</span>
+<span class="sd">                - &#39;1&#39;: Set the polarity to forward.</span>
+<span class="sd">                - &#39;2&#39;: Set the polarity to reverse.</span>
+<span class="sd">                - &#39;4&#39;: Swap the polarity.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;P&#39;</span> <span class="o">+</span> <span class="n">polarity</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span>
+        </div>
+<div class="viewcode-block" id="PS120.setSweepMode"><a class="viewcode-back" href="../../../../api_instruments_noauto_ps120.html#src.instruments.noauto.ps120.PS120.setSweepMode">[docs]</a>    <span class="k">def</span> <span class="nf">setSweepMode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sweepMode</span><span class="o">=</span><span class="s">&#39;9&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the power supply&#39;s sweep mode.</span>
+<span class="sd">        </span>
+<span class="sd">        The power supply&#39;s sweep mode consists of three parameters:</span>
+<span class="sd">            Display:</span>
+<span class="sd">                The instrument&#39;s front-panel display units (amps or tesla)</span>
+<span class="sd">            Mode:</span>
+<span class="sd">                Either &quot;immediate&quot; or &quot;sweep&quot;; in &quot;immediate&quot; mode, the power</span>
+<span class="sd">                supply ramps current at its maximum allowed value, while in </span>
+<span class="sd">                &quot;sweep&quot; mode, the power supply uses a user-specified sweep rate</span>
+<span class="sd">            Magnet sweep:</span>
+<span class="sd">                One of two user-defined sweep profiles: &quot;fast&quot; and &quot;train&quot;; the</span>
+<span class="sd">                &quot;fast&quot; mode is entered upon power supply startup</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sweepMode : str, optional</span>
+<span class="sd">            The integer string code to specify the sweep mode of the power</span>
+<span class="sd">            supply. The allowed codes are the following.</span>
+<span class="sd">                - &#39;0&#39;: Amps, Immediate, Fast</span>
+<span class="sd">                - &#39;1&#39;: Tesla, Immediate, Fast</span>
+<span class="sd">                - &#39;2&#39;: Amps, Sweep, Fast</span>
+<span class="sd">                - &#39;3&#39;: Tesla, Sweep, Fast</span>
+<span class="sd">                - &#39;4&#39;: Amps, Immediate, Train</span>
+<span class="sd">                - &#39;5&#39;: Tesla, Immediate, Train</span>
+<span class="sd">                - &#39;6&#39;: Amps, Sweep, Train</span>
+<span class="sd">                - &#39;7&#39;: Tesla, Sweep, Train</span>
+<span class="sd">                - &#39;8&#39;: Amps, Auto, Unaffected</span>
+<span class="sd">                - &#39;9&#39;: Tesla, Auto, Unaffected (default)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;M&#39;</span> <span class="o">+</span> <span class="n">sweepMode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span>
+        </div>
+<div class="viewcode-block" id="PS120.setSwitchHeater"><a class="viewcode-back" href="../../../../api_instruments_noauto_ps120.html#src.instruments.noauto.ps120.PS120.setSwitchHeater">[docs]</a>    <span class="k">def</span> <span class="nf">setSwitchHeater</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">heaterStatus</span><span class="o">=</span><span class="s">&#39;0&#39;</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="mf">20.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the status of the switch heater.</span>
+<span class="sd">        </span>
+<span class="sd">        Turn the switch heater on or off, optionally checking whether it is</span>
+<span class="sd">        safe to do so. Then wait a specified amount of time for the power</span>
+<span class="sd">        supply to carry out the command.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        heaterStatus : {&#39;0&#39;, &#39;1&#39;, &#39;2&#39;}, optional</span>
+<span class="sd">            An integer string representing the desired switch heater status.</span>
+<span class="sd">            The following values are accepted.</span>
+<span class="sd">                - &#39;0&#39;: Turn the heater off (default).</span>
+<span class="sd">                - &#39;1&#39;: Turn the heater on if the power supply current and the </span>
+<span class="sd">                  magnet current are equal. Otherwise, do nothing.</span>
+<span class="sd">                - &#39;2&#39;: Turn the heater on without checking the currents.</span>
+<span class="sd">            </span>
+<span class="sd">        delay : float, optional</span>
+<span class="sd">            The time to wait (in seconds) after commanding the switch heater to</span>
+<span class="sd">            adopt the specified status. The value should be *at least* 15s.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;H&#39;</span> <span class="o">+</span> <span class="n">heaterStatus</span><span class="p">)</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="PS120.setField"><a class="viewcode-back" href="../../../../api_instruments_noauto_ps120.html#src.instruments.noauto.ps120.PS120.setField">[docs]</a>    <span class="k">def</span> <span class="nf">setField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnetic field in Tesla.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : float</span>
+<span class="sd">            The magnetic field setpoint in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span>
+        <span class="n">fieldSign</span> <span class="o">=</span> <span class="n">copysign</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+        <span class="n">fieldMagnitude</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">field</span><span class="o">*</span><span class="mi">1000</span><span class="p">)))</span>
+        <span class="n">currentlyForward</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_polarity2</span> <span class="o">==</span> <span class="s">&#39;1&#39;</span>
+        <span class="k">if</span> <span class="n">fieldSign</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">currentlyForward</span><span class="p">:</span> 
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">setPolarity</span><span class="p">(</span><span class="s">&#39;1&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">currentlyForward</span><span class="p">:</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">setPolarity</span><span class="p">(</span><span class="s">&#39;2&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;J&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">fieldMagnitude</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setActivity</span><span class="p">(</span><span class="s">&#39;1&#39;</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="PS120.setSweepRate"><a class="viewcode-back" href="../../../../api_instruments_noauto_ps120.html#src.instruments.noauto.ps120.PS120.setSweepRate">[docs]</a>    <span class="k">def</span> <span class="nf">setSweepRate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sweepRate</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnetic field sweep rate in Tesla/min.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sweepRate : float, optional</span>
+<span class="sd">            The desired sweep rate for the magnet in Tesla/min (default 0.5).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;T&#39;</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">sweepRate</span><span class="o">*</span><span class="mi">1000</span><span class="p">))))</span>
+        </div>
+<div class="viewcode-block" id="PS120.getField"><a class="viewcode-back" href="../../../../api_instruments_noauto_ps120.html#src.instruments.noauto.ps120.PS120.getField">[docs]</a>    <span class="k">def</span> <span class="nf">getField</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the magnetic field in Tesla.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnetic field in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;R7&#39;</span><span class="p">))</span><span class="o">/</span><span class="mi">1000</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_polarity2</span> <span class="o">==</span> <span class="s">&#39;2&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">field</span>
+        <span class="k">return</span> <span class="n">field</span>
+    </div>
+<div class="viewcode-block" id="PS120.getFieldSetpoint"><a class="viewcode-back" href="../../../../api_instruments_noauto_ps120.html#src.instruments.noauto.ps120.PS120.getFieldSetpoint">[docs]</a>    <span class="k">def</span> <span class="nf">getFieldSetpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the field setpoint in Tesla.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnetic field setpoint in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span>
+        <span class="n">setpointMagnitude</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;R8&#39;</span><span class="p">))</span><span class="o">/</span><span class="mi">1000</span>
+        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_polarity1</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">setpointMagnitude</span>
+        <span class="k">return</span> <span class="n">setpointMagnitude</span>
+        </div>
+<div class="viewcode-block" id="PS120.getSweepRate"><a class="viewcode-back" href="../../../../api_instruments_noauto_ps120.html#src.instruments.noauto.ps120.PS120.getSweepRate">[docs]</a>    <span class="k">def</span> <span class="nf">getSweepRate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the field sweep rate in Tesla/min.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The magnetic field sweep rate in Tesla/min.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;R9&#39;</span><span class="p">))</span><span class="o">/</span><span class="mi">1000</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

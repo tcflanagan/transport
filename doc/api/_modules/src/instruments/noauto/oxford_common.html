@@ -1,0 +1,565 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.instruments.noauto.oxford_common &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.instruments.noauto.oxford_common</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Tools which are shared among multiple Oxford Instruments devices</span>
+
+<span class="sd">This provides a class which can be overridden by the various instruments from</span>
+<span class="sd">Oxford instruments. The `OxfordCommon` class provides the initialization and</span>
+<span class="sd">communication routines common to the ITC503, the PS120, and the IPS120.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span><span class="p">,</span> <span class="n">time</span>
+
+<span class="kn">from</span> <span class="nn">src.core.instrument</span> <span class="kn">import</span> <span class="n">visa</span>
+<span class="kn">from</span> <span class="nn">src.instruments.pyvisa</span> <span class="kn">import</span> <span class="n">vpp43_constants</span> <span class="k">as</span> <span class="n">vpc</span>
+<span class="kn">from</span> <span class="nn">src.instruments.pyvisa.vpp43</span> <span class="kn">import</span> <span class="n">get_attribute</span><span class="p">,</span> <span class="n">flush</span><span class="p">,</span> <span class="n">set_buffer</span>
+
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">config_parser</span> <span class="k">as</span> <span class="n">cp</span>
+<span class="kn">from</span> <span class="nn">src.tools.general</span> <span class="kn">import</span> <span class="n">frange</span>
+
+<span class="n">PROTOCOLS</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;GPIB&#39;</span><span class="p">,</span> <span class="s">&#39;Serial&#39;</span><span class="p">,</span> <span class="s">&#39;Gateway Master&#39;</span><span class="p">,</span> <span class="s">&#39;Gateway Slave&#39;</span><span class="p">,</span> <span class="s">&#39;ISOBUS&#39;</span><span class="p">]</span>
+
+<span class="n">SERIAL_ALLOWED</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;baud_rate&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;300&#39;</span><span class="p">,</span> <span class="s">&#39;600&#39;</span><span class="p">,</span> <span class="s">&#39;2400&#39;</span><span class="p">,</span> <span class="s">&#39;4800&#39;</span><span class="p">,</span> <span class="s">&#39;9600&#39;</span><span class="p">,</span> <span class="s">&#39;19200&#39;</span><span class="p">],</span>
+                  <span class="s">&#39;parity&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;None&#39;</span><span class="p">,</span> <span class="s">&#39;Odd&#39;</span><span class="p">,</span> <span class="s">&#39;Even&#39;</span><span class="p">,</span> <span class="s">&#39;Mark&#39;</span><span class="p">,</span> <span class="s">&#39;Space&#39;</span><span class="p">],</span>
+                  <span class="s">&#39;data_bits&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;7&#39;</span><span class="p">,</span> <span class="s">&#39;8&#39;</span><span class="p">],</span>
+                  <span class="s">&#39;stop_bits&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;1.0&#39;</span><span class="p">,</span> <span class="s">&#39;1.5&#39;</span><span class="p">,</span> <span class="s">&#39;2.0&#39;</span><span class="p">]}</span>
+
+<span class="n">SERIAL_DEFAULTS</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;baud_rate&#39;</span><span class="p">:</span> <span class="s">&#39;9600&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;parity&#39;</span><span class="p">:</span> <span class="s">&#39;None&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;data_bits&#39;</span><span class="p">:</span> <span class="s">&#39;8&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;stop_bits&#39;</span><span class="p">:</span> <span class="s">&#39;1.0&#39;</span><span class="p">}</span>
+
+<span class="n">_NONSENSE_ERROR</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> returned nonsense (</span><span class="si">%s</span><span class="s">) on command </span><span class="si">%s</span><span class="s">.&#39;</span>
+
+<span class="n">_SERIAL_SIZE</span> <span class="o">=</span> <span class="mi">4096</span>
+<span class="n">_SERIAL_SIZE_MASK</span> <span class="o">=</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_IN_BUF</span> <span class="o">+</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_OUT_BUF</span>
+<span class="n">_SERIAL_FLUSH_MASK</span> <span class="o">=</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_IN_BUF_DISCARD</span> <span class="o">+</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_OUT_BUF_DISCARD</span>
+
+<span class="n">_SERIAL_CONVERT_BAUD_RATE</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;300&#39;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+                             <span class="s">&#39;600&#39;</span><span class="p">:</span> <span class="mi">600</span><span class="p">,</span> 
+                             <span class="s">&#39;2400&#39;</span><span class="p">:</span> <span class="mi">2400</span><span class="p">,</span> 
+                             <span class="s">&#39;4800&#39;</span><span class="p">:</span> <span class="mi">4800</span><span class="p">,</span> 
+                             <span class="s">&#39;9600&#39;</span><span class="p">:</span> <span class="mi">9600</span><span class="p">,</span> 
+                             <span class="s">&#39;19200&#39;</span><span class="p">:</span> <span class="mi">19200</span><span class="p">}</span>
+<span class="n">_SERIAL_CONVERT_PARITY</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;None&#39;</span><span class="p">:</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_PAR_NONE</span><span class="p">,</span> 
+                          <span class="s">&#39;Odd&#39;</span><span class="p">:</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_PAR_ODD</span><span class="p">,</span> 
+                          <span class="s">&#39;Even&#39;</span><span class="p">:</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_PAR_EVEN</span><span class="p">,</span> 
+                          <span class="s">&#39;Mark&#39;</span><span class="p">:</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_PAR_MARK</span><span class="p">,</span> 
+                          <span class="s">&#39;Space&#39;</span><span class="p">:</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_PAR_SPACE</span><span class="p">}</span>
+<span class="n">_SERIAL_CONVERT_DATA_BITS</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;7&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span> <span class="s">&#39;8&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">}</span>
+<span class="n">_SERIAL_CONVERT_STOP_BITS</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;1.0&#39;</span><span class="p">:</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_STOP_ONE</span><span class="p">,</span>
+                             <span class="s">&#39;1.5&#39;</span><span class="p">:</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_STOP_ONE5</span><span class="p">,</span>
+                             <span class="s">&#39;2.0&#39;</span><span class="p">:</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_STOP_TWO</span><span class="p">}</span>
+<span class="n">_SERIAL_CONVERT_FLOW</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;None&#39;</span><span class="p">:</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_FLOW_NONE</span><span class="p">,</span> 
+                        <span class="s">&#39;XON/XOFF&#39;</span><span class="p">:</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_FLOW_XON_XOFF</span><span class="p">,</span> 
+                        <span class="s">&#39;RTS/CTS&#39;</span><span class="p">:</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_FLOW_RTS_CTS</span><span class="p">,</span>
+                        <span class="s">&#39;XON/XOFF &amp; RTS/CTS&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_FLOW_XON_XOFF</span> <span class="o">+</span> 
+                                               <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_FLOW_RTS_CTS</span><span class="p">),</span>
+                        <span class="s">&#39;DTR/DSR&#39;</span><span class="p">:</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_FLOW_DTR_DSR</span><span class="p">,</span>
+                        <span class="s">&#39;XON/XOFF &amp; DTR/DSR&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_FLOW_XON_XOFF</span> <span class="o">+</span> 
+                                               <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ASRL_FLOW_DTR_DSR</span><span class="p">)}</span>
+
+<span class="k">def</span> <span class="nf">_convertSerialDictionary</span><span class="p">(</span><span class="n">serial</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert serial information from human terms to instrument terms.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s">&#39;baud_rate&#39;</span><span class="p">:</span> <span class="n">_SERIAL_CONVERT_BAUD_RATE</span><span class="p">[</span><span class="n">serial</span><span class="p">[</span><span class="s">&#39;baud_rate&#39;</span><span class="p">]],</span>
+            <span class="s">&#39;parity&#39;</span><span class="p">:</span> <span class="n">_SERIAL_CONVERT_PARITY</span><span class="p">[</span><span class="n">serial</span><span class="p">[</span><span class="s">&#39;parity&#39;</span><span class="p">]],</span>
+            <span class="s">&#39;data_bits&#39;</span><span class="p">:</span> <span class="n">_SERIAL_CONVERT_DATA_BITS</span><span class="p">[</span><span class="n">serial</span><span class="p">[</span><span class="s">&#39;data_bits&#39;</span><span class="p">]],</span>
+            <span class="s">&#39;stop_bits&#39;</span><span class="p">:</span> <span class="n">_SERIAL_CONVERT_STOP_BITS</span><span class="p">[</span><span class="n">serial</span><span class="p">[</span><span class="s">&#39;stop_bits&#39;</span><span class="p">]]}</span>
+
+<div class="viewcode-block" id="OxfordCommon"><a class="viewcode-back" href="../../../../api_instruments_noauto_oxford_common.html#src.instruments.noauto.oxford_common.OxfordCommon">[docs]</a><span class="k">class</span> <span class="nc">OxfordCommon</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This is a class to perform actions common to most Oxford Instruments</span>
+<span class="sd">    devices, including the ITC503, the PS120, and the IPS120.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        A name to identify the instrument</span>
+<span class="sd">    protocol : {&#39;ISOBUS&#39;, &#39;GPIB&#39;, &#39;Serial&#39;, &#39;Gateway Master&#39;, &#39;Gateway Slave&#39;}</span>
+<span class="sd">        The protocol for communication between the computer and the power</span>
+<span class="sd">        supply.</span>
+<span class="sd">    isobusAddress : str</span>
+<span class="sd">        An integer string representing the ISOBUS address, if relevant. An</span>
+<span class="sd">        integer will be accepted and converted.</span>
+<span class="sd">    visaAddress : str</span>
+<span class="sd">        A full VISA resource address (including the bus) to locate the </span>
+<span class="sd">        instrument (e.g. &quot;GPIB0::27&quot;).</span>
+<span class="sd">    serialConfig : dict</span>
+<span class="sd">        A dictionary to indicate how to configure a serial port, which is used</span>
+<span class="sd">        with both the &#39;ISOBUS&#39; and &#39;Serial&#39; protocols.</span>
+<span class="sd">        </span>
+<span class="sd">    Methods</span>
+<span class="sd">    -------</span>
+<span class="sd">    openCommunication()</span>
+<span class="sd">        Open a new (protocol-specific) communication channel between the</span>
+<span class="sd">        computer and the instrument, initializing initializing the ports</span>
+<span class="sd">        and sending device clears as appropriate.</span>
+<span class="sd">    closeCommunication()</span>
+<span class="sd">        Close the communication channel between the computer and the</span>
+<span class="sd">        instrument, freeing reserved resources.</span>
+<span class="sd">    communicate(command)</span>
+<span class="sd">        Send a command (str) to the instrument and read its response.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;Magnet&#39;</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="s">&#39;ISOBUS&#39;</span><span class="p">,</span> <span class="n">isobusAddress</span><span class="o">=</span><span class="s">&#39;0&#39;</span><span class="p">,</span> 
+                 <span class="n">visaAddress</span><span class="o">=</span><span class="s">&#39;GPIB0::23&#39;</span><span class="p">,</span> <span class="n">serialConfig</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a new power supply object.&quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inst</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vi</span> <span class="o">=</span> <span class="bp">None</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">==</span> <span class="s">&#39;gpib&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_communicateGPIB</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">==</span> <span class="s">&#39;serial&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_communicateSerial</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">==</span> <span class="s">&#39;gatewaymaster&#39;</span> <span class="ow">or</span> <span class="n">protocol</span> <span class="o">==</span> <span class="s">&#39;master&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_communicateGateway</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">==</span> <span class="s">&#39;gatewayslave&#39;</span> <span class="ow">or</span> <span class="n">protocol</span> <span class="o">==</span> <span class="s">&#39;slave&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_communicateGateway</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">communicate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_communicateISOBUS</span>
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">isobusAddress</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_isobus</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">isobusAddress</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_isobus</span> <span class="o">=</span> <span class="n">isobusAddress</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_visa</span> <span class="o">=</span> <span class="n">visaAddress</span>
+        <span class="k">if</span> <span class="n">serialConfig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_serial</span> <span class="o">=</span> <span class="n">_convertSerialDictionary</span><span class="p">(</span><span class="n">serialConfig</span><span class="p">)</span>
+            
+    
+    <span class="c">#===========================================================================</span>
+    <span class="c"># Initialization and finalization</span>
+    <span class="c">#===========================================================================</span>
+    
+<div class="viewcode-block" id="OxfordCommon.openCommunication"><a class="viewcode-back" href="../../../../api_instruments_noauto_oxford_common.html#src.instruments.noauto.oxford_common.OxfordCommon.openCommunication">[docs]</a>    <span class="k">def</span> <span class="nf">openCommunication</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the instrument.</span>
+<span class="sd">        </span>
+<span class="sd">        Open a new (protocol-specific) communication channel between the</span>
+<span class="sd">        computer and the instrument, initializing initializing the ports</span>
+<span class="sd">        and sending device clears as appropriate.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        protocol : str</span>
+<span class="sd">            A string to indicate the communication protocol for the</span>
+<span class="sd">            instrument. It may be one of the following: &#39;GPIB&#39;, &#39;Gateway</span>
+<span class="sd">            Master&#39;, &#39;Gateway Slave&#39;, or &#39;ISOBUS&#39;. The default is &#39;ISOBUS&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">==</span> <span class="s">&#39;gpib&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_openCommunicationGPIB</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">==</span> <span class="s">&#39;serial&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_openCommunicationISOBUS</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">==</span> <span class="s">&#39;gatewaymaster&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_openCommunicationGPIB</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">==</span> <span class="s">&#39;gatewayslave&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_openCommunicationGatewaySlave</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_openCommunicationISOBUS</span><span class="p">()</span>
+            </div>
+    <span class="k">def</span> <span class="nf">_openCommunicationISOBUS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the instrument for RS232 or ISOBUS communication.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inst</span> <span class="o">=</span> <span class="n">visa</span><span class="o">.</span><span class="n">SerialInstrument</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_visa</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_serial</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inst</span><span class="o">.</span><span class="n">vi</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_serialFlushBuffer</span><span class="p">()</span>
+        <span class="n">set_buffer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vi</span><span class="p">,</span> <span class="n">_SERIAL_SIZE_MASK</span><span class="p">,</span> <span class="n">_SERIAL_SIZE</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_openCommunicationGPIB</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the instrument for GPIB communication.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inst</span> <span class="o">=</span> <span class="n">visa</span><span class="o">.</span><span class="n">instrument</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_visa</span><span class="p">,</span> <span class="n">term_chars</span><span class="o">=</span><span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inst</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_openCommunicationGatewaySlave</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the power supply as a gateway slave, i.e., do nothing.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+        
+<div class="viewcode-block" id="OxfordCommon.closeCommunication"><a class="viewcode-back" href="../../../../api_instruments_noauto_oxford_common.html#src.instruments.noauto.oxford_common.OxfordCommon.closeCommunication">[docs]</a>    <span class="k">def</span> <span class="nf">closeCommunication</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Finalize the instrument.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inst</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_inst</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    
+    
+    <span class="c">#===========================================================================</span>
+    <span class="c"># Communication</span>
+    <span class="c">#===========================================================================</span>
+    </div>
+    <span class="k">def</span> <span class="nf">_communicateSerial</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Communicate over a serial port.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_serialFlushBuffer</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_communicateGeneral</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_communicateGPIB</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Communicate over a GPIB port.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_communicateGeneral</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_communicateGateway</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Communicate with a gateway system.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_communicateGeneral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_formatForIsobus</span><span class="p">(</span><span class="n">command</span><span class="p">))</span>
+        
+    <span class="k">def</span> <span class="nf">_communicateISOBUS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Communicate over ISOBUS.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_serialFlushBuffer</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_communicateGeneral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_formatForIsobus</span><span class="p">(</span><span class="n">command</span><span class="p">))</span>
+    
+    <span class="k">def</span> <span class="nf">_communicateGeneral</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Send a command to the power supply, and read the response.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        command : str</span>
+<span class="sd">            A string representing a valid command for an OI instrument. All</span>
+<span class="sd">            necessary modifications (e.g. adding an ISOBUS address) should</span>
+<span class="sd">            have already been made.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The instrument&#39;s response with `command` stripped.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+        
+        <span class="n">commandLength</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">command</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;Q&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">command</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;$&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_inst</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+            <span class="k">return</span> <span class="s">&#39;&#39;</span>
+        
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inst</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">command</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">command</span><span class="p">[:</span><span class="n">commandLength</span><span class="p">]</span> <span class="o">!=</span> <span class="n">response</span><span class="p">[:</span><span class="n">commandLength</span><span class="p">]:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="n">_NONSENSE_ERROR</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">command</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">response</span><span class="p">[</span><span class="n">commandLength</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_formatForIsobus</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Modify a command to include the ISOBUS address.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        command : str</span>
+<span class="sd">            The basic command, without an ISOBUS address.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The command with the ISOBUS added, ensuring that any $s remain at </span>
+<span class="sd">            the beginning</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">command</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;$&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s">&#39;$@&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isobus</span> <span class="o">+</span> <span class="n">command</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">return</span> <span class="s">&#39;@&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isobus</span> <span class="o">+</span> <span class="n">command</span>
+    
+    
+    <span class="c">#===========================================================================</span>
+    <span class="c"># Serial port tools</span>
+    <span class="c">#===========================================================================</span>
+    
+    <span class="k">def</span> <span class="nf">_serialQueryBytesAtPort</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Query the data at the serial port.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            An integer indicating the number of bytes at the serial port for</span>
+<span class="sd">            this instrument.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">get_attribute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vi</span><span class="p">,</span> <span class="n">vpc</span><span class="o">.</span><span class="n">VI_ATTR_ASRL_AVAIL_NUM</span><span class="p">))</span>
+    
+    <span class="k">def</span> <span class="nf">_serialFlushBuffer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Flush the serial buffer if there are bytes at the port.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_serialQueryBytesAtPort</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">0.05</span><span class="p">)</span>
+            <span class="n">flush</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vi</span><span class="p">,</span> <span class="n">_SERIAL_FLUSH_MASK</span><span class="p">)</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+
+
+<span class="c">#===============================================================================</span>
+<span class="c"># General functions</span>
+<span class="c">#===============================================================================</span>
+</div>
+<div class="viewcode-block" id="waitForStableTemperature"><a class="viewcode-back" href="../../../../api_instruments_noauto_oxford_common.html#src.instruments.noauto.oxford_common.waitForStableTemperature">[docs]</a><span class="k">def</span> <span class="nf">waitForStableTemperature</span><span class="p">(</span><span class="n">targetTemperature</span><span class="p">,</span> <span class="n">measurementFunction</span><span class="p">,</span> 
+                             <span class="n">allowedDeviation</span><span class="p">,</span> <span class="n">deviationType</span><span class="o">=</span><span class="s">&#39;percent&#39;</span><span class="p">,</span> 
+                             <span class="n">stabilizedTime</span><span class="o">=</span><span class="mf">60.0</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">600.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wait for the temperature to stabilize.</span>
+<span class="sd">    </span>
+<span class="sd">    Wait for the temperature to become steady (within some specified tolerance)</span>
+<span class="sd">    at a particular target temperature. There are two timers in use in this</span>
+<span class="sd">    method. One is the total time elapsed since the function starts, and the</span>
+<span class="sd">    other is the time over which the temperature has been within the tolerance</span>
+<span class="sd">    (i.e., it resets whenever the temperature goes out of range). The function </span>
+<span class="sd">    ends when either the latter timer reaches `stabilizedTime` or when the</span>
+<span class="sd">    former reaches `timeout`, whichever comes first.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    targetTemperature : float</span>
+<span class="sd">        The temperature at which to stabilize.</span>
+<span class="sd">    measurementFunction : function</span>
+<span class="sd">        The function or method to use to measure the temperature.</span>
+<span class="sd">    allowedDeviation : float</span>
+<span class="sd">        By how much the temperature can vary and still be considered to be</span>
+<span class="sd">        at the target temperature.</span>
+<span class="sd">    deviationType : str {&#39;percent&#39;, &#39;absolute&#39;}</span>
+<span class="sd">        Whether `allowedDeviation` should be treated as a percentage of the</span>
+<span class="sd">        target temperature or an absolute temperature in Kelvin. For example,</span>
+<span class="sd">        assume that the target temperature is 10.0 K, and `allowedDeviation` </span>
+<span class="sd">        is 5. If `deviationType` is &#39;percent&#39;, then the temperature will</span>
+<span class="sd">        be accepted as at the target if it is between 9.5 K and 10.5 K,</span>
+<span class="sd">        inclusive. If `deviationType` is &#39;absolute&#39;, the accepted range is</span>
+<span class="sd">        5.0 K to 15.0 K, inclusive.</span>
+<span class="sd">    stabilizedTime : float</span>
+<span class="sd">        The minimum time, in seconds, over which the temperature must remain</span>
+<span class="sd">        within the accepted range.</span>
+<span class="sd">    timeout : float</span>
+<span class="sd">        Loosely speaking, the maximum time to wait (see `timeoutReset`).</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        `True` if the temperature has been within the allowed range long enough</span>
+<span class="sd">        to be considered stable, or `False` if the function times out.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">deviationType</span> <span class="o">==</span> <span class="s">&#39;percent&#39;</span><span class="p">:</span>
+        <span class="n">validMin</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">allowedDeviation</span><span class="o">/</span><span class="mf">100.0</span><span class="p">)</span><span class="o">*</span><span class="n">targetTemperature</span>
+        <span class="n">validMax</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">allowedDeviation</span><span class="o">/</span><span class="mf">100.0</span><span class="p">)</span><span class="o">*</span><span class="n">targetTemperature</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">validMin</span> <span class="o">=</span> <span class="n">targetTemperature</span> <span class="o">-</span> <span class="n">allowedDeviation</span>
+        <span class="n">validMax</span> <span class="o">=</span> <span class="n">targetTemperature</span> <span class="o">+</span> <span class="n">allowedDeviation</span>
+    
+    <span class="n">startTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+    <span class="n">atTemp</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">currTemp</span> <span class="o">=</span> <span class="n">measurementFunction</span><span class="p">()</span>
+    <span class="n">timeAtTemp</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">stabilized</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">currTime</span> <span class="o">=</span> <span class="n">startTime</span>
+    <span class="k">while</span> <span class="n">currTime</span> <span class="o">-</span> <span class="n">startTime</span> <span class="o">&lt;</span> <span class="n">timeout</span><span class="p">:</span>
+        <span class="n">currTime</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="n">currTemp</span> <span class="o">=</span> <span class="n">measurementFunction</span><span class="p">()</span> 
+        <span class="k">print</span> <span class="s">&#39;Total running time: </span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">currTime</span> <span class="o">-</span> <span class="n">startTime</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&#39;Current temp: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">currTemp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">validMin</span> <span class="o">&lt;=</span> <span class="n">currTemp</span> <span class="o">&lt;=</span> <span class="n">validMax</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">atTemp</span><span class="p">:</span>
+                <span class="n">startTimeAtTemp</span> <span class="o">=</span> <span class="n">currTime</span>
+                <span class="n">atTemp</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">timeAtTemp</span> <span class="o">=</span> <span class="n">currTime</span> <span class="o">-</span> <span class="n">startTimeAtTemp</span>
+            <span class="k">print</span> <span class="s">&#39;Time at temp: </span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">timeAtTemp</span>
+            <span class="k">if</span> <span class="n">timeAtTemp</span> <span class="o">&gt;=</span> <span class="n">stabilizedTime</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;At temp long enough. Stopping.&#39;</span>
+                <span class="n">stabilized</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="n">atTemp</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">print</span> <span class="s">&#39;Not close enough. Restarting timer.&#39;</span>
+    <span class="k">return</span> <span class="n">stabilized</span>
+</div>
+<div class="viewcode-block" id="expandRange"><a class="viewcode-back" href="../../../../api_instruments_noauto_oxford_common.html#src.instruments.noauto.oxford_common.expandRange">[docs]</a><span class="k">def</span> <span class="nf">expandRange</span><span class="p">(</span><span class="n">initial</span><span class="p">,</span> <span class="n">final</span><span class="p">,</span> <span class="n">stepArray</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Expand a range, getting the step sizes from an array.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    initial : float</span>
+<span class="sd">        The value at which the returned array should start.</span>
+<span class="sd">    final : float</span>
+<span class="sd">        The final value in the returned array.</span>
+<span class="sd">    stepArray : list of 3-tuple of float</span>
+<span class="sd">        A list of tuples specifying step sizes. Each tuple should consist</span>
+<span class="sd">        of three elements. The last is the step size, the first is the lowest</span>
+<span class="sd">        value for which the step size should be used, and the second is</span>
+<span class="sd">        the highest value for which the step size should be used.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of float</span>
+<span class="sd">        A list of floats spanning from `initial` to `final` (inclusive), where</span>
+<span class="sd">        the step sizes vary based on the value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">initial</span> <span class="o">&gt;</span> <span class="n">final</span><span class="p">:</span>
+        <span class="n">goingDown</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">temporary</span> <span class="o">=</span> <span class="n">initial</span>
+        <span class="n">initial</span> <span class="o">=</span> <span class="n">final</span>
+        <span class="n">final</span> <span class="o">=</span> <span class="n">temporary</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">goingDown</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">ans</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">going</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">stepArray</span><span class="p">:</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;=</span> <span class="n">final</span> <span class="o">&lt;</span> <span class="n">stop</span><span class="p">:</span>
+            <span class="n">going</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="n">ans</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">frange</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">final</span><span class="p">,</span> <span class="n">step</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">start</span> <span class="o">&lt;=</span> <span class="n">initial</span> <span class="o">&lt;</span> <span class="n">stop</span><span class="p">:</span>
+            <span class="n">going</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">ans</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">frange</span><span class="p">(</span><span class="n">initial</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">going</span><span class="p">:</span>
+            <span class="n">ans</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">frange</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">going</span><span class="p">:</span>
+        <span class="n">ans</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">frange</span><span class="p">(</span><span class="n">ans</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">final</span><span class="p">,</span> <span class="n">stepArray</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="n">ans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">final</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">goingDown</span><span class="p">:</span>
+        <span class="n">ans</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">ans</span>
+
+</div>
+<div class="viewcode-block" id="readAddressConfig"><a class="viewcode-back" href="../../../../api_instruments_noauto_oxford_common.html#src.instruments.noauto.oxford_common.readAddressConfig">[docs]</a><span class="k">def</span> <span class="nf">readAddressConfig</span><span class="p">(</span><span class="n">configurationFile</span><span class="p">,</span> <span class="n">section</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read the configuration for an Oxford instrument.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    configurationFile : str</span>
+<span class="sd">        The absolute path to the configuration file containing the information</span>
+<span class="sd">        about the instrument.</span>
+<span class="sd">    section : str</span>
+<span class="sd">        The section within the configuration file containing the information</span>
+<span class="sd">        about the relevant instrument.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    protocol : str</span>
+<span class="sd">        The communication protocol, which may be &#39;ISOBUS&#39;, &#39;GPIB&#39;,</span>
+<span class="sd">        &#39;Serial&#39;, &#39;Gateway Master&#39;, and &#39;Gateway Slave&#39;.</span>
+<span class="sd">    visaAddress : str</span>
+<span class="sd">        The VISA resource address for the power supply.</span>
+<span class="sd">    isobusAddress : str</span>
+<span class="sd">        The ISOBUS address of the instrument</span>
+<span class="sd">    serialConfig : dict</span>
+<span class="sd">        Either `None`, if no serial port is needed, or a dictionary</span>
+<span class="sd">        containing these keys: &#39;baud_rate&#39;, &#39;parity&#39;, &#39;data_bits&#39;, and</span>
+<span class="sd">        &#39;stop bits&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">defaults</span> <span class="o">=</span> <span class="p">{(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;protocol&#39;</span><span class="p">):</span> <span class="s">&#39;ISOBUS&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;gpib_address&#39;</span><span class="p">):</span> <span class="s">&#39;GPIB0::24&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;isobus_address&#39;</span><span class="p">):</span> <span class="s">&#39;0&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;serial_baud_rate&#39;</span><span class="p">):</span> <span class="s">&#39;9600&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;serial_parity&#39;</span><span class="p">):</span> <span class="s">&#39;None&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;serial_data_bits&#39;</span><span class="p">):</span> <span class="s">&#39;8&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;serial_stop_bits&#39;</span><span class="p">):</span> <span class="s">&#39;1.0&#39;</span><span class="p">}</span>
+    <span class="n">conf</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">configurationFile</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">FORMAT_BASIC</span><span class="p">,</span> 
+                           <span class="n">defaultValues</span><span class="o">=</span><span class="n">defaults</span><span class="p">)</span>
+    <span class="n">protocol</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;protocol&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">visaAddress</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;gpib_address&#39;</span><span class="p">)</span>
+    <span class="n">isobusAddress</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;isobus_address&#39;</span><span class="p">)</span>
+    <span class="n">serialConfig</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">protocol</span> <span class="o">==</span> <span class="s">&#39;isobus&#39;</span> <span class="ow">or</span> <span class="n">protocol</span> <span class="o">==</span> <span class="s">&#39;serial&#39;</span><span class="p">:</span>
+        <span class="n">serialConfig</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;baud_rate&#39;</span><span class="p">:</span> <span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;serial_baud_rate&#39;</span><span class="p">),</span>
+                        <span class="s">&#39;parity&#39;</span><span class="p">:</span> <span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;serial_parity&#39;</span><span class="p">),</span>
+                        <span class="s">&#39;data_bits&#39;</span><span class="p">:</span> <span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;serial_data_bits&#39;</span><span class="p">),</span>
+                        <span class="s">&#39;stop_bits&#39;</span><span class="p">:</span> <span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;serial_stop_bits&#39;</span><span class="p">)}</span>
+    
+    <span class="n">answer</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="n">protocol</span><span class="p">,</span>
+              <span class="s">&#39;visaAddress&#39;</span><span class="p">:</span> <span class="n">visaAddress</span><span class="p">,</span>
+              <span class="s">&#39;isobusAddress&#39;</span><span class="p">:</span> <span class="n">isobusAddress</span><span class="p">,</span>
+              <span class="s">&#39;serialConfig&#39;</span><span class="p">:</span> <span class="n">serialConfig</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">answer</span>
+    
+
+<span class="c"># Serial port flow control does not appear to be implemented. Here are the </span>
+<span class="c"># allowed values, just in case they&#39;re needed in the future.</span>
+<span class="c">#         &#39;flow_control&#39;: [&#39;None&#39;, &#39;XON/XOFF&#39;, &#39;RTS/CTS&#39;, </span>
+<span class="c">#                                     &#39;XON/XOFF &amp; RTS/CTS&#39;, &#39;DTR/DSR&#39;, </span>
+<span class="c">#                                     &#39;XON/XOFF &amp; DTR/DSR&#39;]</span>
+<span class="c">#         default = &#39;None&#39;</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

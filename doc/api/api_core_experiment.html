@@ -1,0 +1,1052 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The experiment module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The core package" href="api_core.html" />
+    <link rel="next" title="The inst_manager module" href="api_core_inst_manager.html" />
+    <link rel="prev" title="The configuration module" href="api_core_configuration.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_core_inst_manager.html" title="The inst_manager module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_core_configuration.html" title="The configuration module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_core.html" accesskey="U">The <cite>core</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.core.experiment">
+<span id="the-experiment-module"></span><h1>The <cite>experiment</cite> module<a class="headerlink" href="#module-src.core.experiment" title="Permalink to this headline">¶</a></h1>
+<p>Experiment data and execution manager.</p>
+<p>An <cite>Experiment</cite> is an object which keeps tracks of all the parts which compose
+an actual measurement, including instruments, the actions performed on them, the
+data returned by them, and real-time graphs of the data.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="experiment">
+<h3>Experiment<a class="headerlink" href="#experiment" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.experiment.Experiment">
+<em class="property">class </em><tt class="descclassname">src.core.experiment.</tt><tt class="descname">Experiment</tt><a class="reference internal" href="_modules/src/core/experiment.html#Experiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment" title="Permalink to this definition">¶</a></dt>
+<dd><p>The main driver class of an experiment.</p>
+<p>The <cite>Experiment</cite> class is responsible for managing instruments; the actions
+those instruments should perform; and the collection, storage, saving, and
+graphing of data.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.experiment.Experiment.abort">
+<tt class="descname">abort</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.abort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.abort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop the experiment and run the post-sequence actions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.activateTemporaryBuffer">
+<tt class="descname">activateTemporaryBuffer</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.activateTemporaryBuffer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.activateTemporaryBuffer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a temporary buffer for simultaneous blocks.</p>
+<p>Create a temporary buffer, with the same keys as the main column
+dictionary, for storing data while running a simultaneous block. 
+This alleviates the danger of getting goofy garbage in the data file 
+due to, e.g., race conditions. The principal problem this averts is
+writing data to the file prematurely, which would happen if the actions
+return in the wrong order.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.addDefaultConstants">
+<tt class="descname">addDefaultConstants</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.addDefaultConstants"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.addDefaultConstants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add pi and the natural logarithm base to the constant dictionary.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.addGraph">
+<tt class="descname">addGraph</tt><big>(</big><em>graph</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.addGraph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.addGraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a graph to the experiment.</p>
+<p>Store <cite>graph</cite> in the list, and bind it to the columns which will 
+supply its data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>graph</strong> : Graph</p>
+<blockquote class="last">
+<div><p>A <cite>Graph</cite> object to add to the experiment.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.addInstrument">
+<tt class="descname">addInstrument</tt><big>(</big><em>instrument</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.addInstrument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.addInstrument" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an instrument to this experiment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>instrument</strong> : Instrument</p>
+<blockquote class="last">
+<div><p>The <cite>Instrument</cite> object which should be added to the experiment.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.addPostprocessorAction">
+<tt class="descname">addPostprocessorAction</tt><big>(</big><em>action</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.addPostprocessorAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.addPostprocessorAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a Postprocessor action to be executed after the experiment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>action</strong> : ActionPostprocessor</p>
+<blockquote class="last">
+<div><p>An action to execute at the end of the experiment.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.checkExpression">
+<tt class="descname">checkExpression</tt><big>(</big><em>expr</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.checkExpression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.checkExpression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check the syntactic validity of the supplied expression.</p>
+<p>Substitute numeric values for columns, constants, and parameters
+and attempt to evaluate the given expression to determine whether the
+syntax of the expression is correct.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>expr</strong> : str</p>
+<blockquote>
+<div><p>The expression to evaluate in string form.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p><cite>True</cite> if the expression&#8217;s syntax is valid, or <cite>False</cite> otherwise.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.deactivateTemporaryBuffer">
+<tt class="descname">deactivateTemporaryBuffer</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.deactivateTemporaryBuffer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.deactivateTemporaryBuffer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the data from the temporary buffer, then destroy the buffer.</p>
+<p>Take the data stored in the temporary buffer while running the 
+simultaneous block. If the same amount of data has been added for each
+column, add them to the appropriate column bins. Otherwise, save them
+as a separate file in the same folder as the data. Then destroy the 
+temporary buffer.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.evaluateExpression">
+<tt class="descname">evaluateExpression</tt><big>(</big><em>expr</em>, <em>conditional=False</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.evaluateExpression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.evaluateExpression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate a given expression.</p>
+<p>Substitute all defined constants and the most recent values of all 
+columns and parameters into <cite>expr</cite>, evaluate it, and return the
+outcome.</p>
+<p>This is mainly used by the <cite>Calculate</cite> action from the <cite>System</cite> class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>expr</strong> : str</p>
+<blockquote>
+<div><p>A string giving the expression which should be evaluated.</p>
+</div></blockquote>
+<p><strong>conditional</strong> : bool</p>
+<blockquote>
+<div><p>Whether the expression should evaluate to a boolean (<cite>True</cite> or
+<cite>False</cite>). The default is <cite>False</cite>, meaning that the expression should
+evaluate to a number.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float or bool</strong> :</p>
+<blockquote class="last">
+<div><p>If <cite>conditional</cite> is <cite>True</cite>, the boolean to which the supplied
+expression evaluates when known data have been substituted.
+Otherwise, the <strong>number</strong> to which the supplied expression 
+evaluates.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.getActionRoot">
+<tt class="descname">getActionRoot</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.getActionRoot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.getActionRoot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the root of the action tree.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>ActionContainer</strong> :</p>
+<blockquote class="last">
+<div><p>The <cite>ActionContainer</cite> object which serves as the root of the
+sequence tree.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.getAllConstants">
+<tt class="descname">getAllConstants</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.getAllConstants"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.getAllConstants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy of the constants dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>dict</strong> :</p>
+<blockquote class="last">
+<div><p>A dictionary of constants in which the keys (str) are the names
+of the constants, and the values (float) are the values associated 
+with the relevant constant.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.getColumnDetails">
+<tt class="descname">getColumnDetails</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.getColumnDetails"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.getColumnDetails" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a formatted string containing a list of column details.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>A string containing details about the current status of each data
+column.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.getConstant">
+<tt class="descname">getConstant</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.getConstant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.getConstant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value of the named constant.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the constant whose value is desired.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The value of the requested constant, or <cite>None</cite> if the constant
+does not exist.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.getEqualEnoughInstruments">
+<tt class="descname">getEqualEnoughInstruments</tt><big>(</big><em>action</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.getEqualEnoughInstruments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.getEqualEnoughInstruments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of instruments which implement the given action.</p>
+<p>Sometimes, the user may want to change the instrument which carries out
+a particular action. However, in order to change the instrument, it is
+necessary that the new instrument should have the <em>ability</em> to carry out
+the action.</p>
+<p>This method returns a list of dictionaries with information about the
+instruments (and their respective actions) which could potentially be
+used as a replacement for the instrument associated with the specified
+action.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>action</strong> : Action</p>
+<blockquote>
+<div><p>The <cite>Action</cite> instance whose <cite>Instrument</cite> the user wants to replace.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of dict</strong> :</p>
+<blockquote class="last">
+<div><p>A list of dictionaries. Each dictionary represents information about
+one <cite>Action</cite> which could replace <cite>action</cite>. The elements of the
+dictionary are the following:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>instrument_index</dt>
+<dd><p class="first last">The index of the instrument in the experiment&#8217;s list.</p>
+</dd>
+<dt>instrument</dt>
+<dd><p class="first last">The actual <cite>Instrument</cite> object.</p>
+</dd>
+<dt>instrument_name</dt>
+<dd><p class="first last">The name of the instrument.</p>
+</dd>
+<dt>action_index</dt>
+<dd><p class="first last">The index of the <cite>Action</cite> object which can replace <cite>action</cite>.
+The index corresponds to the location in the list of
+actions returned by the instrument&#8217;s <cite>getActions</cite> method.</p>
+</dd>
+<dt>action</dt>
+<dd><p class="first last">An <cite>ActionSpec</cite> representing the <cite>Action</cite> which can replace
+the specified <cite>action</cite>.</p>
+</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Two <cite>Action</cite> objects are said to be &#8220;equal enough&#8221; if they have the same
+description and the same parameters. Two <cite>Parameter</cite> objects are said
+to be the same if they are identical in all <em>immutable</em> aspects (that
+is, they have the same name, the same description, and the same format
+string).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.getFiles">
+<tt class="descname">getFiles</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.getFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.getFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of all files used so far in the experiment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of tuple of str</strong> :</p>
+<blockquote class="last">
+<div><p>A list of tuples. Each tuple represents one set of files opened and
+contains three strings. The first is a data file, the second is
+a parameter file, and the third is a graph file (the third can be
+<cite>None</cite> if no graph file was saved).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.getGraph">
+<tt class="descname">getGraph</tt><big>(</big><em>index</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.getGraph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.getGraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the graph at the specified index.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>index</strong> : int</p>
+<blockquote>
+<div><p>The position of the desired graph in the experiment&#8217;s list.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>Graph</strong> :</p>
+<blockquote class="last">
+<div><p>The graph at the specified position.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.getGraphStrings">
+<tt class="descname">getGraphStrings</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.getGraphStrings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.getGraphStrings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of the names of the experiment&#8217;s graphs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of str</strong> :</p>
+<blockquote class="last">
+<div><p>A list of strings, where each string is the name of a graph in the
+experiment.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.getGraphStringsAndStates">
+<tt class="descname">getGraphStringsAndStates</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.getGraphStringsAndStates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.getGraphStringsAndStates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the names of graphs and whether each graph is enabled.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote>
+<div><p>The title of the graph.</p>
+</div></blockquote>
+<p><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the graph is enabled.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.getInstrument">
+<tt class="descname">getInstrument</tt><big>(</big><em>index</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.getInstrument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.getInstrument" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the instrument at the specified index.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>index</strong> : int</p>
+<blockquote>
+<div><p>The index of the <cite>Instrument</cite> which should be returned.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>Instrument</strong> :</p>
+<blockquote class="last">
+<div><p>The instrument located at the specified position.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.getInstrumentStrings">
+<tt class="descname">getInstrumentStrings</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.getInstrumentStrings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.getInstrumentStrings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the names of the instruments in this experiment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of str</strong> :</p>
+<blockquote class="last">
+<div><p>A list of strings representing the names of the <cite>Instrument</cite> objects
+which used in this experiment.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.getStorageBinNames">
+<tt class="descname">getStorageBinNames</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.getStorageBinNames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.getStorageBinNames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the names of all data storage bins.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of str</strong> :</p>
+<blockquote>
+<div><p>A list of the names of all constants in the experiment.</p>
+</div></blockquote>
+<p><strong>list of str</strong> :</p>
+<blockquote>
+<div><p>A list of the names of all columns in the experiment.</p>
+</div></blockquote>
+<p><strong>list of str</strong> :</p>
+<blockquote class="last">
+<div><p>A list of the names of all parameters in the experiment.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.getStorageBinNamesString">
+<tt class="descname">getStorageBinNamesString</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.getStorageBinNamesString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.getStorageBinNamesString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a formatted string representing the storage bin names.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>A three-line string, where the first line is a list of constants,
+the second is a list of columns, and the third is a list of
+parameters.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.getXML">
+<tt class="descname">getXML</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.getXML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.getXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an XML string representing the experiment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>A string containing XML data representing all of the data related
+to an experiment, possibly useful as an alternative to pickle.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.handleStorageBins">
+<tt class="descname">handleStorageBins</tt><big>(</big><em>oldName</em>, <em>oldType</em>, <em>newName</em>, <em>newType</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.handleStorageBins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.handleStorageBins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Automatically handle the addition, removal, or renaming of a bin.</p>
+<p>If the new name is <cite>None</cite> or &#8216;&#8217;, delete the old bin. If the old name is
+<cite>None</cite> or &#8216;&#8217;, create the new bin. If the old name and the new name are
+are both non-trivial, the old name is changed to the new name, and the
+types are switched if necessary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>oldName</strong> : str</p>
+<blockquote>
+<div><p>The name of the column or parameter to be removed. If none is to be
+removed, this should be either <cite>None</cite> or an empty string.</p>
+</div></blockquote>
+<p><strong>oldType</strong> : str</p>
+<blockquote>
+<div><p>The type (&#8220;column&#8221; or &#8220;parameter&#8221;) of the bin to be removed. If a
+bin is to be created and none removed, this value is ignored.</p>
+</div></blockquote>
+<p><strong>newName</strong> : str</p>
+<blockquote>
+<div><p>The name of the column or parameter to be created. If none is to be
+created, this should be either <cite>None</cite> or an empty string.</p>
+</div></blockquote>
+<p><strong>newType</strong> : str</p>
+<blockquote class="last">
+<div><p>The type (&#8220;column&#8221; or &#8220;parameter&#8221;) of the bin to be created. If
+none is to be created, this value is ignored.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.interruptLoop">
+<tt class="descname">interruptLoop</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.interruptLoop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.interruptLoop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interrupt a running loop.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.isInterrupted">
+<tt class="descname">isInterrupted</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.isInterrupted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.isInterrupted" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the next loop should be interrupted.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether a loop has been manually interrupted.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.isPaused">
+<tt class="descname">isPaused</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.isPaused"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.isPaused" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the experiment has been paused.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether the experiment is paused.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.isRunning">
+<tt class="descname">isRunning</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.isRunning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.isRunning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the experiment is running.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><strong>Whether the experiment is running.</strong> :</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="src.core.experiment.Experiment.open">
+<em class="property">classmethod </em><tt class="descname">open</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open an experiment from a file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.pause">
+<tt class="descname">pause</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.pause"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.pause" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pause the experiment.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.removeConstant">
+<tt class="descname">removeConstant</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.removeConstant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.removeConstant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete a defined constant.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote class="last">
+<div><p>The name of the constant which should be deleted.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.removeGraph">
+<tt class="descname">removeGraph</tt><big>(</big><em>graph</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.removeGraph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.removeGraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a graph from the experiment</p>
+<p>First, remove <cite>graph</cite> from all columns which reference it. Then
+delete it from the list of graphs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>graph</strong> : Graph</p>
+<blockquote class="last">
+<div><p>The <cite>Graph</cite> object to remove from the list.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.removeInstrument">
+<tt class="descname">removeInstrument</tt><big>(</big><em>instrument</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.removeInstrument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.removeInstrument" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove an instrument from this experiment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>instrument</strong> : Instrument</p>
+<blockquote class="last">
+<div><p>The instrument which should be removed from the experiment.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.renameConstant">
+<tt class="descname">renameConstant</tt><big>(</big><em>oldName</em>, <em>newName</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.renameConstant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.renameConstant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rename the specified constant.</p>
+<p>Rename a constant and update all expressions in conditional loops
+and calculations to reflect the name change.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>oldName</strong> : str</p>
+<blockquote>
+<div><p>The name of the constant to whose name should be changed.</p>
+</div></blockquote>
+<p><strong>newName</strong> : str</p>
+<blockquote class="last">
+<div><p>The new name of the constant.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.resume">
+<tt class="descname">resume</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.resume"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.resume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unpause the experiment.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.run">
+<tt class="descname">run</tt><big>(</big><em>errorCheck=True</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform the pre-sequence actions and begin the experiment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>errorCheck</strong> : bool</p>
+<blockquote>
+<div><p>Whether to check for errors before beginning execution. The default
+is <cite>True</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body"><p class="first"><strong>GeneralExperimentError</strong> :</p>
+<blockquote class="last">
+<div><p>An exception containing a list of warnings and errors about
+problems with the experiment. This is only raised if <cite>errorCheck</cite>
+is <cite>True</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="src.core.experiment.Experiment.save">
+<em class="property">classmethod </em><tt class="descname">save</tt><big>(</big><em>experiment</em>, <em>filename</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save an experiment to a file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.saveData">
+<tt class="descname">saveData</tt><big>(</big><em>binType</em>, <em>binName</em>, <em>value</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.saveData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.saveData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add data returned from actions to the appropriate dictionary.</p>
+<p>Take the input from the execute commands bound to an <cite>Action</cite> object
+and add it to the data column dictionary, the parameter dictionary, or 
+the temporary buffer as appropriate.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>binType</strong> : str</p>
+<blockquote>
+<div><p>Where the data should go (either &#8220;parameter&#8221; or &#8220;column&#8221;).</p>
+</div></blockquote>
+<p><strong>binName</strong> : str</p>
+<blockquote>
+<div><p>The name of the column or parameter.</p>
+</div></blockquote>
+<p><strong>value</strong> : str</p>
+<blockquote class="last">
+<div><p>The <strong>formatted</strong> value to be saved to the bin specified by the
+above parameters.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.setConstant">
+<tt class="descname">setConstant</tt><big>(</big><em>name</em>, <em>value</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.setConstant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.setConstant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value of a constant, creating it if necessary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the constant whose value should be set.</p>
+</div></blockquote>
+<p><strong>value</strong> : float</p>
+<blockquote class="last">
+<div><p>The new value for the constant.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.setFilenames">
+<tt class="descname">setFilenames</tt><big>(</big><em>basePath</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.setFilenames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.setFilenames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the filenames and open the files.</p>
+<p>Use the supplied <cite>baseName</cite> to generate names for the data and
+parameter files, as well as the graph image file if applicable, by
+appending the appropriate extensions. Then open the files. Write
+the column headers to the data file and dump the parameter buffer
+into the parameter file.</p>
+<p>Important: All folders in the path to the files must already exist.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>basePath</strong> : str</p>
+<blockquote class="last">
+<div><p>The path where the data files should be stored. It should include
+all folders as well as a filename. The extension may be left off,
+but the only extensions that will be understood are &#8221;.xdat&#8221; (the
+default), &#8221;.txt&#8221; and &#8221;.dat&#8221;.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.setInteractionParameters">
+<tt class="descname">setInteractionParameters</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.setInteractionParameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.setInteractionParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set how the experiment should communicate with the outside.</p>
+<p>These parameters can be set only using keyword arguments.</p>
+<p>Any parameter which takes a list can be disabled by setting it to an
+empty list. Any parameter which takes something else can be disabled
+by setting it to <cite>None</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parentFrame</strong> : Frame</p>
+<blockquote>
+<div><p>A graphical frame which will be passed as the parent for the
+graph frames, if applicable.</p>
+</div></blockquote>
+<p><strong>graphManagerClass</strong> : GraphManager</p>
+<blockquote>
+<div><p>A class (not an instance) to use for managing the graph threads,
+if applicable.</p>
+</div></blockquote>
+<p><strong>graphManager</strong> : GraphManager</p>
+<blockquote>
+<div><p>A GraphManager <strong>object</strong> for managing the graph threads. If this
+is set, it will be preferred over creating a graphManagerClass.</p>
+</div></blockquote>
+<p><strong>preSequenceCommands</strong> : list of Command</p>
+<blockquote>
+<div><p>A list of <cite>Command</cite> objects which should be executed immediately
+before the experiment begins to run.</p>
+</div></blockquote>
+<p><strong>postSequenceCommands</strong> : list of Command</p>
+<blockquote>
+<div><p>A list of <cite>Command</cite> objects which should be executed immediately
+after the experiment has finished.</p>
+</div></blockquote>
+<p><strong>statusMonitor</strong> : statusMonitor</p>
+<blockquote>
+<div><p>The new <cite>StatusMonitor</cite> object for the instruments to display
+information to the user.</p>
+</div></blockquote>
+<p><strong>loopEnterCommands</strong> : list of Command</p>
+<blockquote>
+<div><p>The <cite>Command</cite> objects to execute before any other actions when the
+sequence enters an interruptable loop.</p>
+</div></blockquote>
+<p><strong>loopExitCommands</strong> : list of Command</p>
+<blockquote class="last">
+<div><p>The <cite>Command</cite> objects to execute after any other actions when an
+interruptable loop has been interrupted.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.experiment.Experiment.updateGraphColumns">
+<tt class="descname">updateGraphColumns</tt><big>(</big><em>graph</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#Experiment.updateGraphColumns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.Experiment.updateGraphColumns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fix the column dictionary so that the graph is in the right slots.</p>
+<p>Remove the graph from the list (which includes unbinding it from the
+old columns), and then add it back, automatically placing the graph in 
+the slots for the newly-specified columns.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>graph</strong> : Graph</p>
+<blockquote class="last">
+<div><p>The <cite>Graph</cite> object whose associated columns have changed.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="executionthread">
+<h3>ExecutionThread<a class="headerlink" href="#executionthread" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.experiment.ExecutionThread">
+<em class="property">class </em><tt class="descclassname">src.core.experiment.</tt><tt class="descname">ExecutionThread</tt><big>(</big><em>experiment</em><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#ExecutionThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.ExecutionThread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper class for executing the sequence without blocking the program.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.experiment.ExecutionThread.run">
+<tt class="descname">run</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/experiment.html#ExecutionThread.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.experiment.ExecutionThread.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Begin executing the main sequence.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>experiment</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#experiment">Experiment</a></li>
+<li><a class="reference internal" href="#executionthread">ExecutionThread</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_core_configuration.html"
+                        title="previous chapter">The <cite>configuration</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_core_inst_manager.html"
+                        title="next chapter">The <cite>inst_manager</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_core_experiment.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_core_inst_manager.html" title="The inst_manager module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_core_configuration.html" title="The configuration module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_core.html" >The <cite>core</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

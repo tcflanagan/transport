@@ -1,0 +1,611 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The object_config module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The gui package" href="api_gui.html" />
+    <link rel="next" title="The images module" href="api_gui_images.html" />
+    <link rel="prev" title="The sys_config module" href="api_gui_sys_config.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_images.html" title="The images module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_sys_config.html" title="The sys_config module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" accesskey="U">The <cite>gui</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.gui.object_config">
+<span id="the-object-config-module"></span><h1>The <cite>object_config</cite> module<a class="headerlink" href="#module-src.gui.object_config" title="Permalink to this headline">¶</a></h1>
+<p>Dialogs for setting up the main objects: actions, instruments, and graphs.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="actiondialog">
+<h3>ActionDialog<a class="headerlink" href="#actiondialog" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.object_config.ActionDialog">
+<em class="property">class </em><tt class="descclassname">src.gui.object_config.</tt><tt class="descname">ActionDialog</tt><big>(</big><em>parent</em>, <em>expt</em>, <em>actionIn</em><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#ActionDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.ActionDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dialog to configure standard actions.</p>
+<p>This dialog presents a way to configure normal <cite>Action</cite> objects. It
+presents a two-region panel. On the left are options for inputs, and on
+the right are options for outputs. Inputs may have both their values
+and their column names set here, and outputs may have their column
+names set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The panel or frame which owns this dialog.</p>
+</div></blockquote>
+<p><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The experiment which owns the action being configured by this dialog.</p>
+</div></blockquote>
+<p><strong>actionIn</strong> : Action</p>
+<blockquote class="last">
+<div><p>The action whose parameters will be set by this dialog.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.object_config.ActionDialog.update">
+<tt class="descname">update</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#ActionDialog.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.ActionDialog.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to update the action to reflect changes made by this dialog.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="scandialog">
+<h3>ScanDialog<a class="headerlink" href="#scandialog" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.object_config.ScanDialog">
+<em class="property">class </em><tt class="descclassname">src.gui.object_config.</tt><tt class="descname">ScanDialog</tt><big>(</big><em>parent</em>, <em>expt</em>, <em>actionIn</em><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#ScanDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.ScanDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dialog for configuring scan actions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The panel or frame which owns this dialog.</p>
+</div></blockquote>
+<p><strong>expt</strong> : Experiment</p>
+<blockquote>
+<div><p>The experiment which owns the action being configured by this dialog.</p>
+</div></blockquote>
+<p><strong>actionIn</strong> : Action</p>
+<blockquote class="last">
+<div><p>The action whose parameters will be set by this dialog.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.object_config.ScanDialog.getData">
+<tt class="descname">getData</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#ScanDialog.getData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.ScanDialog.getData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the data contained in the scan panel.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of tuple of str</strong> :</p>
+<blockquote class="last">
+<div><p>The scan panel data.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.object_config.ScanDialog.update">
+<tt class="descname">update</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#ScanDialog.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.ScanDialog.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to update the action to reflect changes made by this dialog.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="looptimesdialog">
+<h3>LoopTimesDialog<a class="headerlink" href="#looptimesdialog" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.object_config.LoopTimesDialog">
+<em class="property">class </em><tt class="descclassname">src.gui.object_config.</tt><tt class="descname">LoopTimesDialog</tt><big>(</big><em>parent</em>, <em>expt</em>, <em>actionIn</em><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#LoopTimesDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.LoopTimesDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dialog for configuring the most simple looping actions.</p>
+<p>This dialog allows configuration both of actions which loop for a specified
+amount of time (in seconds) and of actions which loop for a specified
+number of iterations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The panel or frame which owns this dialog.</p>
+</div></blockquote>
+<p><strong>expt</strong> : Experiment</p>
+<blockquote>
+<div><p>The experiment which owns the action being configured by this dialog.</p>
+</div></blockquote>
+<p><strong>actionIn</strong> : Action</p>
+<blockquote class="last">
+<div><p>The action whose parameters will be set by this dialog.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.object_config.LoopTimesDialog.update">
+<tt class="descname">update</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#LoopTimesDialog.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.LoopTimesDialog.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to update the action to reflect changes made by this dialog.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="blankdialog">
+<h3>BlankDialog<a class="headerlink" href="#blankdialog" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.object_config.BlankDialog">
+<em class="property">class </em><tt class="descclassname">src.gui.object_config.</tt><tt class="descname">BlankDialog</tt><big>(</big><em>parent</em>, <em>expt</em>, <em>actionIn</em><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#BlankDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.BlankDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>An empty dialog which closes immediately.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The panel or frame which owns this dialog.</p>
+</div></blockquote>
+<p><strong>expt</strong> : Experiment</p>
+<blockquote>
+<div><p>The experiment which owns the action being configured by this dialog.</p>
+</div></blockquote>
+<p><strong>actionIn</strong> : Action</p>
+<blockquote class="last">
+<div><p>The action whose parameters will be set by this dialog.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.object_config.BlankDialog.ShowModal">
+<tt class="descname">ShowModal</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#BlankDialog.ShowModal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.BlankDialog.ShowModal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return immediately, so that the dialog closes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.object_config.BlankDialog.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#BlankDialog.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.BlankDialog.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the dialog.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.object_config.BlankDialog.update">
+<tt class="descname">update</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#BlankDialog.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.BlankDialog.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to update the action to reflect changes made by this dialog.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="loopwhiledialog">
+<h3>LoopWhileDialog<a class="headerlink" href="#loopwhiledialog" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.object_config.LoopWhileDialog">
+<em class="property">class </em><tt class="descclassname">src.gui.object_config.</tt><tt class="descname">LoopWhileDialog</tt><big>(</big><em>parent</em>, <em>expt</em>, <em>actionIn</em><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#LoopWhileDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.LoopWhileDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dialog for configuring a while loop action.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The panel or frame which owns this dialog.</p>
+</div></blockquote>
+<p><strong>expt</strong> : Experiment</p>
+<blockquote>
+<div><p>The experiment which will execute the action configured by this
+dialog.</p>
+</div></blockquote>
+<p><strong>actionIn</strong> : Action</p>
+<blockquote class="last">
+<div><p>The looping action whose parameters will be set by this dialog.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.object_config.LoopWhileDialog.update">
+<tt class="descname">update</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#LoopWhileDialog.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.LoopWhileDialog.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to update the action to reflect changes made by this dialog.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="filedialog">
+<h3>FileDialog<a class="headerlink" href="#filedialog" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.object_config.FileDialog">
+<em class="property">class </em><tt class="descclassname">src.gui.object_config.</tt><tt class="descname">FileDialog</tt><big>(</big><em>parent</em>, <em>expt</em>, <em>actionIn</em><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#FileDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.FileDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dialog for setting the data filename.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The panel or frame which owns this dialog.</p>
+</div></blockquote>
+<p><strong>expt</strong> : Experiment</p>
+<blockquote>
+<div><p>The experiment which will be writing to the files.</p>
+</div></blockquote>
+<p><strong>actionIn</strong> : Action</p>
+<blockquote class="last">
+<div><p>The file-saving action whose parameters will be set by this dialog.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.object_config.FileDialog.onBrowse">
+<tt class="descname">onBrowse</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#FileDialog.onBrowse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.FileDialog.onBrowse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show a dialog to browse for a folder.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.object_config.FileDialog.update">
+<tt class="descname">update</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#FileDialog.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.FileDialog.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to update the action to reflect changes made by this dialog.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="calculatedialog">
+<h3>CalculateDialog<a class="headerlink" href="#calculatedialog" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.object_config.CalculateDialog">
+<em class="property">class </em><tt class="descclassname">src.gui.object_config.</tt><tt class="descname">CalculateDialog</tt><big>(</big><em>parent</em>, <em>expt</em>, <em>actionIn</em><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#CalculateDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.CalculateDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dialog for configuring calculation actions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The panel or frame which owns this dialog.</p>
+</div></blockquote>
+<p><strong>expt</strong> : Experiment</p>
+<blockquote>
+<div><p>The experiment which owns the action being configured by this dialog.</p>
+</div></blockquote>
+<p><strong>actionIn</strong> : Action</p>
+<blockquote class="last">
+<div><p>The action whose parameters will be set by this dialog.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.object_config.CalculateDialog.update">
+<tt class="descname">update</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#CalculateDialog.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.CalculateDialog.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to update the action to reflect changes made by this dialog.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="expressionpanel">
+<h3>ExpressionPanel<a class="headerlink" href="#expressionpanel" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.object_config.ExpressionPanel">
+<em class="property">class </em><tt class="descclassname">src.gui.object_config.</tt><tt class="descname">ExpressionPanel</tt><big>(</big><em>parent</em>, <em>data</em><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#ExpressionPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.ExpressionPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>A panel for creating and editing expressions for later evaluation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The panel or frame which contains this panel.</p>
+</div></blockquote>
+<p><strong>data</strong> : tuple of list of str</p>
+<blockquote class="last">
+<div><p>A three-element tuple of lists of strings. The first element of the
+tuple contains a list of the names of constants, the second
+contains a list of columns, and the last contains a list of
+parameters.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.object_config.ExpressionPanel.getExpression">
+<tt class="descname">getExpression</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#ExpressionPanel.getExpression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.ExpressionPanel.getExpression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the value of the expression box.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>The string expression set by the user.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.gui.object_config.ExpressionPanel.setExpression">
+<tt class="descname">setExpression</tt><big>(</big><em>expression</em><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#ExpressionPanel.setExpression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.ExpressionPanel.setExpression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value of the expression box.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>expression</strong> : str</p>
+<blockquote class="last">
+<div><p>The value which should go in the expression box. The expression
+may, on use of <cite>eval</cite>, return an <cite>int</cite>, a <cite>float</cite>, or a <cite>bool</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="instrumentdialog">
+<h3>InstrumentDialog<a class="headerlink" href="#instrumentdialog" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.object_config.InstrumentDialog">
+<em class="property">class </em><tt class="descclassname">src.gui.object_config.</tt><tt class="descname">InstrumentDialog</tt><big>(</big><em>parent</em>, <em>inst</em><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#InstrumentDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.InstrumentDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>A simple dialog for creating new instruments.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.object_config.InstrumentDialog.update">
+<tt class="descname">update</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#InstrumentDialog.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.InstrumentDialog.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the instrument to reflect changes.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="rebindinstrumentdialog">
+<h3>RebindInstrumentDialog<a class="headerlink" href="#rebindinstrumentdialog" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.object_config.RebindInstrumentDialog">
+<em class="property">class </em><tt class="descclassname">src.gui.object_config.</tt><tt class="descname">RebindInstrumentDialog</tt><big>(</big><em>parent</em>, <em>expt</em>, <em>action</em><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#RebindInstrumentDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.RebindInstrumentDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dialog to change the instrument to which an action is bound.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.object_config.RebindInstrumentDialog.update">
+<tt class="descname">update</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#RebindInstrumentDialog.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.RebindInstrumentDialog.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the action to use the new instrument.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="graphdialog">
+<h3>GraphDialog<a class="headerlink" href="#graphdialog" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.object_config.GraphDialog">
+<em class="property">class </em><tt class="descclassname">src.gui.object_config.</tt><tt class="descname">GraphDialog</tt><big>(</big><em>parent</em>, <em>expt</em>, <em>graphIn=None</em><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#GraphDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.GraphDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dialog for editing graphs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxWindow</p>
+<blockquote>
+<div><p>The frame or panel which owns this dialog.</p>
+</div></blockquote>
+<p><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The experiment which contains the graphs edited by this dialog.</p>
+</div></blockquote>
+<p><strong>graphIn</strong> : Graph</p>
+<blockquote class="last">
+<div><p>The graph to edit.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.gui.object_config.GraphDialog.update">
+<tt class="descname">update</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#GraphDialog.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.GraphDialog.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the input graph or create a new graph.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.gui.object_config.getDialog">
+<tt class="descclassname">src.gui.object_config.</tt><tt class="descname">getDialog</tt><big>(</big><em>action</em><big>)</big><a class="reference internal" href="_modules/src/gui/object_config.html#getDialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.object_config.getDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the appropriate dialog for the supplied action.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>action</strong> : Action</p>
+<blockquote>
+<div><p>An <cite>Action</cite> object which the user wants to edit.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>class</strong> :</p>
+<blockquote class="last">
+<div><p>The appropriate dialog class (uninstantiated) for modifying <cite>action</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>object_config</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#actiondialog">ActionDialog</a></li>
+<li><a class="reference internal" href="#scandialog">ScanDialog</a></li>
+<li><a class="reference internal" href="#looptimesdialog">LoopTimesDialog</a></li>
+<li><a class="reference internal" href="#blankdialog">BlankDialog</a></li>
+<li><a class="reference internal" href="#loopwhiledialog">LoopWhileDialog</a></li>
+<li><a class="reference internal" href="#filedialog">FileDialog</a></li>
+<li><a class="reference internal" href="#calculatedialog">CalculateDialog</a></li>
+<li><a class="reference internal" href="#expressionpanel">ExpressionPanel</a></li>
+<li><a class="reference internal" href="#instrumentdialog">InstrumentDialog</a></li>
+<li><a class="reference internal" href="#rebindinstrumentdialog">RebindInstrumentDialog</a></li>
+<li><a class="reference internal" href="#graphdialog">GraphDialog</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_gui_sys_config.html"
+                        title="previous chapter">The <cite>sys_config</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_gui_images.html"
+                        title="next chapter">The <cite>images</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_gui_object_config.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_images.html" title="The images module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_sys_config.html" title="The sys_config module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

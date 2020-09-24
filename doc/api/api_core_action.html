@@ -1,0 +1,1871 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The action module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The core package" href="api_core.html" />
+    <link rel="next" title="The graph module" href="api_core_graph.html" />
+    <link rel="prev" title="The instrument module" href="api_core_instrument.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_core_graph.html" title="The graph module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_core_instrument.html" title="The instrument module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_core.html" accesskey="U">The <cite>core</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.core.action">
+<span id="the-action-module"></span><h1>The <cite>action</cite> module<a class="headerlink" href="#module-src.core.action" title="Permalink to this headline">¶</a></h1>
+<p>Object-oriented representation of interactions with instruments.</p>
+<p>An <cite>Action</cite> is an operation on an instrument to set data, retrieve data, or 
+both. The following types of actions are supported by this module.</p>
+<dl class="docutils">
+<dt>Action: </dt>
+<dd>An <cite>Action</cite> is some operation which should be performed on an instrument. 
+It serves as the base class of several types of container actions. Normally,
+an instance of <cite>Action</cite> will perform some simple read or write operation
+on the instrument.</dd>
+<dt>ActionScan: </dt>
+<dd>An <cite>ActionScan</cite> is a container for other <cite>Action</cite> objects which 
+executes its children at each value of some parameter.</dd>
+<dt>ActionSimultaneous: </dt>
+<dd>An <cite>ActionSimultaneous</cite> is a container for other <cite>Action</cite> objects which
+spawns threads for each of its children and begins those threads at the same
+time so that they run in parallel.</dd>
+<dt>Parameter:</dt>
+<dd>A <cite>Parameter</cite> is an atomic input or output. It consists of the value of 
+the input (typically set by the user) or output (typically set by the 
+<cite>Instrument</cite> which actually carries out the <cite>Action</cite> which owns the 
+it), information to indicate to the user what it represents, a string to 
+determine how to format its numeric values, and directions regarding how and
+where the data should be saved.</dd>
+</dl>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="action">
+<h3>Action<a class="headerlink" href="#action" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.action.Action">
+<em class="property">class </em><tt class="descclassname">src.core.action.</tt><tt class="descname">Action</tt><big>(</big><em>experiment</em>, <em>instrument</em>, <em>name</em>, <em>description</em>, <em>inputs=None</em>, <em>outputs=None</em>, <em>string=None</em>, <em>method=None</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action" title="Permalink to this definition">¶</a></dt>
+<dd><p>A single action to perform a simple get/set/query on an instrument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The <cite>Experiment</cite> object to which this action belongs.</p>
+</div></blockquote>
+<p><strong>instrument</strong> : Instrument</p>
+<blockquote>
+<div><p>The <cite>Instrument</cite> object which will perform this action (though not
+necessarily its children).</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>A short name with no special characters except (possibly) an 
+underscore, to use for looking up this action.</p>
+</div></blockquote>
+<p><strong>description</strong> : str</p>
+<blockquote>
+<div><p>A short phrase to indicate what this action does.</p>
+</div></blockquote>
+<p><strong>inputs</strong> : list of Parameter</p>
+<blockquote>
+<div><p>A list of <cite>Parameter</cite> objects which this action will pass to the
+instrument.</p>
+</div></blockquote>
+<p><strong>outputs</strong> : list of Parameter</p>
+<blockquote>
+<div><p>A list of <cite>Parameter</cite> objects which the instrument will fill in and
+pass back to this action to be processed and, in most cases, written
+to the appropriate files.</p>
+</div></blockquote>
+<p><strong>string</strong> : str</p>
+<blockquote>
+<div><p>A template string which can be filled in with input values to provide
+the user with a specific description of what this action will do.</p>
+</div></blockquote>
+<p><strong>method</strong> : instancemethod</p>
+<blockquote class="last">
+<div><p>The method bound to <cite>instrument</cite> which will actually carry out this
+action.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.action.Action.allowsChildren">
+<tt class="descname">allowsChildren</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.allowsChildren"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.allowsChildren" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether this action can have children.</p>
+<p>Since members of the <cite>Action</cite> class (i.e. not a derived class) are 
+<em>simple</em> actions, they cannot have children.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.cleanupAfterExecution">
+<tt class="descname">cleanupAfterExecution</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.cleanupAfterExecution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.cleanupAfterExecution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleanup after execution.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.clone">
+<tt class="descname">clone</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Duplicate this action.</p>
+<p>Produce a new <cite>Action</cite> instance&#8212;with a new location in 
+memory&#8212;which is the same as this one in all respects. This is for 
+copy-and-paste operations.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.execute">
+<tt class="descname">execute</tt><big>(</big><em>obeyPause=True</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the action.</p>
+<p>If the experiment has been aborted, return. If it is paused, wait.
+Otherwise, execute the action, and then save the data to the file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>obeyPause</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether to wait until the experiment is no longer paused before
+executing the action.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.getDescription">
+<tt class="descname">getDescription</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.getDescription"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.getDescription" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the description of the action.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.getInputColumns">
+<tt class="descname">getInputColumns</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.getInputColumns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.getInputColumns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the input columns.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of str</strong> :</p>
+<blockquote class="last">
+<div><p>A list of strings representing the names of the columns or 
+parameters to which the input values will be saved when the action
+is executed.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.getInputProperties">
+<tt class="descname">getInputProperties</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.getInputProperties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.getInputProperties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the input properties for the action.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of dict</strong> :</p>
+<blockquote class="last">
+<div><p>A list of dictionaries containing information about the input
+parameters. The following keys will be present.</p>
+<blockquote>
+<div><ul class="simple">
+<li>description</li>
+<li>column (name of the column or parameter)</li>
+<li>value (as a formatted string)</li>
+<li>allowed</li>
+<li>formatString</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.getInstrument">
+<tt class="descname">getInstrument</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.getInstrument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.getInstrument" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the instrument bound to this action.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>Instrument</strong> :</p>
+<blockquote class="last">
+<div><p>The <cite>Instrument</cite> object bound to this action.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.getInstrumentName">
+<tt class="descname">getInstrumentName</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.getInstrumentName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.getInstrumentName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the name of the instrument which will perform the action.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>A string indicating the name of the <cite>Instrument</cite> which will
+perform the action.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.getName">
+<tt class="descname">getName</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.getName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.getName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the name of the action.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.getOutputColumns">
+<tt class="descname">getOutputColumns</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.getOutputColumns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.getOutputColumns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the output column names.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of str</strong> :</p>
+<blockquote class="last">
+<div><p>A list of strings representing the names of the columns or
+parameters to which the output values will be saved when the action
+is executed.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.getOutputProperties">
+<tt class="descname">getOutputProperties</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.getOutputProperties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.getOutputProperties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the output properties for the action.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of dict</strong> :</p>
+<blockquote class="last">
+<div><p>A list of dictionaries. Each dictionary corresponds to one output
+and contains the following keys:</p>
+<blockquote>
+<div><ul class="simple">
+<li>&#8216;description&#8217;</li>
+<li>&#8216;column&#8217;</li>
+<li>&#8216;allowed&#8217;</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.getTreeString">
+<tt class="descname">getTreeString</tt><big>(</big><em>depth=0</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.getTreeString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.getTreeString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a descriptive string with appropriate indentation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.getXML">
+<tt class="descname">getXML</tt><big>(</big><em>indent=0</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.getXML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.getXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an XML string representing the action.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>A string containing XML data representing all of the data related
+to the action, possibly useful as an alternative to pickle.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.instantiate">
+<tt class="descname">instantiate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.instantiate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.instantiate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate all parameters, establishing the necessary data storage.</p>
+<p>Create the appropriate data bins&#8212;based on the default names of the 
+input/output columns and parameters&#8212;in the experiment file (using the
+instantiate method of the <cite>Parameter</cite> class).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.isEnabled">
+<tt class="descname">isEnabled</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.isEnabled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.isEnabled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get whether this action will be executed when the experiment is run.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>Whether this action will actually be executed.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.isEqualEnough">
+<tt class="descname">isEqualEnough</tt><big>(</big><em>otherSpec</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.isEqualEnough"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.isEqualEnough" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine whether the other action is interchangeable with this one.</p>
+<p>To decide whether some action can be reasonably bound to a different
+instrument, consider whether the two actions have the same description,
+the same name, and input and output arrays. Two arrays are said to be
+&#8216;the same&#8217; if there is a one-to-one mapping of parameters between them
+where the two parameters have the same name, description, and format
+strings.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.prepareToExecute">
+<tt class="descname">prepareToExecute</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.prepareToExecute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.prepareToExecute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare to execute by creating a substitution dictionary.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.printme">
+<tt class="descname">printme</tt><big>(</big><em>depth=0</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.printme"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.printme" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print a descriptive string with appropriate indentation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.replaceStringInInput">
+<tt class="descname">replaceStringInInput</tt><big>(</big><em>inputIndex</em>, <em>original</em>, <em>replacement</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.replaceStringInInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.replaceStringInInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a string replacement in one of the inputs for this action.</p>
+<p>The primary purpose of this method is to update expressions (either
+for calculations or for conditionals) to reflect changes in the names
+of columns, parameters, or constants.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>inputIndex</strong> : int</p>
+<blockquote>
+<div><p>The index in the list of input parameters of the parameter
+where the replacement should take place.</p>
+</div></blockquote>
+<p><strong>original</strong> : str</p>
+<blockquote>
+<div><p>The string which should be replaced.</p>
+</div></blockquote>
+<p><strong>replacement</strong> : str</p>
+<blockquote class="last">
+<div><p>The string which should go in place of <cite>original</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.setEnabled">
+<tt class="descname">setEnabled</tt><big>(</big><em>enabled</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.setEnabled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.setEnabled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set whether this action will actually be executed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>enabled</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether to execute this action when the experiment is run.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.setExperiment">
+<tt class="descname">setExperiment</tt><big>(</big><em>newExperiment</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.setExperiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.setExperiment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the experiment which owns this action and its parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>newExperiment</strong> : Experiment</p>
+<blockquote class="last">
+<div><p>The <cite>Experiment</cite> object which should own this action.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.setInputColumns">
+<tt class="descname">setInputColumns</tt><big>(</big><em>inputColumns</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.setInputColumns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.setInputColumns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the input columns.</p>
+<p>Set the column names (or parameter names) to which the input values 
+will be saved when the action is executed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>inputColumns</strong> : list of str</p>
+<blockquote class="last">
+<div><p>A list of strings representing the names of the columns or
+parameters to which the input values should be saved when the
+action is executed.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.setInputValues">
+<tt class="descname">setInputValues</tt><big>(</big><em>inputValues</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.setInputValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.setInputValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the values which will be sent to the <tt class="docutils literal"><span class="pre">Instrument</span></tt> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.setInstrument">
+<tt class="descname">setInstrument</tt><big>(</big><em>inst</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.setInstrument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.setInstrument" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bind an new instrument to this action.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>inst</strong> : Instrument</p>
+<blockquote class="last">
+<div><p>The <cite>Instrument</cite> object which will perform the action.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.setOutputColumns">
+<tt class="descname">setOutputColumns</tt><big>(</big><em>outputColumns</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.setOutputColumns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.setOutputColumns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the output column names.</p>
+<p>Set the column names (or parameter names) to which the output values 
+will be saved when the action is executed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.setStatusMonitor">
+<tt class="descname">setStatusMonitor</tt><big>(</big><em>statusMonitor</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.setStatusMonitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.setStatusMonitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the status monitor for the action.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>statusMonitor</strong> : StatusMonitor</p>
+<blockquote class="last">
+<div><p>The new <cite>StatusMonitor</cite> object for this action.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Action.trash">
+<tt class="descname">trash</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Action.trash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Action.trash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Destroy the action.</p>
+<p>Set all of the bin (column or parameter) names to blanks, which removes
+them from the owning experiment&#8217;s relevant dictionaries.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="actionpostprocessor">
+<h3>ActionPostprocessor<a class="headerlink" href="#actionpostprocessor" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.action.ActionPostprocessor">
+<em class="property">class </em><tt class="descclassname">src.core.action.</tt><tt class="descname">ActionPostprocessor</tt><big>(</big><em>experiment</em>, <em>instrument</em>, <em>name</em>, <em>description</em>, <em>method</em>, <em>sourceFile</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionPostprocessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionPostprocessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>An action for postprocessor events.</p>
+<p>The postprocessor actions all follow the same format. They take a
+single argument: a list of tuples representing the files created by the
+experiment. Note that all postprocessor actions are executed together at
+the end of the experiment.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.action.ActionPostprocessor.clone">
+<tt class="descname">clone</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionPostprocessor.clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionPostprocessor.clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Duplicate this action.</p>
+<p>Produce a new <cite>Action</cite> instance&#8212;with a new location in 
+memory&#8212;which is the same as this one in all respects. This is for 
+copy-and-paste operations.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionPostprocessor.execute">
+<tt class="descname">execute</tt><big>(</big><em>obeyPause=True</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionPostprocessor.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionPostprocessor.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the action to the experiment&#8217;s postprocessor action queue.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>obeyPause</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether to wait until the experiment is no longer paused before
+executing the action.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionPostprocessor.executeReal">
+<tt class="descname">executeReal</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionPostprocessor.executeReal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionPostprocessor.executeReal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Actually execute the action.</p>
+<p>If the experiment has been aborted, return. If it is paused, wait.
+Otherwise, execute the action, and then save the data to the file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>obeyPause</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether to wait until the experiment is no longer paused before
+executing the action.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="actioncontainer">
+<h3>ActionContainer<a class="headerlink" href="#actioncontainer" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.action.ActionContainer">
+<em class="property">class </em><tt class="descclassname">src.core.action.</tt><tt class="descname">ActionContainer</tt><big>(</big><em>experiment</em>, <em>instrument</em>, <em>name</em>, <em>description</em>, <em>inputs=None</em>, <em>outputs=None</em>, <em>string='Do nothing.'</em>, <em>method=None</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>An abstract action which may have children.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The <cite>Experiment</cite> object to which this action belongs.</p>
+</div></blockquote>
+<p><strong>instrument</strong> : Instrument</p>
+<blockquote>
+<div><p>The <cite>Instrument</cite> object which will perform this action (though not
+necessarily its children).</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>A short name with no special characters except (possibly) an 
+underscore, to use for looking up this action.</p>
+</div></blockquote>
+<p><strong>description</strong> : str</p>
+<blockquote>
+<div><p>A short phrase to indicate what this action does.</p>
+</div></blockquote>
+<p><strong>inputs</strong> : list of Parameter</p>
+<blockquote>
+<div><p>A list of <cite>Parameter</cite> objects which this action will pass to the
+instrument.</p>
+</div></blockquote>
+<p><strong>outputs</strong> : list of Parameter</p>
+<blockquote>
+<div><p>A list of <cite>Parameter</cite> objects which the instrument will fill in and
+pass back to this action to be processed and, in most cases, written
+to the appropriate files.</p>
+</div></blockquote>
+<p><strong>string</strong> : str</p>
+<blockquote>
+<div><p>A template string which can be filled in with input values to provide
+the user with a specific description of what this action will do.</p>
+</div></blockquote>
+<p><strong>method</strong> : instancemethod</p>
+<blockquote class="last">
+<div><p>The method bound to <cite>instrument</cite> which will actually carry out this
+action.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.action.ActionContainer.appendChild">
+<tt class="descname">appendChild</tt><big>(</big><em>child</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.appendChild"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.appendChild" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a child to the end of the list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>child</strong> : Action</p>
+<blockquote class="last">
+<div><p>The child to add to the end of the list.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.cleanupAfterExecution">
+<tt class="descname">cleanupAfterExecution</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.cleanupAfterExecution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.cleanupAfterExecution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleanup temporary data after execution.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.clone">
+<tt class="descname">clone</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy this action, including its children.</p>
+<p>Produce a new <cite>Action</cite> instance&#8212;with a new location in 
+memory&#8212;which is the same as this one in all respects. Then do the same
+for all children, adding them to the new container. This is for 
+copy-and-paste operations.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.execute">
+<tt class="descname">execute</tt><big>(</big><em>obeyPause=True</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute all children objects sequentially.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.executePass">
+<tt class="descname">executePass</tt><big>(</big><em>obeyPause=True</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.executePass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.executePass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the container using its superclass&#8217;s method.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.getChildren">
+<tt class="descname">getChildren</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.getChildren"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.getChildren" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of children.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>list of Action</strong> :</p>
+<blockquote class="last">
+<div><p>The list of actions which are considered to be children of this
+action.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.getTreeString">
+<tt class="descname">getTreeString</tt><big>(</big><em>depth=0</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.getTreeString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.getTreeString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a descriptive string for the container, including children.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.insertChild">
+<tt class="descname">insertChild</tt><big>(</big><em>index</em>, <em>child</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.insertChild"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.insertChild" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an action to the list of children at a specified position.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>index</strong> : int</p>
+<blockquote>
+<div><p>The position at which to add the child. If <cite>index</cite> is out of range,
+the action is appended to the list.</p>
+</div></blockquote>
+<p><strong>child</strong> : Action</p>
+<blockquote class="last">
+<div><p>The action to add to the list.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.insertChildAfter">
+<tt class="descname">insertChildAfter</tt><big>(</big><em>child</em>, <em>positionAction</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.insertChildAfter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.insertChildAfter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert a child before another child.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>child</strong> : Action</p>
+<blockquote>
+<div><p>The action which should be inserted.</p>
+</div></blockquote>
+<p><strong>positionAction</strong> : Action</p>
+<blockquote class="last">
+<div><p>The action after which the new child should be added. If this
+action does not exist, <cite>child</cite> will be appended to the list.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.insertChildBefore">
+<tt class="descname">insertChildBefore</tt><big>(</big><em>child</em>, <em>positionAction</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.insertChildBefore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.insertChildBefore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert a child before another child.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>child</strong> : Action</p>
+<blockquote>
+<div><p>The action which should be inserted.</p>
+</div></blockquote>
+<p><strong>positionAction</strong> : Action</p>
+<blockquote class="last">
+<div><p>The action before which the new child should be added. If this
+action does not exist, <cite>child</cite> will be prepended to the list.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.prepareToExecute">
+<tt class="descname">prepareToExecute</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.prepareToExecute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.prepareToExecute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare all children for execution.</p>
+<p>Preparing for execution means generating dictionaries for substitution
+into instrument methods and performing various other relevant 
+optimization-related actions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.prependChild">
+<tt class="descname">prependChild</tt><big>(</big><em>child</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.prependChild"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.prependChild" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a child to the beginning of the list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>child</strong> : Action</p>
+<blockquote class="last">
+<div><p>The child to add to the beginning of the list.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.printme">
+<tt class="descname">printme</tt><big>(</big><em>depth=0</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.printme"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.printme" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a descriptive string for the container, including children.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.removeChild">
+<tt class="descname">removeChild</tt><big>(</big><em>child</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.removeChild"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.removeChild" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the a child action from the list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>child</strong> : Action</p>
+<blockquote class="last">
+<div><p>The action to remove from the list.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.removeChildByIndex">
+<tt class="descname">removeChildByIndex</tt><big>(</big><em>index</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.removeChildByIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.removeChildByIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the action at the specified position.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>index</strong> : int</p>
+<blockquote class="last">
+<div><p>The position of the child to remove.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.removeChildren">
+<tt class="descname">removeChildren</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.removeChildren"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.removeChildren" title="Permalink to this definition">¶</a></dt>
+<dd><p>Empty the list of actions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.replaceChild">
+<tt class="descname">replaceChild</tt><big>(</big><em>index</em>, <em>child</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.replaceChild"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.replaceChild" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace the child action at a given position</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>index</strong> : int</p>
+<blockquote>
+<div><p>The position of the action to replace.</p>
+</div></blockquote>
+<p><strong>child</strong> : Action</p>
+<blockquote class="last">
+<div><p>The action which should go in the specified position.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.setChildren">
+<tt class="descname">setChildren</tt><big>(</big><em>replacementChildren</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.setChildren"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.setChildren" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace the list of children with a new list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>replacementChildren</strong> : list of Action</p>
+<blockquote class="last">
+<div><p>A list of actions which should be used as children of this action.
+It will replace any actions already considered to be children.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.setExperiment">
+<tt class="descname">setExperiment</tt><big>(</big><em>newExperiment</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.setExperiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.setExperiment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the owner of this action, its children, and its parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>newExperiment</strong> : Experiment</p>
+<blockquote class="last">
+<div><p>The <cite>Experiment</cite> object which should own this action, its children,
+and its parameters.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.setStatusMonitor">
+<tt class="descname">setStatusMonitor</tt><big>(</big><em>newStatusMonitor</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.setStatusMonitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.setStatusMonitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the status monitor for the action and its children.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>statusMonitor</strong> : StatusMonitor</p>
+<blockquote class="last">
+<div><p>The new <cite>StatusMonitor</cite> object for this action.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionContainer.trash">
+<tt class="descname">trash</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionContainer.trash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionContainer.trash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Destroy all children, then destroy the container.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="actionscan">
+<h3>ActionScan<a class="headerlink" href="#actionscan" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.action.ActionScan">
+<em class="property">class </em><tt class="descclassname">src.core.action.</tt><tt class="descname">ActionScan</tt><big>(</big><em>experiment</em>, <em>instrument</em>, <em>name</em>, <em>description</em>, <em>inputs=None</em>, <em>outputs=None</em>, <em>string='Do nothing.'</em>, <em>method=None</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionScan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionScan" title="Permalink to this definition">¶</a></dt>
+<dd><p>A action which executes other actions at multiple values of a parameter.</p>
+<p>Create a scanning action&#8212;one which executes a series of other actions
+(children) at each value of some varied parameter. The only input should
+be a list of tuples, where each tuple contains three numbers: the
+starting and ending bounds and step size for a scan (in that order).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The <cite>Experiment</cite> object to which this action belongs.</p>
+</div></blockquote>
+<p><strong>instrument</strong> : Instrument</p>
+<blockquote>
+<div><p>The <cite>Instrument</cite> object which will perform this action (though not
+necessarily its children).</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>A short name with no special characters except (possibly) an 
+underscore, to use for looking up this action.</p>
+</div></blockquote>
+<p><strong>description</strong> : str</p>
+<blockquote>
+<div><p>A short phrase to indicate what this action does.</p>
+</div></blockquote>
+<p><strong>inputs</strong> : list of Parameter</p>
+<blockquote>
+<div><p>A list of <cite>Parameter</cite> objects which this action will pass to the
+instrument. For an <cite>ActionScan</cite>, this list should contain a single
+element.</p>
+</div></blockquote>
+<p><strong>outputs</strong> : list of Parameter</p>
+<blockquote>
+<div><p>A list of <cite>Parameter</cite> objects which the instrument will fill in and
+pass back to this action to be processed and, in many cases, written
+to the appropriate files.</p>
+</div></blockquote>
+<p><strong>string</strong> : str</p>
+<blockquote>
+<div><p>A template string which can be filled in with input values to provide
+the user with a specific description of what this action will do.</p>
+</div></blockquote>
+<p><strong>method</strong> : instancemethod</p>
+<blockquote class="last">
+<div><p>The method bound to <cite>instrument</cite> which will actually carry out this
+action.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.action.ActionScan.cleanupAfterExecution">
+<tt class="descname">cleanupAfterExecution</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionScan.cleanupAfterExecution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionScan.cleanupAfterExecution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleanup temporary data after execution.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionScan.execute">
+<tt class="descname">execute</tt><big>(</big><em>obeyPause=True</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionScan.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionScan.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the ActionScan.</p>
+<p>Expand the scans into the individual values for which the action&#8217;s
+method will be executed, and then execute the method with each of those
+values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionScan.prepareToExecute">
+<tt class="descname">prepareToExecute</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionScan.prepareToExecute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionScan.prepareToExecute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare the ActionScan to execute by expanding the range.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="src.core.action.ActionScan.zeroWithinTolerance">
+<em class="property">static </em><tt class="descname">zeroWithinTolerance</tt><big>(</big><em>dif</em>, <em>tolerance</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionScan.zeroWithinTolerance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionScan.zeroWithinTolerance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether a number is small enough to be treated as zero.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>dif</strong> : float</p>
+<blockquote>
+<div><p>The number to compare to zero.</p>
+</div></blockquote>
+<p><strong>tolerance</strong> : float</p>
+<blockquote class="last">
+<div><p>The maximum difference between two numbers for them to be called
+equal.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="actionlooptimed">
+<h3>ActionLoopTimed<a class="headerlink" href="#actionlooptimed" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.action.ActionLoopTimed">
+<em class="property">class </em><tt class="descclassname">src.core.action.</tt><tt class="descname">ActionLoopTimed</tt><big>(</big><em>experiment</em>, <em>instrument</em>, <em>name</em>, <em>description</em>, <em>duration</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopTimed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopTimed" title="Permalink to this definition">¶</a></dt>
+<dd><p>A container which repeats its children for a specified length of time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The <cite>Experiment</cite> instance which owns this loop.</p>
+</div></blockquote>
+<p><strong>instrument</strong> : Instrument</p>
+<blockquote>
+<div><p>The <cite>Instrument</cite> which will carry out this action.</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>A short name with no special characters except (possibly) an 
+underscore, to use for looking up this action.</p>
+</div></blockquote>
+<p><strong>description</strong> : str</p>
+<blockquote>
+<div><p>A short phrase to indicate what this action does.</p>
+</div></blockquote>
+<p><strong>duration</strong> : float</p>
+<blockquote class="last">
+<div><p>The amount of time, in seconds, after which the loop should stop.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>At the end of each cycle, the system determines how much time has elapsed.
+If the time elapsed is greater than or equal to the specified time, the
+loop is interrupted and the sequence resumes. Therefore, it is possible
+(and even likely) that the loop will run somewhat longer than specified. 
+Precisely how much longer will be determined by the run time of the 
+children.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.action.ActionLoopTimed.clone">
+<tt class="descname">clone</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopTimed.clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopTimed.clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy of this action.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionLoopTimed.execute">
+<tt class="descname">execute</tt><big>(</big><em>obeyPause=True</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopTimed.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopTimed.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the loop action.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionLoopTimed.getDuration">
+<tt class="descname">getDuration</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopTimed.getDuration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopTimed.getDuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the time after which the loop will stop.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The time, in seconds, after which the loop will stop running.
+Depending on the run time of the children, the loop may run longer
+than the specified time.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionLoopTimed.setDuration">
+<tt class="descname">setDuration</tt><big>(</big><em>duration</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopTimed.setDuration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopTimed.setDuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set how long the loop should run.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>duration</strong> : float</p>
+<blockquote class="last">
+<div><p>The length of time after which the loop will stop running. The
+loop may run longer than the specified time, depending on the run
+time of the children. But after the specified time, no new 
+iterations of the loop will be started.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="actionloopiterations">
+<h3>ActionLoopIterations<a class="headerlink" href="#actionloopiterations" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.action.ActionLoopIterations">
+<em class="property">class </em><tt class="descclassname">src.core.action.</tt><tt class="descname">ActionLoopIterations</tt><big>(</big><em>experiment</em>, <em>instrument</em>, <em>name</em>, <em>description</em>, <em>iterations</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopIterations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopIterations" title="Permalink to this definition">¶</a></dt>
+<dd><p>A container which repeats its children a specified number of times.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The <cite>Experiment</cite> instance which owns this loop.</p>
+</div></blockquote>
+<p><strong>instrument</strong> : Instrument</p>
+<blockquote>
+<div><p>The <cite>Instrument</cite> which will carry out the action (though not necessarily
+its children).</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>A short name with no special characters except (possibly) an 
+underscore, to use for looking up this action.</p>
+</div></blockquote>
+<p><strong>description</strong> : str</p>
+<blockquote>
+<div><p>A short phrase to indicate what this action does.</p>
+</div></blockquote>
+<p><strong>iterations</strong> : int</p>
+<blockquote class="last">
+<div><p>The number of times the children should be executed.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.action.ActionLoopIterations.clone">
+<tt class="descname">clone</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopIterations.clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopIterations.clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy of this action.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionLoopIterations.execute">
+<tt class="descname">execute</tt><big>(</big><em>obeyPause=True</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopIterations.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopIterations.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the loop action.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionLoopIterations.getIterations">
+<tt class="descname">getIterations</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopIterations.getIterations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopIterations.getIterations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of times the loop&#8217;s children will be executed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>int</strong> :</p>
+<blockquote class="last">
+<div><p>The number of times the children will be executed.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionLoopIterations.setIterations">
+<tt class="descname">setIterations</tt><big>(</big><em>iterations</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopIterations.setIterations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopIterations.setIterations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set how long the loop should run.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>iterations</strong> : int</p>
+<blockquote class="last">
+<div><p>The number of times the children should be executed.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="actionloopwhile">
+<h3>ActionLoopWhile<a class="headerlink" href="#actionloopwhile" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.action.ActionLoopWhile">
+<em class="property">class </em><tt class="descclassname">src.core.action.</tt><tt class="descname">ActionLoopWhile</tt><big>(</big><em>experiment</em>, <em>instrument</em>, <em>name</em>, <em>description</em>, <em>expression</em>, <em>timeout=None</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopWhile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopWhile" title="Permalink to this definition">¶</a></dt>
+<dd><p>A container which repeats its children a specified number of times.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The <cite>Experiment</cite> instance which owns this loop.</p>
+</div></blockquote>
+<p><strong>instrument</strong> : Instrument</p>
+<blockquote>
+<div><p>The <cite>Instrument</cite> which will carry out the action (though not necessarily
+its children).</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>A short name with no special characters except (possibly) an 
+underscore, to use for looking up this action.</p>
+</div></blockquote>
+<p><strong>description</strong> : str</p>
+<blockquote>
+<div><p>A short phrase to indicate what this action does.</p>
+</div></blockquote>
+<p><strong>expression</strong> : str</p>
+<blockquote>
+<div><p>An expression which can evaluate to a boolean. The loop continues
+as long as <cite>expression</cite> evaluates to <cite>True</cite>.</p>
+</div></blockquote>
+<p><strong>timeout</strong> : float</p>
+<blockquote class="last">
+<div><p>The maximum amount of time, in seconds, to wait for the expression
+to evaluate to <cite>True</cite>. If <cite>timeout</cite> is set to <cite>None</cite>, the loop will
+run until <cite>expression</cite> becomes false or until the experiment is
+aborted.</p>
+<p>This is a fail-safe to prevent infinite loops (for example, if you set
+it to run until a desired temperature is reached, but the cryostat
+is unable to reach that temperature).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.action.ActionLoopWhile.clone">
+<tt class="descname">clone</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopWhile.clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopWhile.clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy of this action.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionLoopWhile.execute">
+<tt class="descname">execute</tt><big>(</big><em>obeyPause=True</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopWhile.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopWhile.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the loop action.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionLoopWhile.getExpression">
+<tt class="descname">getExpression</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopWhile.getExpression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopWhile.getExpression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the conditional which determines the number of iterations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>The expression which will be evaluated to a boolean value to
+determine whether to keep looping. If it evaluates to <cite>True</cite>, the
+loop continues. Otherwise, it terminates.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionLoopWhile.getTimeout">
+<tt class="descname">getTimeout</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopWhile.getTimeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopWhile.getTimeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the maximum time to wait for the condition to become <cite>False</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>float</strong> :</p>
+<blockquote class="last">
+<div><p>The maximum time in seconds that the system will wait for the
+condition to return <cite>False</cite>. If it is set to <cite>None</cite>, the loop
+will run until the condition returns <cite>False</cite> or until the
+experiment is aborted.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionLoopWhile.setExpression">
+<tt class="descname">setExpression</tt><big>(</big><em>expression</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopWhile.setExpression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopWhile.setExpression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the conditional expression which determines when to stop.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>expression</strong> : str</p>
+<blockquote class="last">
+<div><p>The expression which will be evaluated to a boolean value to
+determine whether to keep looping. If it evaluates to <cite>True</cite>, the
+loop continues. Otherwise, it terminates.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionLoopWhile.setTimeout">
+<tt class="descname">setTimeout</tt><big>(</big><em>timeout</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopWhile.setTimeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopWhile.setTimeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the maximum time to wait for the condition to become false.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>timeout</strong> : float</p>
+<blockquote class="last">
+<div><p>The maximum time in seconds that the system will wait for the
+condition to return <cite>False</cite>. If it is set to <cite>None</cite>, the loop
+will run until the condition returns <cite>False</cite> or until the
+experiment is aborted.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="actionloopuntilinterrupt">
+<h3>ActionLoopUntilInterrupt<a class="headerlink" href="#actionloopuntilinterrupt" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.action.ActionLoopUntilInterrupt">
+<em class="property">class </em><tt class="descclassname">src.core.action.</tt><tt class="descname">ActionLoopUntilInterrupt</tt><big>(</big><em>experiment</em>, <em>instrument</em>, <em>name</em>, <em>description</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopUntilInterrupt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopUntilInterrupt" title="Permalink to this definition">¶</a></dt>
+<dd><p>A container to execute its children until manually interrupted.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The <cite>Experiment</cite> instance which owns this loop.</p>
+</div></blockquote>
+<p><strong>instrument</strong> : Instrument</p>
+<blockquote>
+<div><p>The <cite>Instrument</cite> which will carry out this action.</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>A short name with no special characters except (possibly) an 
+underscore, to use for looking up this action.</p>
+</div></blockquote>
+<p><strong>description</strong> : str</p>
+<blockquote class="last">
+<div><p>A short phrase to indicate what this action does.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.action.ActionLoopUntilInterrupt.clone">
+<tt class="descname">clone</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopUntilInterrupt.clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopUntilInterrupt.clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy of this action.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionLoopUntilInterrupt.execute">
+<tt class="descname">execute</tt><big>(</big><em>obeyPause=True</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopUntilInterrupt.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopUntilInterrupt.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the loop action.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionLoopUntilInterrupt.setLoopCommands">
+<tt class="descname">setLoopCommands</tt><big>(</big><em>loopEnterCommands=None</em>, <em>loopExitCommands=None</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionLoopUntilInterrupt.setLoopCommands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionLoopUntilInterrupt.setLoopCommands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the commands to execute when the loop begins and finishes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>loopEnterCommands</strong> : list of Command</p>
+<blockquote>
+<div><p>The <cite>Command</cite> objects to execute before any other actions when the
+sequence enters the loop.</p>
+</div></blockquote>
+<p><strong>loopExitCommands</strong> : list of Command</p>
+<blockquote class="last">
+<div><p>The <cite>Command</cite> objects to execute after any other actions when the
+loop has been interrupted.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="actionsimultaneous">
+<h3>ActionSimultaneous<a class="headerlink" href="#actionsimultaneous" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.action.ActionSimultaneous">
+<em class="property">class </em><tt class="descclassname">src.core.action.</tt><tt class="descname">ActionSimultaneous</tt><big>(</big><em>experiment</em>, <em>instrument</em>, <em>name</em>, <em>description</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionSimultaneous"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionSimultaneous" title="Permalink to this definition">¶</a></dt>
+<dd><p>A container which executes all of its children in parallel.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The <cite>Experiment</cite> object which owns this action container.</p>
+</div></blockquote>
+<p><strong>instrument</strong> : Instrument</p>
+<blockquote>
+<div><p>The <cite>Instrument</cite> which will perform this action.</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>A short name with no special characters except (possibly) an 
+underscore, to use for looking up this action.</p>
+</div></blockquote>
+<p><strong>description</strong> : str</p>
+<blockquote class="last">
+<div><p>A short phrase to indicate what this action does.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.action.ActionSimultaneous.clone">
+<tt class="descname">clone</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionSimultaneous.clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionSimultaneous.clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy of this action.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.ActionSimultaneous.execute">
+<tt class="descname">execute</tt><big>(</big><em>obeyPause=True</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionSimultaneous.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionSimultaneous.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the children simultaneously.</p>
+<p>If the experiment has been stopped, return. If the experiment is paused,
+wait until it is not. Otherwise, create threads for all of the action&#8217;s
+children. Then tell the <cite>Experiment</cite> to activate the temporary
+buffer for storing the data. Then start the threads, and wait for them
+to finish. Finally, tell the <cite>Experiment</cite> that the simultaneously-
+running actions are finished so that it will save the data and empty
+the buffer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>obeyPause</strong> : bool</p>
+<blockquote class="last">
+<div><p>The indication of whether the action should wait if the experiment
+is paused.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="parameter">
+<h3>Parameter<a class="headerlink" href="#parameter" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.action.Parameter">
+<em class="property">class </em><tt class="descclassname">src.core.action.</tt><tt class="descname">Parameter</tt><big>(</big><em>experiment</em>, <em>name</em>, <em>description</em>, <em>formatString='%.6e'</em>, <em>binName=None</em>, <em>binType=None</em>, <em>value=0</em>, <em>allowed=None</em>, <em>instantiate=False</em>, <em>isScan=False</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>An input/output and information to identify, format, and describe it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>experiment</strong> : Experiment</p>
+<blockquote>
+<div><p>The <cite>Experiment</cite> object which owns the <cite>Action</cite> for which this is a
+parameter.</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>A short, one-word name used for substitutions into the <cite>Action</cite> object&#8217;s
+descriptive template string.</p>
+</div></blockquote>
+<p><strong>description</strong> : str</p>
+<blockquote>
+<div><p>A relatively short phrase describing the purpose of this parameter.</p>
+</div></blockquote>
+<p><strong>formatString</strong> : str</p>
+<blockquote>
+<div><p>A standardized string indicating how values should be formated (e.g.,
+&#8220;%.3e&#8221; for an exponential-format number with three decimal places).
+If this parameter represents a scan profile, the formatString should
+end with &#8216;[]&#8217;.</p>
+</div></blockquote>
+<p><strong>binName</strong> : str</p>
+<blockquote>
+<div><p>The default name of the data column or parameter slot into which
+this parameter&#8217;s data should be saved.</p>
+</div></blockquote>
+<p><strong>binType</strong> : str</p>
+<blockquote>
+<div><p>The default <strong>type</strong> of slot for saving data. It may be &#8216;column&#8217;,
+&#8216;parameter&#8217;, if the data is not to be saved by default, or <cite>None</cite> or &#8216;&#8217;.</p>
+</div></blockquote>
+<p><strong>value</strong> : various</p>
+<blockquote>
+<div><p>The default value of the parameter. Its type depends on the parameter
+(it could be a floating-point number, an integer, a boolean, a string,
+or a list of 3-tuples of integers or floats).</p>
+</div></blockquote>
+<p><strong>allowed</strong> : list of str</p>
+<blockquote>
+<div><p>A list of strings representing the allowed values for the parameter. If
+it is <cite>None</cite>, any type-appropriate value will be accepted.</p>
+</div></blockquote>
+<p><strong>instantiate</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether to immediately alter the experiment&#8217;s column or parameter
+database.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="attribute">
+<dt id="src.core.action.Parameter.allowedValues">
+<tt class="descname">allowedValues</tt><a class="reference internal" href="_modules/src/core/action.html#Parameter.allowedValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Parameter.allowedValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy of the list of allowed values.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.core.action.Parameter.binName">
+<tt class="descname">binName</tt><a class="reference internal" href="_modules/src/core/action.html#Parameter.binName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Parameter.binName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the name of the storage bin.</p>
+<p>If the value is to be stored in a column, return the column name simply.
+If it is to be stored as a parameter, return the parameter name prefixed
+by the _PARAM_. Return <cite>None</cite> if the data is not to be saved.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Parameter.clone">
+<tt class="descname">clone</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Parameter.clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Parameter.clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy of this parameter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Parameter.getFormattedValue">
+<tt class="descname">getFormattedValue</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Parameter.getFormattedValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Parameter.getFormattedValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value formatted as a string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Parameter.getXML">
+<tt class="descname">getXML</tt><big>(</big><em>indent=0</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Parameter.getXML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Parameter.getXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an XML string representing the parameter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>A string containing XML data representing all of the data related
+to the parameter, possibly useful as an alternative to pickle.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Parameter.instantiate">
+<tt class="descname">instantiate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Parameter.instantiate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Parameter.instantiate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate the parameter.</p>
+<p>If this method has not been run previously, set the bin names using the
+method (as opposed to simply changing the value of the variable), which
+passes the name change to the experiment to update the data storage
+dictionaries.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.core.action.Parameter.saveData">
+<tt class="descname">saveData</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#Parameter.saveData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Parameter.saveData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the parameter to the relevant file (data or parameter).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src.core.action.Parameter.value">
+<tt class="descname">value</tt><a class="reference internal" href="_modules/src/core/action.html#Parameter.value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.Parameter.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy of the value of the parameter.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="actionthread">
+<h3>ActionThread<a class="headerlink" href="#actionthread" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.core.action.ActionThread">
+<em class="property">class </em><tt class="descclassname">src.core.action.</tt><tt class="descname">ActionThread</tt><big>(</big><em>action</em>, <em>obeyPause=True</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionThread" title="Permalink to this definition">¶</a></dt>
+<dd><p>A thread for executing sub-actions without blocking.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="src.core.action.ActionThread.run">
+<tt class="descname">run</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#ActionThread.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.ActionThread.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the action.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.core.action.constructAction">
+<tt class="descclassname">src.core.action.</tt><tt class="descname">constructAction</tt><big>(</big><em>actionSpec</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#constructAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.constructAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct an action from an action specification.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>actionSpec</strong> : ActionSpec</p>
+<blockquote>
+<div><p>An instance of the <cite>namedtuple</cite> class <cite>ActionSpec</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>Action</strong> :</p>
+<blockquote class="last">
+<div><p>The instance of <cite>Action</cite> or one of its subclasses specified by
+<cite>actionSpec</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.core.action.constructParameter">
+<tt class="descclassname">src.core.action.</tt><tt class="descname">constructParameter</tt><big>(</big><em>parameterSpec</em>, <em>isScan=False</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#constructParameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.constructParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a parameter from a parameter specification.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parameterSpec</strong> : ParameterSpec</p>
+<blockquote>
+<div><p>An instance of the <cite>namedtuple</cite> class <cite>ParameterSpec</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>Parameter</strong> :</p>
+<blockquote class="last">
+<div><p>The instance of <cite>Parameter</cite> specified by <cite>parameterSpec</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.core.action.nullFunction">
+<tt class="descclassname">src.core.action.</tt><tt class="descname">nullFunction</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/src/core/action.html#nullFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.nullFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do nothing.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.core.action.cloneParameterList">
+<tt class="descclassname">src.core.action.</tt><tt class="descname">cloneParameterList</tt><big>(</big><em>parameterList</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#cloneParameterList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.cloneParameterList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clone a list of input or output parameters.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.core.action.coerceIntThroughFloat">
+<tt class="descclassname">src.core.action.</tt><tt class="descname">coerceIntThroughFloat</tt><big>(</big><em>number</em><big>)</big><a class="reference internal" href="_modules/src/core/action.html#coerceIntThroughFloat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.core.action.coerceIntThroughFloat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a number to a float and then to an int.</p>
+<p>Certain kinds of string literals cannot be cast directly to integers. This
+function takes such a string and converts it to a float and then to an
+integer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>number</strong> : str</p>
+<blockquote class="last">
+<div><p>A string containing a number which should be cast to an integer.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>action</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#action">Action</a></li>
+<li><a class="reference internal" href="#actionpostprocessor">ActionPostprocessor</a></li>
+<li><a class="reference internal" href="#actioncontainer">ActionContainer</a></li>
+<li><a class="reference internal" href="#actionscan">ActionScan</a></li>
+<li><a class="reference internal" href="#actionlooptimed">ActionLoopTimed</a></li>
+<li><a class="reference internal" href="#actionloopiterations">ActionLoopIterations</a></li>
+<li><a class="reference internal" href="#actionloopwhile">ActionLoopWhile</a></li>
+<li><a class="reference internal" href="#actionloopuntilinterrupt">ActionLoopUntilInterrupt</a></li>
+<li><a class="reference internal" href="#actionsimultaneous">ActionSimultaneous</a></li>
+<li><a class="reference internal" href="#parameter">Parameter</a></li>
+<li><a class="reference internal" href="#actionthread">ActionThread</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_core_instrument.html"
+                        title="previous chapter">The <cite>instrument</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_core_graph.html"
+                        title="next chapter">The <cite>graph</cite> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_core_action.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_core_graph.html" title="The graph module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_core_instrument.html" title="The instrument module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_core.html" >The <cite>core</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,589 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.dev.documentation &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.dev.documentation</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Scripts for building or compiling the software API</span>
+
+<span class="sd">This module provides scripts for reading through the source code, pulling out</span>
+<span class="sd">the docstrings, and generating HTML API from them. The output will be copied</span>
+<span class="sd">to the `doc/api` directory.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+
+<span class="kn">from</span> <span class="nn">src</span> <span class="kn">import</span> <span class="n">about</span>
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">path_tools</span> <span class="k">as</span> <span class="n">pt</span>
+<span class="kn">from</span> <span class="nn">src.tools.commandline</span> <span class="kn">import</span> <span class="n">Environment</span>
+<span class="kn">from</span> <span class="nn">src.tools.htmlhelper</span> <span class="kn">import</span> <span class="n">HTMLHelper</span>
+
+<span class="n">MODULE_STRING</span> <span class="o">=</span> <span class="s">&#39;.. automodule:: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span>
+<span class="n">CLASS_STRING</span> <span class="o">=</span> <span class="s">&#39;.. autoclass:: </span><span class="si">%s</span><span class="se">\n</span><span class="s">   :members:</span><span class="se">\n</span><span class="s">&#39;</span>
+<span class="n">FUNCTION_STRING</span> <span class="o">=</span> <span class="s">&#39;.. autofunction:: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span>
+
+<span class="n">TOP</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">)</span>
+
+<span class="n">OUTPUT_FOLDER</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;dev&#39;</span><span class="p">,</span> <span class="s">&#39;docgen&#39;</span><span class="p">,</span> <span class="s">&#39;api&#39;</span><span class="p">,</span> <span class="s">&#39;source&#39;</span><span class="p">)</span>
+
+<span class="n">EXCLUSIONS</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;unusedbutpossiblyuseful&#39;</span><span class="p">),</span>
+              <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;instruments&#39;</span><span class="p">,</span> <span class="s">&#39;pyvisa&#39;</span><span class="p">)]</span>
+<span class="n">PATTERN_CLASS</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;class *([a-zA-Z]\w+) *\(([\w\.]+)\) *:&#39;</span><span class="p">)</span>
+<span class="n">PATTERN_FUNCTION</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;^def *([a-zA-Z]+[\w]*) *\((.*?)\) *?:&#39;</span><span class="p">,</span> 
+                              <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="o">|</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
+
+<div class="viewcode-block" id="toHeader"><a class="viewcode-back" href="../../../api_dev_documentation.html#src.dev.documentation.toHeader">[docs]</a><span class="k">def</span> <span class="nf">toHeader</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Construct a reST header from a string.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    string : str</span>
+<span class="sd">        The string which should constitute the header.</span>
+<span class="sd">    level : int</span>
+<span class="sd">        The section level (i.e. if 0 is &quot;part&quot;, then 1 is &quot;chapter&quot;, 2 is</span>
+<span class="sd">        &quot;section&quot;, and so on).</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        A string containing the input string with the appropriate markers</span>
+<span class="sd">        below and possibly above it (as determined by `level`). </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="n">outputList</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">level</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="o">*</span><span class="n">length</span><span class="p">)</span>
+    <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">level</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="o">*</span><span class="n">length</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="o">*</span><span class="n">length</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outputList</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="toImportPath"><a class="viewcode-back" href="../../../api_dev_documentation.html#src.dev.documentation.toImportPath">[docs]</a><span class="k">def</span> <span class="nf">toImportPath</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert a path to an import path.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str</span>
+<span class="sd">        A proper, absolute file path.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        An import path (period-separated) relative to the home folder.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lst</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;src&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">TOP</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+    <span class="n">lst</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">lst</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">return</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="toOutputModuleFile"><a class="viewcode-back" href="../../../api_dev_documentation.html#src.dev.documentation.toOutputModuleFile">[docs]</a><span class="k">def</span> <span class="nf">toOutputModuleFile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Construct the output file path for a module.</span>
+<span class="sd">    </span>
+<span class="sd">    The form of the output path is ``api_[packages]_[module name].rst``, where</span>
+<span class="sd">    ``[packages]`` is an underscore-separated sequence of package names</span>
+<span class="sd">    leading to the module, but not including &quot;src&quot;.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str</span>
+<span class="sd">        A proper, absolute file path for a module.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        The output path (with extension &quot;.rst&quot;) for the module documentation</span>
+<span class="sd">        file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lst</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;api&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">TOP</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+    <span class="n">lst</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">lst</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">return</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;.rst&#39;</span>
+</div>
+<div class="viewcode-block" id="toOutputPackageFile"><a class="viewcode-back" href="../../../api_dev_documentation.html#src.dev.documentation.toOutputPackageFile">[docs]</a><span class="k">def</span> <span class="nf">toOutputPackageFile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Construct the output file path for a package.</span>
+<span class="sd">    </span>
+<span class="sd">    If `path` refers to the top level of the source tree, the output is</span>
+<span class="sd">    &quot;index.rst&quot;. Otherwise, it is an underscore-separated list of path</span>
+<span class="sd">    elements relative to the project home, beginning with &quot;api&quot; and not</span>
+<span class="sd">    including &quot;src&quot;.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str</span>
+<span class="sd">        A proper, absolute file path for a module.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        The output path (with extension &quot;.rst&quot;) for the package documentation</span>
+<span class="sd">        file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">remainder</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">TOP</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">remainder</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">remainder</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&#39;index.rst&#39;</span>
+    <span class="n">lst</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;api&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">remainder</span>
+    <span class="k">return</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;.rst&#39;</span>
+</div>
+<div class="viewcode-block" id="processModule"><a class="viewcode-back" href="../../../api_dev_documentation.html#src.dev.documentation.processModule">[docs]</a><span class="k">def</span> <span class="nf">processModule</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a documentation file for a module.</span>
+<span class="sd">    </span>
+<span class="sd">    The output file consists of the following parts:</span>
+<span class="sd">    </span>
+<span class="sd">    1. The properly formatted module docstring.</span>
+<span class="sd">    2. The classes contained in the module. Each class gets its own </span>
+<span class="sd">       sub-section, and all public methods are listed.</span>
+<span class="sd">    3. The functions contained in the module.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str</span>
+<span class="sd">        The absolute path to the module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">toOutputModuleFile</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">moduleName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">modulePath</span> <span class="o">=</span> <span class="n">toImportPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">outputList</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">toHeader</span><span class="p">(</span><span class="s">&#39;The `</span><span class="si">%s</span><span class="s">` module&#39;</span> <span class="o">%</span> <span class="n">moduleName</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MODULE_STRING</span> <span class="o">%</span> <span class="n">modulePath</span><span class="p">)</span>
+    
+    <span class="n">functions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">moduleFile</span><span class="p">:</span>
+        <span class="n">contents</span> <span class="o">=</span> <span class="n">moduleFile</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">classes</span> <span class="o">=</span> <span class="n">PATTERN_CLASS</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span>
+    <span class="n">tempFunctions</span> <span class="o">=</span> <span class="n">PATTERN_FUNCTION</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span> 
+    <span class="k">for</span> <span class="n">function</span> <span class="ow">in</span> <span class="n">tempFunctions</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&#39;self&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">function</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">functions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">function</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">toHeader</span><span class="p">(</span><span class="s">&#39;Classes&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">:</span>
+            <span class="n">clsname</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">modulePath</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">toHeader</span><span class="p">(</span><span class="n">clsname</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CLASS_STRING</span> <span class="o">%</span> <span class="n">item</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">functions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">toHeader</span><span class="p">(</span><span class="s">&#39;Functions&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">functions</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">modulePath</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FUNCTION_STRING</span> <span class="o">%</span> <span class="n">item</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUTPUT_FOLDER</span><span class="p">,</span> <span class="n">filename</span><span class="p">),</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outputFile</span><span class="p">:</span>
+        <span class="n">outputFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outputList</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="processPackage"><a class="viewcode-back" href="../../../api_dev_documentation.html#src.dev.documentation.processPackage">[docs]</a><span class="k">def</span> <span class="nf">processPackage</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">children</span><span class="p">,</span> <span class="n">childPackages</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Construct the documentation file for a package.</span>
+<span class="sd">    </span>
+<span class="sd">    The file consists first of the docstring from the package&#39;s ``__init__`` </span>
+<span class="sd">    module. Then follows a list of the contents of the package. Its modules</span>
+<span class="sd">    come first, and the sub-packages follow.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    children : list of str</span>
+<span class="sd">        A list of the paths of the modules in the package.</span>
+<span class="sd">    childPackages : list of str</span>
+<span class="sd">        A list of the paths of the sub-packages in the package.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">toOutputPackageFile</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">relPath</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">TOP</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">outputList</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">relPath</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">toHeader</span><span class="p">(</span><span class="s">&#39;The `src` package&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;.. automodule:: src</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">toHeader</span><span class="p">(</span><span class="s">&#39;The `</span><span class="si">%s</span><span class="s">` package&#39;</span> <span class="o">%</span> 
+                                   <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">relPath</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MODULE_STRING</span> <span class="o">%</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;src&#39;</span><span class="p">]</span> <span class="o">+</span> 
+                                                   <span class="n">relPath</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">children</span> <span class="o">+</span> <span class="n">childPackages</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">toHeader</span><span class="p">(</span><span class="s">&#39;Contents&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">childPackages</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">toHeader</span><span class="p">(</span><span class="s">&#39;Packages&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;.. toctree::&#39;</span><span class="p">)</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;   :maxdepth: 1&#39;</span><span class="p">)</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">childPackages</span><span class="p">:</span>
+            <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;   </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">toOutputPackageFile</span><span class="p">(</span><span class="n">child</span><span class="p">)[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">children</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">toHeader</span><span class="p">(</span><span class="s">&#39;Modules&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;.. toctree::&#39;</span><span class="p">)</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;   :maxdepth: 1&#39;</span><span class="p">)</span>
+        <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+            <span class="n">outputList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;   </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">toOutputModuleFile</span><span class="p">(</span><span class="n">child</span><span class="p">)[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUTPUT_FOLDER</span><span class="p">,</span> <span class="n">filename</span><span class="p">),</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outputFile</span><span class="p">:</span>
+        <span class="n">outputFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outputList</span><span class="p">))</span>
+    
+</div>
+<span class="n">PYTHONPATH</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">([])</span>
+<span class="n">LATEXPATH</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;dev&#39;</span><span class="p">,</span> <span class="s">&#39;docgen&#39;</span><span class="p">,</span> <span class="s">&#39;manual&#39;</span><span class="p">,</span> <span class="s">&#39;build&#39;</span><span class="p">,</span> <span class="s">&#39;latex&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="formatHTMLHelp"><a class="viewcode-back" href="../../../api_dev_documentation.html#src.dev.documentation.formatHTMLHelp">[docs]</a><span class="k">def</span> <span class="nf">formatHTMLHelp</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Format HTML Help files so that wxPython can display them.&quot;&quot;&quot;</span>
+    <span class="n">htmlHelper</span> <span class="o">=</span> <span class="n">HTMLHelper</span><span class="p">()</span>
+    
+    <span class="n">dirpath</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;dev&#39;</span><span class="p">,</span> <span class="s">&#39;docgen&#39;</span><span class="p">,</span> <span class="s">&#39;manual&#39;</span><span class="p">,</span> <span class="s">&#39;build&#39;</span><span class="p">,</span> <span class="s">&#39;htmlhelp&#39;</span><span class="p">)</span>
+    <span class="n">initItems</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">dirpath</span><span class="p">))</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">initItems</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.html&#39;</span><span class="p">):</span>
+            <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;dev&#39;</span><span class="p">,</span> <span class="s">&#39;docgen&#39;</span><span class="p">,</span> <span class="s">&#39;manual&#39;</span><span class="p">,</span> <span class="s">&#39;build&#39;</span><span class="p">,</span> 
+                                  <span class="s">&#39;htmlhelp&#39;</span><span class="p">,</span> <span class="n">item</span><span class="p">))</span>
+    
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+        <span class="n">htmlHelper</span><span class="o">.</span><span class="n">scanFileForCode</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        
+</div>
+<div class="viewcode-block" id="generateManualHTMLHelp"><a class="viewcode-back" href="../../../api_dev_documentation.html#src.dev.documentation.generateManualHTMLHelp">[docs]</a><span class="k">def</span> <span class="nf">generateManualHTMLHelp</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Produce the manual in the Microsoft HTML Help format.</span>
+<span class="sd">    </span>
+<span class="sd">    Remove the old documentation from ``doc/htmlhelp``. Then generate the</span>
+<span class="sd">    new files by running the make file. Process these files to make them</span>
+<span class="sd">    suitable for inclusion in wxPython&#39;s HTML Help frames, and run them</span>
+<span class="sd">    through my own script to get the syntax highlighting done properly. Finally,</span>
+<span class="sd">    move the result into the ``doc`` folder and delete the ``build`` directory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cwd</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;dev&#39;</span><span class="p">,</span> <span class="s">&#39;docgen&#39;</span><span class="p">,</span> <span class="s">&#39;manual&#39;</span><span class="p">)</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;dev&#39;</span><span class="p">,</span> <span class="s">&#39;docgen&#39;</span><span class="p">,</span> <span class="s">&#39;manual&#39;</span><span class="p">,</span> <span class="s">&#39;build&#39;</span><span class="p">,</span> <span class="s">&#39;htmlhelp&#39;</span><span class="p">)</span>
+    <span class="n">dest0</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;doc&#39;</span><span class="p">,</span> <span class="s">&#39;htmlhelp&#39;</span><span class="p">]</span>
+    
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="n">dest0</span><span class="p">)):</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="n">dest0</span><span class="p">))</span>
+    
+    <span class="n">env</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">()</span>
+
+    <span class="n">env</span><span class="o">.</span><span class="n">extendPath</span><span class="p">(</span><span class="s">&#39;PYTHONPATH&#39;</span><span class="p">,</span> <span class="n">PYTHONPATH</span><span class="p">)</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">changeDirectory</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">env</span><span class="o">.</span><span class="n">isWindows</span><span class="p">():</span>
+        <span class="n">response1</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">r&#39;make.bat htmlhelp&#39;</span><span class="p">)</span>
+        <span class="n">response2</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">r&#39;python sphinx-wxoptimize -c &#39;</span> <span class="o">+</span>
+                                    <span class="s">r&#39;source build\htmlhelp&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">response1</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">r&#39;make htmlhelp&#39;</span><span class="p">)</span>
+        <span class="n">response2</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">r&#39;python sphinx-wxoptimize -c &#39;</span> <span class="o">+</span>
+                                    <span class="s">r&#39;source build/htmlhelp&#39;</span><span class="p">)</span>
+
+    <span class="n">formatHTMLHelp</span><span class="p">()</span>
+    
+    <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;doc&#39;</span><span class="p">))</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;dev&#39;</span><span class="p">,</span> <span class="s">&#39;docgen&#39;</span><span class="p">,</span> <span class="s">&#39;manual&#39;</span><span class="p">,</span> <span class="s">&#39;build&#39;</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="p">(</span><span class="n">response1</span><span class="p">,</span> <span class="n">response2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="generateManualPDF"><a class="viewcode-back" href="../../../api_dev_documentation.html#src.dev.documentation.generateManualPDF">[docs]</a><span class="k">def</span> <span class="nf">generateManualPDF</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Generate a PDF of the documentation.</span>
+<span class="sd">    </span>
+<span class="sd">    Delete the old PDF. Then set the PYTHONPATH to include the Transport</span>
+<span class="sd">    directory. Run the make file to prepare the LaTeX sources. Then run</span>
+<span class="sd">    pdflatex (twice to make sure contents and indices get updated). Move the</span>
+<span class="sd">    resulting PDF into the project home folder. Delete the documentation</span>
+<span class="sd">    build directory to avoid keeping old files.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cwd</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;dev&#39;</span><span class="p">,</span> <span class="s">&#39;docgen&#39;</span><span class="p">,</span> <span class="s">&#39;manual&#39;</span><span class="p">)</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;dev&#39;</span><span class="p">,</span> <span class="s">&#39;docgen&#39;</span><span class="p">,</span> <span class="s">&#39;manual&#39;</span><span class="p">,</span> <span class="s">&#39;build&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;latex&#39;</span><span class="p">,</span> <span class="s">&#39;TransportExperiment.pdf&#39;</span><span class="p">)</span>
+    <span class="n">dest</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;manual.pdf&#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dest</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span>
+
+    <span class="n">env</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">()</span>
+
+    <span class="n">env</span><span class="o">.</span><span class="n">extendPath</span><span class="p">(</span><span class="s">&#39;PYTHONPATH&#39;</span><span class="p">,</span> <span class="n">PYTHONPATH</span><span class="p">)</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">changeDirectory</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">env</span><span class="o">.</span><span class="n">isWindows</span><span class="p">():</span>
+        <span class="n">response1</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;make.bat latex&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">response1</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;make latex&#39;</span><span class="p">)</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">changeDirectory</span><span class="p">(</span><span class="n">LATEXPATH</span><span class="p">)</span>
+    <span class="n">response2</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;pdflatex TransportExperiment.tex&#39;</span><span class="p">)</span>
+    <span class="n">response3</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;pdflatex TransportExperiment.tex&#39;</span><span class="p">)</span>
+
+    <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">dest</span><span class="p">)</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;dev&#39;</span><span class="p">,</span> <span class="s">&#39;docgen&#39;</span><span class="p">,</span> <span class="s">&#39;manual&#39;</span><span class="p">,</span> <span class="s">&#39;build&#39;</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="p">(</span><span class="n">response1</span><span class="p">,</span> <span class="n">response2</span><span class="p">,</span> <span class="n">response3</span><span class="p">)</span>
+
+ </div>
+<div class="viewcode-block" id="generateAPI"><a class="viewcode-back" href="../../../api_dev_documentation.html#src.dev.documentation.generateAPI">[docs]</a><span class="k">def</span> <span class="nf">generateAPI</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Extract the docstrings from the desired modules and create HTML API.</span>
+<span class="sd">    </span>
+<span class="sd">    First, remove the previous version of the documentation from the ``src/api``</span>
+<span class="sd">    directory. Then run the ``make.bat`` file generated by the </span>
+<span class="sd">    ``sphinx-quickstart`` script to convert this to HTML. Finally, move the</span>
+<span class="sd">    output back into the ``src/api`` directory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cwd</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;dev&#39;</span><span class="p">,</span> <span class="s">&#39;docgen&#39;</span><span class="p">,</span> <span class="s">&#39;api&#39;</span><span class="p">)</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;dev&#39;</span><span class="p">,</span> <span class="s">&#39;docgen&#39;</span><span class="p">,</span> <span class="s">&#39;api&#39;</span><span class="p">,</span> <span class="s">&#39;build&#39;</span><span class="p">,</span> <span class="s">&#39;html&#39;</span><span class="p">)</span>
+    <span class="n">dest0</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;doc&#39;</span><span class="p">,</span> <span class="s">&#39;api&#39;</span><span class="p">]</span>
+    
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="n">dest0</span><span class="p">)):</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="n">dest0</span><span class="p">))</span>
+    
+    <span class="n">env</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">()</span>
+
+    <span class="n">env</span><span class="o">.</span><span class="n">extendPath</span><span class="p">(</span><span class="s">&#39;PYTHONPATH&#39;</span><span class="p">,</span> <span class="n">PYTHONPATH</span><span class="p">)</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">changeDirectory</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">env</span><span class="o">.</span><span class="n">isWindows</span><span class="p">():</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;make.bat html&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="s">&#39;make html&#39;</span><span class="p">)</span>
+
+    <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;doc&#39;</span><span class="p">))</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;doc&#39;</span><span class="p">,</span> <span class="s">&#39;html&#39;</span><span class="p">),</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;doc&#39;</span><span class="p">,</span> <span class="s">&#39;api&#39;</span><span class="p">))</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;dev&#39;</span><span class="p">,</span> <span class="s">&#39;docgen&#39;</span><span class="p">,</span> <span class="s">&#39;api&#39;</span><span class="p">,</span> <span class="s">&#39;build&#39;</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">response</span>
+</div>
+<div class="viewcode-block" id="copySvnAdminAreas"><a class="viewcode-back" href="../../../api_dev_documentation.html#src.dev.documentation.copySvnAdminAreas">[docs]</a><span class="k">def</span> <span class="nf">copySvnAdminAreas</span><span class="p">(</span><span class="n">sourcetop</span><span class="p">,</span> <span class="n">destinationtop</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Copy the SVN admin areas without connecting to the repository.&quot;&quot;&quot;</span>
+    <span class="n">sourcetopLength</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sourcetop</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">sourcetop</span><span class="p">):</span>
+        <span class="n">relative</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">sourcetopLength</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">relative</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="s">&#39;.svn&#39;</span> <span class="ow">in</span> <span class="n">relative</span><span class="p">:</span>
+            <span class="n">sourcedir</span> <span class="o">=</span> <span class="s">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">sourcetop</span><span class="p">,</span> <span class="n">relative</span><span class="p">])</span>
+            <span class="n">destinationdir</span> <span class="o">=</span> <span class="s">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">destinationtop</span><span class="p">,</span> <span class="n">relative</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">destinationdir</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">destinationdir</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">filebase</span> <span class="ow">in</span> <span class="n">item</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+                <span class="n">sourcepath</span> <span class="o">=</span> <span class="s">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">sourcedir</span><span class="p">,</span> <span class="n">filebase</span><span class="p">])</span>
+                <span class="n">destinationpath</span> <span class="o">=</span> <span class="s">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">destinationdir</span><span class="p">,</span> <span class="n">filebase</span><span class="p">])</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">sourcepath</span><span class="p">,</span> <span class="n">destinationpath</span><span class="p">)</span>
+
+    </div>
+<div class="viewcode-block" id="updateVersion"><a class="viewcode-back" href="../../../api_dev_documentation.html#src.dev.documentation.updateVersion">[docs]</a><span class="k">def</span> <span class="nf">updateVersion</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">newVersion</span><span class="p">,</span> <span class="n">newRevision</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Update a conf.py file to use the new verison.&quot;&quot;&quot;</span>
+    <span class="n">patternV</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;version\s*=\s*[</span><span class="se">\&#39;</span><span class="s">\&quot;]\s*(.+?)\s*[</span><span class="se">\&#39;</span><span class="s">\&quot;]&#39;</span><span class="p">)</span>
+    <span class="n">patternR</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;release\s*=\s*[</span><span class="se">\&#39;</span><span class="s">\&quot;]\s*(.+?)\s*[</span><span class="se">\&#39;</span><span class="s">\&quot;]&#39;</span><span class="p">)</span>
+
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">configFile</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">fileLine</span> <span class="ow">in</span> <span class="n">configFile</span><span class="p">:</span>
+            <span class="n">fileLine</span> <span class="o">=</span> <span class="n">fileLine</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">patternV</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">fileLine</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="n">fileLine</span> <span class="o">=</span> <span class="n">fileLine</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">newVersion</span><span class="p">)</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">patternR</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">fileLine</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="n">fileLine</span> <span class="o">=</span> <span class="n">fileLine</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">newRevision</span><span class="p">)</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fileLine</span><span class="p">)</span>
+            
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">configFile</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">newline</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">configFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">newline</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="isIncluded"><a class="viewcode-back" href="../../../api_dev_documentation.html#src.dev.documentation.isIncluded">[docs]</a><span class="k">def</span> <span class="nf">isIncluded</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return whether the given path should be included in the API.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str</span>
+<span class="sd">        The absolute path of the file to check.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        Whether the path should be included in the API generation (i.e. whether</span>
+<span class="sd">        it does **not** start with a member of the `EXCLUSIONS` module </span>
+<span class="sd">        constant).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">exclusion</span> <span class="ow">in</span> <span class="n">EXCLUSIONS</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">exclusion</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">return</span> <span class="bp">True</span>
+    </div>
+<div class="viewcode-block" id="compileAPI"><a class="viewcode-back" href="../../../api_dev_documentation.html#src.dev.documentation.compileAPI">[docs]</a><span class="k">def</span> <span class="nf">compileAPI</span><span class="p">(</span><span class="n">newVersion</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read through ``src/`` and generate an API; update the version.</span>
+<span class="sd">    </span>
+<span class="sd">    Recursively scan through the main source code folder of the project and</span>
+<span class="sd">    construct code for the documented packages and modules. Treat any folder </span>
+<span class="sd">    which contains an ``__init__.py`` as a package, and treat all items with</span>
+<span class="sd">    a &quot;.py&quot; extension in such a folder as modules. From each package, create</span>
+<span class="sd">    a list of sub-packages and modules and from each module extract a list</span>
+<span class="sd">    of classes and functions, constructing reST documentation as appropriate. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">fnames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">TOP</span><span class="p">):</span>
+        <span class="n">dirpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">dirpath</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">isIncluded</span><span class="p">(</span><span class="n">dirpath</span><span class="p">)</span> <span class="ow">and</span> <span class="s">&#39;__init__.py&#39;</span> <span class="ow">in</span> <span class="n">fnames</span><span class="p">:</span>
+            <span class="n">children</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">childPackages</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">fnames</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.py&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">fname</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;__init__&#39;</span><span class="p">):</span>
+                    <span class="n">children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="n">dirnames</span><span class="p">:</span>
+                <span class="n">folderName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">folder</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">isIncluded</span><span class="p">(</span><span class="n">folderName</span><span class="p">)</span> <span class="ow">and</span> 
+                                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> 
+                                                            <span class="s">&#39;__init__.py&#39;</span><span class="p">))):</span>
+                    <span class="n">childPackages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">folder</span><span class="p">))</span>
+            <span class="n">processPackage</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">children</span><span class="p">,</span> <span class="n">childPackages</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">fnames</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.py&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">fname</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;__init__&#39;</span><span class="p">):</span>
+                    <span class="n">processModule</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">newVersion</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;(\d+)\.(\d+)\.(\d+)&#39;</span><span class="p">)</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">newVersion</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+            <span class="n">newMinorVersion</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">updateVersion</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;dev&#39;</span><span class="p">,</span> <span class="s">&#39;docgen&#39;</span><span class="p">,</span> <span class="s">&#39;api&#39;</span><span class="p">,</span> <span class="s">&#39;source&#39;</span><span class="p">,</span> 
+                                   <span class="s">&#39;conf.py&#39;</span><span class="p">),</span> 
+                          <span class="n">newMinorVersion</span><span class="p">,</span>
+                          <span class="n">newMinorVersion</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">generateAPI</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="compileManual"><a class="viewcode-back" href="../../../api_dev_documentation.html#src.dev.documentation.compileManual">[docs]</a><span class="k">def</span> <span class="nf">compileManual</span><span class="p">(</span><span class="n">newVersion</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compile the manual&#39;s reST sources into a PDF and HTML Help files.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">newVersion</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;(\d+)\.(\d+)\.(\d+)&#39;</span><span class="p">)</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">newVersion</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+            <span class="n">minorVersion</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">minorRevision</span> <span class="o">=</span> <span class="n">minorVersion</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="n">updateVersion</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;src&#39;</span><span class="p">,</span> <span class="s">&#39;dev&#39;</span><span class="p">,</span> <span class="s">&#39;docgen&#39;</span><span class="p">,</span> <span class="s">&#39;manual&#39;</span><span class="p">,</span> 
+                                   <span class="s">&#39;source&#39;</span><span class="p">,</span> <span class="s">&#39;conf.py&#39;</span><span class="p">),</span> 
+                          <span class="n">minorVersion</span><span class="p">,</span> <span class="n">minorRevision</span><span class="p">)</span>
+    <span class="n">result1</span> <span class="o">=</span> <span class="n">generateManualHTMLHelp</span><span class="p">()</span>
+    <span class="n">result2</span> <span class="o">=</span> <span class="n">generateManualPDF</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">result1</span><span class="p">,</span> <span class="n">result2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="compileDocumentation"><a class="viewcode-back" href="../../../api_dev_documentation.html#src.dev.documentation.compileDocumentation">[docs]</a><span class="k">def</span> <span class="nf">compileDocumentation</span><span class="p">(</span><span class="n">newVersion</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">api</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">manual</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Update software documentation.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    newVersion : str</span>
+<span class="sd">        The new version for the documentation. If `None` (the default), the </span>
+<span class="sd">        version string in the Sphinx configuration files will not be changed.</span>
+<span class="sd">    api : bool</span>
+<span class="sd">        Whether to update the API. The default is `True`.</span>
+<span class="sd">    manual : bool</span>
+<span class="sd">        Whether to update the manual. The default is `True`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="s">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">()</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">realtop</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;doc&#39;</span><span class="p">)</span>
+    <span class="n">temptop</span> <span class="o">=</span> <span class="s">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">parent</span><span class="p">,</span> <span class="s">&#39;transport_temp&#39;</span><span class="p">,</span> <span class="s">&#39;doc&#39;</span><span class="p">])</span>
+    <span class="n">copySvnAdminAreas</span><span class="p">(</span><span class="n">realtop</span><span class="p">,</span> <span class="n">temptop</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">api</span><span class="p">:</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;doc&#39;</span><span class="p">,</span> <span class="s">&#39;api&#39;</span><span class="p">))</span>
+        <span class="n">result1</span> <span class="o">=</span> <span class="n">compileAPI</span><span class="p">(</span><span class="n">newVersion</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">result1</span> <span class="o">=</span> <span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">manual</span><span class="p">:</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;doc&#39;</span><span class="p">,</span> <span class="s">&#39;htmlhelp&#39;</span><span class="p">))</span>
+        <span class="n">result2</span> <span class="o">=</span> <span class="n">compileManual</span><span class="p">(</span><span class="n">newVersion</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">result2</span> <span class="o">=</span> <span class="p">()</span>
+    
+    <span class="n">copySvnAdminAreas</span><span class="p">(</span><span class="n">temptop</span><span class="p">,</span> <span class="n">realtop</span><span class="p">)</span>
+    <span class="n">toRemove</span> <span class="o">=</span> <span class="s">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">parent</span><span class="p">,</span> <span class="s">&#39;transport_temp&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">toRemove</span><span class="p">):</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">toRemove</span><span class="p">)</span>
+        
+    <span class="k">return</span> <span class="p">(</span><span class="n">result1</span><span class="p">,</span> <span class="n">result2</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">OUTPUT</span> <span class="o">=</span> <span class="n">compileDocumentation</span><span class="p">(</span><span class="n">newVersion</span><span class="o">=</span><span class="n">about</span><span class="o">.</span><span class="n">getVersion</span><span class="p">(),</span> <span class="n">manual</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">OUTPUT</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
+        <span class="k">print</span> <span class="n">line</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

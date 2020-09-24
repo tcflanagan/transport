@@ -1,0 +1,230 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.premades.heliox_ac_hall_1s &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.premades.heliox_ac_hall_1s</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Premade: AC Hall effect for one sample on the Heliox.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">wx</span>
+
+<span class="kn">from</span> <span class="nn">src.core.experiment</span> <span class="kn">import</span> <span class="n">Experiment</span>
+<span class="kn">from</span> <span class="nn">src.gui.gui_helpers</span> <span class="kn">import</span> <span class="n">Panel</span><span class="p">,</span> <span class="n">ScanPanel</span>
+<span class="kn">from</span> <span class="nn">src.gui.main.base_premade</span> <span class="kn">import</span> <span class="n">BasePremadeFrame</span>
+<span class="kn">from</span> <span class="nn">src.gui.instruments.common_panels</span> <span class="kn">import</span> <span class="p">(</span><span class="n">LockinPanelMaster</span><span class="p">,</span>
+                                          <span class="n">LockinPanelSlave</span><span class="p">,</span> <span class="n">AveragingPanel</span><span class="p">)</span>
+
+
+<span class="n">INFORMATION</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Heliox: AC Hall effect (1 sample)&#39;</span><span class="p">,</span>
+               <span class="s">&#39;voltage_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;AC&#39;</span><span class="p">],</span>
+               <span class="s">&#39;cryostat&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;Heliox&#39;</span><span class="p">],</span>
+               <span class="s">&#39;measurement_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;Magnetoresistance&#39;</span><span class="p">],</span>
+               <span class="s">&#39;devices&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+
+<div class="viewcode-block" id="PremadeFrame"><a class="viewcode-back" href="../../../api_premades_heliox_ac_hall_1s.html#src.premades.heliox_ac_hall_1s.PremadeFrame">[docs]</a><span class="k">class</span> <span class="nc">PremadeFrame</span><span class="p">(</span><span class="n">BasePremadeFrame</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Frame for configuring a one-sample AC Hall measurement on the Heliox.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">experiment</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="n">graphData</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;H (T)&#39;</span><span class="p">,</span> <span class="s">&#39;Rxx (Ohm)&#39;</span><span class="p">,</span> <span class="s">&#39;Longitudinal Resistance vs Field&#39;</span><span class="p">),</span>
+                     <span class="p">(</span><span class="s">&#39;H (T)&#39;</span><span class="p">,</span> <span class="s">&#39;Rxy (Ohm)&#39;</span><span class="p">,</span> <span class="s">&#39;Transverse Resistance vs Field&#39;</span><span class="p">)]</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">PremadeFrame</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span>
+                                           <span class="n">INFORMATION</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span>
+                                           <span class="n">graphData</span><span class="p">,</span>
+                                           <span class="s">&#39;RvsH&#39;</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">scanpanel</span> <span class="o">=</span> <span class="n">ScanPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span>
+                                   <span class="p">[(</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">),</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)],</span>
+                                   <span class="s">&#39;</span><span class="si">%.3f</span><span class="s">&#39;</span><span class="p">,</span>
+                                   <span class="n">label</span><span class="o">=</span><span class="s">&#39;Magnetic Field (T)&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addConfigurationPanel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scanpanel</span><span class="p">)</span>
+
+        <span class="n">sourcepanel</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;horizontal&#39;</span><span class="p">)</span>
+        <span class="n">sourcepanel</span><span class="o">.</span><span class="n">addLabel</span><span class="p">(</span><span class="s">&#39;Source Lock-in:&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sourcevalue</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ComboBox</span><span class="p">(</span><span class="n">sourcepanel</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;Longitudinal&#39;</span><span class="p">,</span>
+                                       <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Longitudinal&#39;</span><span class="p">,</span> <span class="s">&#39;Transverse&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sourcevalue</span><span class="o">.</span><span class="n">SetMinSize</span><span class="p">((</span><span class="mi">125</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">sourcepanel</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sourcevalue</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addConfigurationPanel</span><span class="p">(</span><span class="n">sourcepanel</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">masterpanel</span> <span class="o">=</span> <span class="n">LockinPanelMaster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;Longitudinal Resistance&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slavepanel</span> <span class="o">=</span> <span class="n">LockinPanelSlave</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;Transverse Resistance&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addConfigurationPanel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">masterpanel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addConfigurationPanel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slavepanel</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sourcevalue</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_COMBOBOX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onUpdateSource</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">averagingpanel</span> <span class="o">=</span> <span class="n">AveragingPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;Averaging&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addConfigurationPanel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">averagingpanel</span><span class="p">)</span>
+
+
+
+
+<div class="viewcode-block" id="PremadeFrame.constructExperiment"><a class="viewcode-back" href="../../../api_premades_heliox_ac_hall_1s.html#src.premades.heliox_ac_hall_1s.PremadeFrame.constructExperiment">[docs]</a>    <span class="k">def</span> <span class="nf">constructExperiment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an experiment from the supplied parameters.&quot;&quot;&quot;</span>
+        <span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">()</span>
+        <span class="n">actionRoot</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">getActionRoot</span><span class="p">()</span>
+        <span class="c"># FIXME availableInstruments should come from inst_manager</span>
+        <span class="n">availableInstruments</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">getAvailableInstruments</span><span class="p">()</span>
+        <span class="n">lockinClass</span> <span class="o">=</span> <span class="n">availableInstruments</span><span class="p">[</span><span class="s">&#39;SRS830&#39;</span><span class="p">]</span>
+        <span class="n">inst</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">getInstrument</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">scanNumber</span> <span class="o">=</span> <span class="n">inst</span><span class="o">.</span><span class="n">getAction</span><span class="p">(</span><span class="s">&#39;scan_num&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="n">scanNumber</span><span class="o">.</span><span class="n">setInputValues</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">scanpanel</span><span class="o">.</span><span class="n">getData</span><span class="p">()])</span>
+        <span class="n">scanNumber</span><span class="o">.</span><span class="n">setInputColumns</span><span class="p">([</span><span class="s">&#39;Number&#39;</span><span class="p">])</span>
+        <span class="n">actionRoot</span><span class="o">.</span><span class="n">appendChild</span><span class="p">(</span><span class="n">scanNumber</span><span class="p">)</span>
+
+</div>
+    <span class="k">def</span> <span class="nf">onRun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">pass</span>
+<span class="c">#         expt = Experiment()</span>
+<span class="c">#         fileResult = self.filepanel.create()</span>
+<span class="c">#         if fileResult == wx.ID_OK:</span>
+<span class="c">#             expt.setFilenames(self.filepanel.filename)</span>
+<span class="c">#         else:</span>
+<span class="c">#             return</span>
+<span class="c">#         actionRoot = expt.getActionRoot()</span>
+<span class="c">#         inst = expt.getInstrument(0)</span>
+<span class="c">#</span>
+<span class="c">#         scanNumber = inst.getAction(&#39;scan_num&#39;, True)</span>
+<span class="c">#         scanNumber.setInputValues([self.scanpanel.getData()])</span>
+<span class="c">#         scanNumber.setInputColumns([&#39;Number&#39;])</span>
+<span class="c">#         actionRoot.appendChild(scanNumber)</span>
+<span class="c">#</span>
+<span class="c">#         calc1 = inst.getAction(&#39;calculate&#39;, True)</span>
+<span class="c">#         calc1.setInputValues([&#39;3*#(Number)&#39;])</span>
+<span class="c">#         calc1.setOutputColumns([&#39;Result 1&#39;])</span>
+<span class="c">#         scanNumber.appendChild(calc1)</span>
+<span class="c">#         calc2 = inst.getAction(&#39;calculate&#39;, True)</span>
+<span class="c">#         calc2.setInputValues([&#39;#(Number)**2&#39;])</span>
+<span class="c">#         calc2.setOutputColumns([&#39;Result 2&#39;])</span>
+<span class="c">#         scanNumber.appendChild(calc2)</span>
+<span class="c">#         delay = inst.getAction(&#39;wait&#39;, True)</span>
+<span class="c">#         delay.setInputValues([1])</span>
+<span class="c">#         scanNumber.appendChild(delay)</span>
+<span class="c">#</span>
+<span class="c">#         graph1 = Graph(self.experiment, &#39;Number&#39;, &#39;Result 1&#39;, None)</span>
+<span class="c">#         graph2 = Graph(self.experiment, &#39;Number&#39;, &#39;Result 2&#39;, None)</span>
+<span class="c">#         manager = EmbeddableGraphManager(self.graphspanel, [self.graphPanel1, self.graphPanel2])</span>
+<span class="c">#</span>
+<span class="c">#         expt.addGraph(graph1)</span>
+<span class="c">#         expt.addGraph(graph2)</span>
+<span class="c">#         expt.setInteractionParameters(self, graphManager=manager)</span>
+<span class="c">#</span>
+<span class="c">#         self.experiment = expt</span>
+<span class="c">#</span>
+<span class="c">#         super(TestFrame, self).onRun(event)</span>
+
+    <span class="k">def</span> <span class="nf">_onUpdateSource</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the static labels to reflect which lock-in is master.&quot;&quot;&quot;</span>
+        <span class="n">sel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sourcevalue</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">sel</span> <span class="o">==</span> <span class="s">&#39;Longitudinal&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">masterpanel</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Longitudinal Resistance&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">slavepanel</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Transverse Resistance&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">masterpanel</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Transverse Resistance&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">slavepanel</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Longitudinal Resistance&#39;</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">App</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">myFrame</span> <span class="o">=</span> <span class="n">PremadeFrame</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">myFrame</span><span class="o">.</span><span class="n">Show</span><span class="p">()</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">MainLoop</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

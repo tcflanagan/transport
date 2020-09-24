@@ -1,0 +1,261 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.instruments.controllers.ctrl_heliox &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.instruments.controllers.ctrl_heliox</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;A class for monitoring and controlling the Heliox.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+<span class="kn">from</span> <span class="nn">src.core.instrument</span> <span class="kn">import</span> <span class="n">Controller</span>
+
+<span class="n">UPDATE_DELAY</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">INSTRUMENT</span> <span class="o">=</span> <span class="s">&#39;Heliox&#39;</span>
+
+<div class="viewcode-block" id="HelioxController"><a class="viewcode-back" href="../../../../api_instruments_controllers_ctrl_heliox.html#src.instruments.controllers.ctrl_heliox.HelioxController">[docs]</a><span class="k">class</span> <span class="nc">HelioxController</span><span class="p">(</span><span class="n">Controller</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A tool for monitoring the Heliox status and manually controlling it.&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment</span><span class="p">,</span> <span class="n">heliox</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Instantiate a Heliox monitor.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">HelioxController</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setDaemon</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expt</span> <span class="o">=</span> <span class="n">experiment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heliox</span> <span class="o">=</span> <span class="n">heliox</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_continue</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_running</span> <span class="o">=</span> <span class="bp">False</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_commands</span> <span class="o">=</span> <span class="p">[]</span>
+        
+<div class="viewcode-block" id="HelioxController.run"><a class="viewcode-back" href="../../../../api_instruments_controllers_ctrl_heliox.html#src.instruments.controllers.ctrl_heliox.HelioxController.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Start updating the monitor and listening for commands.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_running</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_continue</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;field&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heliox</span><span class="o">.</span><span class="n">directGetField</span><span class="p">(),</span>
+                          <span class="s">&#39;setpoint&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heliox</span><span class="o">.</span><span class="n">getFieldSetpoint</span><span class="p">(),</span>
+                          <span class="s">&#39;ramp_rate&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heliox</span><span class="o">.</span><span class="n">getFieldRampRate</span><span class="p">(),</span>
+                          <span class="s">&#39;pid&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heliox</span><span class="o">.</span><span class="n">getPID</span><span class="p">(),</span>
+                          <span class="s">&#39;temperatures&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heliox</span><span class="o">.</span><span class="n">directGetTemperatures</span><span class="p">(),</span>
+                          <span class="s">&#39;auto_temp&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heliox</span><span class="o">.</span><span class="n">getTemperature</span><span class="p">()}</span>
+            <span class="k">for</span> <span class="n">command</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_commands</span><span class="p">:</span>
+                <span class="n">command</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="n">UPDATE_DELAY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_running</span> <span class="o">=</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="HelioxController.abort"><a class="viewcode-back" href="../../../../api_instruments_controllers_ctrl_heliox.html#src.instruments.controllers.ctrl_heliox.HelioxController.abort">[docs]</a>    <span class="k">def</span> <span class="nf">abort</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Stop the monitor.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_continue</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_commands</span> <span class="o">=</span> <span class="p">[]</span>
+        </div>
+<div class="viewcode-block" id="HelioxController.setUpdateCommands"><a class="viewcode-back" href="../../../../api_instruments_controllers_ctrl_heliox.html#src.instruments.controllers.ctrl_heliox.HelioxController.setUpdateCommands">[docs]</a>    <span class="k">def</span> <span class="nf">setUpdateCommands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">commands</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the commands to execute each time the monitor updates.</span>
+<span class="sd">        </span>
+<span class="sd">        All of the parameters of which the monitor keeps track will be </span>
+<span class="sd">        substituted into the commands as keyword arguments every time there</span>
+<span class="sd">        is an update. The keys are as follows:</span>
+<span class="sd">            - &#39;field&#39;</span>
+<span class="sd">            - &#39;setpoint&#39;</span>
+<span class="sd">            - &#39;ramp_rate&#39;</span>
+<span class="sd">            - &#39;pid&#39;</span>
+<span class="sd">            - &#39;temperatures&#39;</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        commands : list of Command</span>
+<span class="sd">            A list of `Command` objects which will be executed each time the</span>
+<span class="sd">            monitor object updates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_commands</span> <span class="o">=</span> <span class="n">commands</span>
+        </div>
+<div class="viewcode-block" id="HelioxController.clearUpdateCommands"><a class="viewcode-back" href="../../../../api_instruments_controllers_ctrl_heliox.html#src.instruments.controllers.ctrl_heliox.HelioxController.clearUpdateCommands">[docs]</a>    <span class="k">def</span> <span class="nf">clearUpdateCommands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove all update commands.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_commands</span> <span class="o">=</span> <span class="p">[]</span>
+        </div>
+<div class="viewcode-block" id="HelioxController.setField"><a class="viewcode-back" href="../../../../api_instruments_controllers_ctrl_heliox.html#src.instruments.controllers.ctrl_heliox.HelioxController.setField">[docs]</a>    <span class="k">def</span> <span class="nf">setField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnetic field.</span>
+<span class="sd">         </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : float</span>
+<span class="sd">            The desired magnetic field in Tesla.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heliox</span><span class="o">.</span><span class="n">setField</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="s">&#39;proceed&#39;</span><span class="p">)</span>
+         </div>
+<div class="viewcode-block" id="HelioxController.setFieldRampRate"><a class="viewcode-back" href="../../../../api_instruments_controllers_ctrl_heliox.html#src.instruments.controllers.ctrl_heliox.HelioxController.setFieldRampRate">[docs]</a>    <span class="k">def</span> <span class="nf">setFieldRampRate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rampRate</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the magnetic field ramp rate.</span>
+<span class="sd">         </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        rampRate : float</span>
+<span class="sd">            The desired magnetic field ramp rate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heliox</span><span class="o">.</span><span class="n">setFieldRampRate</span><span class="p">(</span><span class="n">rampRate</span><span class="p">)</span>
+         </div>
+<div class="viewcode-block" id="HelioxController.setPID"><a class="viewcode-back" href="../../../../api_instruments_controllers_ctrl_heliox.html#src.instruments.controllers.ctrl_heliox.HelioxController.setPID">[docs]</a>    <span class="k">def</span> <span class="nf">setPID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newP</span><span class="p">,</span> <span class="n">newI</span><span class="p">,</span> <span class="n">newD</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the PID values for the temperature controller.</span>
+<span class="sd">         </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newP : float</span>
+<span class="sd">            The proportional band in Kelvin, to a resolution of 0.001 K. </span>
+<span class="sd">        newI : float</span>
+<span class="sd">            The integral action time in minutes. Values between 0 and</span>
+<span class="sd">            140 minutes (inclusive), in steps of 0.1 minutes, are accepted.</span>
+<span class="sd">        newD : float</span>
+<span class="sd">            The derivative action time in minutes. The allowed range is</span>
+<span class="sd">            0 to 273 minutes. The default is 0.0.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heliox</span><span class="o">.</span><span class="n">setPID</span><span class="p">(</span><span class="n">newP</span><span class="p">,</span> <span class="n">newI</span><span class="p">,</span> <span class="n">newD</span><span class="p">)</span>
+         </div>
+<div class="viewcode-block" id="HelioxController.setTemperatureSorb"><a class="viewcode-back" href="../../../../api_instruments_controllers_ctrl_heliox.html#src.instruments.controllers.ctrl_heliox.HelioxController.setTemperatureSorb">[docs]</a>    <span class="k">def</span> <span class="nf">setTemperatureSorb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the sorb temperature.</span>
+<span class="sd">         </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        temperature : float</span>
+<span class="sd">            The desired sorb temperature in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heliox</span><span class="o">.</span><span class="n">setTemperatureSorb</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span>
+         </div>
+<div class="viewcode-block" id="HelioxController.setTemperatureSampleLow"><a class="viewcode-back" href="../../../../api_instruments_controllers_ctrl_heliox.html#src.instruments.controllers.ctrl_heliox.HelioxController.setTemperatureSampleLow">[docs]</a>    <span class="k">def</span> <span class="nf">setTemperatureSampleLow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the sample-low temperature.</span>
+<span class="sd">         </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        temperature : float</span>
+<span class="sd">            The desired sample-low temperature in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heliox</span><span class="o">.</span><span class="n">setTemperatureSampleLow</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span>
+         </div>
+<div class="viewcode-block" id="HelioxController.setTemperatureSampleHigh"><a class="viewcode-back" href="../../../../api_instruments_controllers_ctrl_heliox.html#src.instruments.controllers.ctrl_heliox.HelioxController.setTemperatureSampleHigh">[docs]</a>    <span class="k">def</span> <span class="nf">setTemperatureSampleHigh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the sample-high temperature.</span>
+<span class="sd">         </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        temperature : float</span>
+<span class="sd">            The desired sample-high temperature in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heliox</span><span class="o">.</span><span class="n">setTemperatureSampleHigh</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span>
+ </div>
+<div class="viewcode-block" id="HelioxController.setTemperature"><a class="viewcode-back" href="../../../../api_instruments_controllers_ctrl_heliox.html#src.instruments.controllers.ctrl_heliox.HelioxController.setTemperature">[docs]</a>    <span class="k">def</span> <span class="nf">setTemperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the sample temperature using the automatic algorithm.</span>
+<span class="sd">         </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        temperature : float</span>
+<span class="sd">            The desired sample temperature in Kelvin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heliox</span><span class="o">.</span><span class="n">setTemperature</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span>
+</div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="HelioxController.getInstrumentClassName"><a class="viewcode-back" href="../../../../api_instruments_controllers_ctrl_heliox.html#src.instruments.controllers.ctrl_heliox.HelioxController.getInstrumentClassName">[docs]</a>    <span class="k">def</span> <span class="nf">getInstrumentClassName</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the instrument class managed by this controller.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s">&#39;Heliox&#39;</span>
+    </div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="HelioxController.isSingleton"><a class="viewcode-back" href="../../../../api_instruments_controllers_ctrl_heliox.html#src.instruments.controllers.ctrl_heliox.HelioxController.isSingleton">[docs]</a>    <span class="k">def</span> <span class="nf">isSingleton</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether at most one instance of the controller may exist.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether only zero or one instance of the controller may exist.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    </div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

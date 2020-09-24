@@ -1,0 +1,834 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.gui.main.base_premade &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.gui.main.base_premade</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Base class for premade experiments.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">wx</span>
+<span class="kn">import</span> <span class="nn">wx.lib.scrolledpanel</span> <span class="kn">as</span> <span class="nn">scrolled</span>
+
+<span class="kn">from</span> <span class="nn">src.core.configuration</span> <span class="kn">import</span> <span class="n">c</span>
+<span class="kn">from</span> <span class="nn">src.gui.graphing.basicpanel</span> <span class="kn">import</span> <span class="n">GraphPanel</span> <span class="k">as</span> <span class="n">SingleGraphPanel</span>
+<span class="kn">from</span> <span class="nn">src.gui.graphing.embeddable</span> <span class="kn">import</span> <span class="n">EmbeddableGraphManager</span>
+<span class="kn">from</span> <span class="nn">src.gui.main.base_experiment</span> <span class="kn">import</span> <span class="n">ExperimentFrame</span>
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">path_tools</span> <span class="k">as</span> <span class="n">pt</span>
+<span class="kn">from</span> <span class="nn">src.tools</span> <span class="kn">import</span> <span class="n">config_parser</span> <span class="k">as</span> <span class="n">cp</span>
+<span class="kn">from</span> <span class="nn">src.tools.general</span> <span class="kn">import</span> <span class="n">gridArrangement</span>
+
+<span class="n">_OPT_OPTS</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span>
+
+<div class="viewcode-block" id="BasePremadeFrame"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.BasePremadeFrame">[docs]</a><span class="k">class</span> <span class="nc">BasePremadeFrame</span><span class="p">(</span><span class="n">ExperimentFrame</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A class providing common functionality to premade experiment frames.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxFrame</span>
+<span class="sd">        The frame which owns this frame (if any).</span>
+<span class="sd">    title : str</span>
+<span class="sd">        The title of this premade experiment (it will go in the title bar).</span>
+<span class="sd">    graphData : list of tuple of str</span>
+<span class="sd">        A list of tuples, where each tuple represents a single graph and</span>
+<span class="sd">        contains three strings: the x-axis label, the y-axis label, and the</span>
+<span class="sd">        title of the graph. Note that the first two must be the same as the</span>
+<span class="sd">        names of the columns from which the data come.</span>
+<span class="sd">    measurementType : str</span>
+<span class="sd">        A short indication of the measurement type for going into the default</span>
+<span class="sd">        filenames.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">graphData</span><span class="p">,</span> <span class="n">measurementType</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BasePremadeFrame</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span>
+                                               <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+                                               <span class="n">experiment</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                               <span class="n">experimentPath</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                               <span class="n">icon</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                               <span class="n">premade</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__edited</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="n">framepanel</span> <span class="o">=</span> <span class="n">scrolled</span><span class="o">.</span><span class="n">ScrolledPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">framesizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">framepanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">framesizer</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__configpanel</span> <span class="o">=</span> <span class="n">ConfigPanel</span><span class="p">(</span><span class="n">framepanel</span><span class="p">)</span>
+
+        <span class="n">rightpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">framepanel</span><span class="p">)</span>
+        <span class="n">rightsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">rightpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">rightsizer</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span> <span class="o">=</span> <span class="n">FileData</span><span class="o">.</span><span class="n">fromFile</span><span class="p">(</span><span class="s">&#39;Heliox&#39;</span><span class="p">,</span> <span class="n">measurementType</span><span class="p">,</span> <span class="s">&#39;.dat&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__filepanel</span> <span class="o">=</span> <span class="n">FilenamePanel</span><span class="p">(</span><span class="n">rightpanel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="p">)</span>
+        <span class="n">rightsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__filepanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__graphpanel</span> <span class="o">=</span> <span class="n">GraphPanel</span><span class="p">(</span><span class="n">rightpanel</span><span class="p">,</span> <span class="n">graphData</span><span class="p">)</span>
+        <span class="n">rightsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__graphpanel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+
+        <span class="n">framesizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__configpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">framesizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">rightpanel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+        <span class="n">sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">framepanel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">)</span>
+
+        <span class="n">framepanel</span><span class="o">.</span><span class="n">SetupScrolling</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">sizer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetAutoLayout</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizeHints</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BasePremadeFrame.addConfigurationPanel"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.BasePremadeFrame.addConfigurationPanel">[docs]</a>    <span class="k">def</span> <span class="nf">addConfigurationPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">panel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a panel to the configuration area.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        panel : wxPanel</span>
+<span class="sd">            A panel or a panel subclass to add to the configuration area.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">panel</span><span class="o">.</span><span class="n">Reparent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__configpanel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__configpanel</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">panel</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="BasePremadeFrame.showConfig"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.BasePremadeFrame.showConfig">[docs]</a>    <span class="k">def</span> <span class="nf">showConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Show or hide the configuration panel.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        show : bool</span>
+<span class="sd">            Whether to show the configuration panel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__configpanel</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">show</span><span class="p">)</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="BasePremadeFrame.edited"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.BasePremadeFrame.edited">[docs]</a>    <span class="k">def</span> <span class="nf">edited</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return that the experiment has not been edited.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether the experiment has been edited. Always `False` for premade</span>
+<span class="sd">            experiments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__edited</span>
+
+<span class="c"># GraphPanel -------------------------------------------------------------------</span>
+</div></div>
+<div class="viewcode-block" id="GraphPanel"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.GraphPanel">[docs]</a><span class="k">class</span> <span class="nc">GraphPanel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A panel for storing individual graphing panels.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The frame or panel into which this panel will be inserted.</span>
+<span class="sd">    graphData : list of tuple of str</span>
+<span class="sd">        A list of tuples, where each tuple represents a single graph and</span>
+<span class="sd">        contains three strings: the x-axis label, the y-axis label, and the</span>
+<span class="sd">        title of the graph. Note that the first two must be the same as the</span>
+<span class="sd">        names of the columns from which the data come.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">graphData</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GraphPanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__graphPanels</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">gridArrangement</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">graphData</span><span class="p">))</span>
+        <span class="n">sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">GridSizer</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">graphDatum</span> <span class="ow">in</span> <span class="n">graphData</span><span class="p">:</span>
+            <span class="n">xLabel</span><span class="p">,</span> <span class="n">yLabel</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="n">graphDatum</span>
+            <span class="n">currentGraph</span> <span class="o">=</span> <span class="n">SingleGraphPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">xLabel</span><span class="p">,</span> <span class="n">yLabel</span><span class="p">),</span> <span class="n">title</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__graphPanels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">currentGraph</span><span class="p">)</span>
+            <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">currentGraph</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">sizer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetAutoLayout</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GraphPanel.getGraphManager"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.GraphPanel.getGraphManager">[docs]</a>    <span class="k">def</span> <span class="nf">getGraphManager</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the graph manager to deal with data.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        EmbeddableGraphManager</span>
+<span class="sd">            The graph manager with this panel as its parent and the</span>
+<span class="sd">            graph panels this panel has created as its contents.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">EmbeddableGraphManager</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__graphPanels</span><span class="p">)</span>
+
+
+<span class="c"># ConfigPanel ------------------------------------------------------------------</span>
+</div></div>
+<div class="viewcode-block" id="ConfigPanel"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.ConfigPanel">[docs]</a><span class="k">class</span> <span class="nc">ConfigPanel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The panel for configuring the instruments before use.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The panel or frame which should be the parent of this panel.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ConfigPanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sizer</span><span class="o">.</span><span class="n">SetSizeHints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sizer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetAutoLayout</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ConfigPanel.add"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.ConfigPanel.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">panel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add an item to the panel.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        panel : wxPanel</span>
+<span class="sd">            The sub-panel to add to this panel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">panel</span><span class="o">.</span><span class="n">Reparent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetMinSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetBestSize</span><span class="p">())</span>
+        <span class="c"># self.FitInside()</span>
+</div>
+<div class="viewcode-block" id="ConfigPanel.show"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.ConfigPanel.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Show or hide this panel.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        show : bool</span>
+<span class="sd">            Whether to show the panel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetMinSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetBestSize</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetMaxSize</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+
+<span class="c">#---------------------------------------------------------------- Filename panel</span>
+</div></div>
+<div class="viewcode-block" id="FilenamePanel"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.FilenamePanel">[docs]</a><span class="k">class</span> <span class="nc">FilenamePanel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A panel for displaying a filename and parameter comments.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">fileData</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">FilenamePanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fileData</span> <span class="o">=</span> <span class="n">fileData</span>
+
+        <span class="n">mainsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">FlexGridSizer</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> 
+                                      <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">TE_RIGHT</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">TE_READONLY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fileData</span><span class="o">.</span><span class="n">getPath</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__comments</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">TE_MULTILINE</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__comments</span><span class="o">.</span><span class="n">SetToolTipString</span><span class="p">((</span><span class="s">&#39;Comments which will be written to &#39;</span>
+                                          <span class="s">&#39;the parameter file but not &#39;</span>
+                                          <span class="s">&#39;indicated in filenames.&#39;</span><span class="p">))</span>
+        <span class="n">defaultHeight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__comments</span><span class="o">.</span><span class="n">GetSizeTuple</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+<span class="c">#         defaultHeight = defaultHeight * 2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__comments</span><span class="o">.</span><span class="n">SetSizeHints</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">defaultHeight</span><span class="p">)</span>
+
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;Filename:&#39;</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span>
+                      <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_TOP</span><span class="p">)</span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">)</span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;Comments:&#39;</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span>
+                      <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_TOP</span><span class="p">)</span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__comments</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">)</span>
+
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">AddGrowableCol</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">AddGrowableRow</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">AddGrowableRow</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_LEFT_UP</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__onFilename</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizerAndFit</span><span class="p">(</span><span class="n">mainsizer</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__onFilename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Open a dialog to edit the filename.&quot;&quot;&quot;</span>
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">FilenameDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fileData</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fileData</span><span class="o">.</span><span class="n">getPath</span><span class="p">())</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">Skip</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="FilenameDialog"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.FilenameDialog">[docs]</a><span class="k">class</span> <span class="nc">FilenameDialog</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Dialog</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A frame for setting filenames according to lab conventions.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">fileData</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">FilenameDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span> <span class="o">=</span> <span class="n">fileData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__system</span> <span class="o">=</span> <span class="n">fileData</span><span class="o">.</span><span class="n">system</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__measurementType</span> <span class="o">=</span> <span class="n">fileData</span><span class="o">.</span><span class="n">measurementType</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__extension</span> <span class="o">=</span> <span class="n">fileData</span><span class="o">.</span><span class="n">extension</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fieldNames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fieldCodes</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="n">mainpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">mainsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">GridBagSizer</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">mainpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">mainsizer</span><span class="p">)</span>
+
+        <span class="n">optpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">)</span>
+        <span class="n">optsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">optpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">optsizer</span><span class="p">)</span>
+
+        <span class="n">addLabel</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_addLabel</span><span class="p">,</span> <span class="n">mainpanel</span><span class="p">,</span> <span class="n">mainsizer</span><span class="p">)</span>
+        <span class="n">alt</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_addLabeledText</span><span class="p">,</span> <span class="n">mainpanel</span><span class="p">,</span> <span class="n">mainsizer</span><span class="p">)</span>
+
+        <span class="c"># Controls</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__rootFolder</span> <span class="o">=</span> <span class="n">alt</span><span class="p">(</span><span class="s">&#39;Root Folder:&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">3</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sampleName</span> <span class="o">=</span> <span class="n">alt</span><span class="p">(</span><span class="s">&#39;Sample Name:&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">addLabel</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="s">&#39;Cooldown Date:&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__cooldownDate</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">DatePickerCtrl</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">)</span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__cooldownDate</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">flag</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">)</span>
+        <span class="n">addLabel</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s">&#39;Field:&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fieldConfiguration</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ComboBox</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">)</span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__fieldConfiguration</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">flag</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dimensions</span> <span class="o">=</span> <span class="n">alt</span><span class="p">(</span><span class="s">&#39;Dimensions:&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__options</span> <span class="o">=</span> <span class="n">alt</span><span class="p">(</span><span class="s">&#39;Options:&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__folderComment</span> <span class="o">=</span> <span class="n">alt</span><span class="p">(</span><span class="s">&#39;Comment:&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">7</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fileComment</span> <span class="o">=</span> <span class="n">alt</span><span class="p">(</span><span class="s">&#39;Identifiers:&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">7</span><span class="p">)</span>
+        <span class="n">mainsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">optpanel</span><span class="p">,</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">flag</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span> <span class="o">=</span> <span class="n">alt</span><span class="p">(</span><span class="s">&#39;Filename:&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">7</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>
+                              <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">TE_MULTILINE</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__addNumber</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">CheckBox</span><span class="p">(</span><span class="n">optpanel</span><span class="p">,</span>
+                                       <span class="n">label</span><span class="o">=</span><span class="s">&#39;Prepend Measurement Number&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__groupDrive</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">CheckBox</span><span class="p">(</span><span class="n">optpanel</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Copy to Group Drive&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__manualOverride</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">CheckBox</span><span class="p">(</span><span class="n">optpanel</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Manually Override&#39;</span><span class="p">)</span>
+
+        <span class="n">optsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__addNumber</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">_OPT_OPTS</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">optsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__groupDrive</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">_OPT_OPTS</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">optsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__manualOverride</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">_OPT_OPTS</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">]:</span>
+            <span class="n">mainsizer</span><span class="o">.</span><span class="n">AddGrowableCol</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">btnpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">btnsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">btnpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">btnsizer</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__okButton</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">btnpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;OK&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__cancelButton</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">btnpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_CANCEL</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Cancel&#39;</span><span class="p">)</span>
+
+        <span class="n">btnsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__cancelButton</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">btnsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__okButton</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">outersizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">outersizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">mainpanel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">outersizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">btnpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fillData</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__addHandlers</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizerAndFit</span><span class="p">(</span><span class="n">outersizer</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__fillData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fill the controls with data.&quot;&quot;&quot;</span>
+        <span class="n">rootFolder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">rootDirectory</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">rootFolder</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">rootFolder</span><span class="p">):</span>
+            <span class="n">rootFolder</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">getDataFolder</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__rootFolder</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">rootFolder</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sampleName</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">sampleName</span><span class="p">)</span>
+        <span class="n">wxdatetime</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">DateTime</span><span class="p">()</span>
+        <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">cooldownDate</span><span class="o">.</span><span class="n">timetuple</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">wxdatetime</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="n">day</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">year</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__cooldownDate</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">wxdatetime</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fieldNames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">fieldNames</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fieldCodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">fieldCodes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fieldConfiguration</span><span class="o">.</span><span class="n">SetItems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__fieldNames</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fieldConfiguration</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">fieldConfiguration</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dimensions</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__options</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">options</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__folderComment</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">directoryComment</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fileComment</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">fileComment</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__addNumber</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">prependNumber</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__groupDrive</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">groupDrive</span><span class="p">)</span>
+        <span class="n">manualFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">manualFile</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">manualOverride</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">manualFile</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">manualOverride</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__manualOverride</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">manualFile</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__manualOverride</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__constructPath</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">__updateData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the file data container with information from the controls.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">rootDirectory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__rootFolder</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="n">cooldate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cooldownDate</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span> <span class="o">=</span> <span class="p">(</span><span class="n">cooldate</span><span class="o">.</span><span class="n">GetYear</span><span class="p">(),</span> <span class="n">cooldate</span><span class="o">.</span><span class="n">GetMonth</span><span class="p">(),</span>
+                            <span class="n">cooldate</span><span class="o">.</span><span class="n">GetDay</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">cooldownDate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">sampleName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sampleName</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="n">fldconf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fieldConfiguration</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">fieldConfiguration</span> <span class="o">=</span> <span class="n">fldconf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dimensions</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__options</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">directoryComment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__folderComment</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">fileComment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fileComment</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">prependNumber</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__addNumber</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">groupDrive</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__groupDrive</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__manualOverride</span><span class="o">.</span><span class="n">GetValue</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">manualFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">manualFile</span> <span class="o">=</span> <span class="s">u&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__addHandlers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add event handlers to the controls.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__rootFolder</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_LEFT_UP</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__onRootFolder</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__rootFolder</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_TEXT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__updateName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sampleName</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_TEXT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__updateName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__cooldownDate</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_DATE_CHANGED</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__updateName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fieldConfiguration</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_COMBOBOX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__updateName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dimensions</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_TEXT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__updateName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__options</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_TEXT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__updateName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fileComment</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_TEXT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__updateName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__folderComment</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_TEXT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__updateName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__addNumber</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_CHECKBOX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__updateName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_CLOSE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__onClose</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__onClose</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__onClose</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_CANCEL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__manualOverride</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_CHECKBOX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__onManualOverride</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__onRootFolder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Show the folder-picker dialog.&quot;&quot;&quot;</span>
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">DirDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">defaultPath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__rootFolder</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">dialog</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span> <span class="o">==</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__rootFolder</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">dialog</span><span class="o">.</span><span class="n">GetPath</span><span class="p">())</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">Skip</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__onManualOverride</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Toggle whether the filename is manually overridden.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__manualOverride</span><span class="o">.</span><span class="n">GetValue</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__constructPath</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">__updateName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the filename if appropriate.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__manualOverride</span><span class="o">.</span><span class="n">GetValue</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__constructPath</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">__onClose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close the dialog.&quot;&quot;&quot;</span>
+        <span class="n">eventId</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">GetId</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">eventId</span> <span class="o">==</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__updateData</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__fileData</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EndModal</span><span class="p">(</span><span class="n">eventId</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Destroy</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__constructPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the full path name of the file.&quot;&quot;&quot;</span>
+        <span class="n">base</span><span class="p">,</span> <span class="n">main</span><span class="p">,</span> <span class="n">sub</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__constructPathList</span><span class="p">()</span>
+        <span class="n">main</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">main</span><span class="p">)</span>
+        <span class="n">sub</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">main</span><span class="p">,</span> <span class="n">sub</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__constructPathList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a filename from supplied data.&quot;&quot;&quot;</span>
+        <span class="n">sampleName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sampleName</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">fileComps</span> <span class="o">=</span> <span class="p">[</span><span class="n">sampleName</span><span class="p">]</span>
+        <span class="n">fileComment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fileComment</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fileComment</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">fileComps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fileComment</span><span class="p">)</span>
+
+        <span class="n">dirComps</span> <span class="o">=</span> <span class="p">[</span><span class="n">sampleName</span><span class="p">]</span>
+        <span class="n">subdirComps</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__cooldownDate</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span><span class="o">.</span><span class="n">Format</span><span class="p">(</span><span class="s">&#39;%Y%m</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">)]</span>
+        <span class="n">folderComment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__folderComment</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">folderComment</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">subdirComps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">folderComment</span><span class="p">)</span>
+            <span class="n">dirComps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">folderComment</span><span class="p">)</span>
+        <span class="n">subdirComps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__measurementType</span><span class="p">)</span>
+        <span class="n">dimensions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dimensions</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">subdirComps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span>
+        <span class="n">subdirComps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__system</span><span class="p">)</span>
+        <span class="n">fldconf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fieldConfiguration</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">fldconf</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fieldNames</span><span class="p">:</span>
+            <span class="n">fldconf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fieldCodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__fieldNames</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">fldconf</span><span class="p">)]</span>
+        <span class="n">subdirComps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fldconf</span><span class="p">)</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__options</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">options</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">subdirComps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+
+        <span class="n">basedir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__rootFolder</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">sampledir</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirComps</span><span class="p">)</span>
+        <span class="n">subdir</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">subdirComps</span><span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fileComps</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__extension</span>
+
+        <span class="n">basepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="n">sampledir</span><span class="p">,</span> <span class="n">subdir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">basepath</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__addNumber</span><span class="o">.</span><span class="n">GetValue</span><span class="p">():</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">getNextScan</span><span class="p">(</span><span class="n">basepath</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">filename</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">__addNumber</span><span class="o">.</span><span class="n">GetValue</span><span class="p">():</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;s000_&#39;</span> <span class="o">+</span> <span class="n">filename</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">basedir</span><span class="p">,</span> <span class="n">dirComps</span><span class="p">,</span> <span class="n">subdirComps</span><span class="p">,</span> <span class="n">filename</span><span class="p">]</span>
+
+<div class="viewcode-block" id="FilenameDialog.getPath"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.FilenameDialog.getPath">[docs]</a>    <span class="k">def</span> <span class="nf">getPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the actual intended path for the data file.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__manualOverride</span><span class="o">.</span><span class="n">GetValue</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__constructPath</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="FilenameDialog.createPath"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.FilenameDialog.createPath">[docs]</a>    <span class="k">def</span> <span class="nf">createPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create the directory tree as far as necessary.&quot;&quot;&quot;</span>
+        <span class="n">basedir</span><span class="p">,</span> <span class="n">sampledir</span><span class="p">,</span> <span class="n">subdir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__constructPathList</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">sampledir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sampledir</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">sampledir</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">sampledir</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">subdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sampledir</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">subdir</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">subdir</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">subdir</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+</div></div>
+<div class="viewcode-block" id="FileData"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.FileData">[docs]</a><span class="k">class</span> <span class="nc">FileData</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A container for the standard path components for a data file.&quot;&quot;&quot;</span>
+
+    <span class="n">dateFormatLocal</span> <span class="o">=</span> <span class="s">&#39;%Y%m</span><span class="si">%d</span><span class="s">&#39;</span>
+    <span class="n">dateFormatConfig</span> <span class="o">=</span> <span class="s">&#39;%m/</span><span class="si">%d</span><span class="s">/%Y&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">measurementType</span><span class="p">,</span> <span class="n">extension</span><span class="p">,</span>
+                 <span class="n">fieldNames</span><span class="p">,</span> <span class="n">fieldCodes</span><span class="p">,</span> <span class="n">rootDirectory</span><span class="p">,</span> <span class="n">sampleName</span><span class="p">,</span>
+                 <span class="n">cooldownDate</span><span class="p">,</span> <span class="n">fieldConfiguration</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span>
+                 <span class="n">directoryComment</span><span class="p">,</span> <span class="n">fileComment</span><span class="p">,</span> <span class="n">prependNumber</span><span class="p">,</span> <span class="n">groupDrive</span><span class="p">,</span>
+                 <span class="n">manualFile</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="n">system</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">measurementType</span> <span class="o">=</span> <span class="n">measurementType</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extension</span> <span class="o">=</span> <span class="n">extension</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fieldNames</span> <span class="o">=</span> <span class="n">fieldNames</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fieldCodes</span> <span class="o">=</span> <span class="n">fieldCodes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rootDirectory</span> <span class="o">=</span> <span class="n">rootDirectory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampleName</span> <span class="o">=</span> <span class="n">sampleName</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cooldownDate</span> <span class="o">=</span> <span class="n">cooldownDate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fieldConfiguration</span> <span class="o">=</span> <span class="n">fieldConfiguration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="n">dimensions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="n">options</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">directoryComment</span> <span class="o">=</span> <span class="n">directoryComment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fileComment</span> <span class="o">=</span> <span class="n">fileComment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prependNumber</span> <span class="o">=</span> <span class="n">prependNumber</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">groupDrive</span> <span class="o">=</span> <span class="n">groupDrive</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">manualFile</span> <span class="o">=</span> <span class="n">manualFile</span>
+
+<div class="viewcode-block" id="FileData.update"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.FileData.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rootDirectory</span><span class="p">,</span> <span class="n">sampleName</span><span class="p">,</span>
+               <span class="n">cooldownDate</span><span class="p">,</span> <span class="n">fieldConfiguration</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span>
+               <span class="n">directoryComment</span><span class="p">,</span> <span class="n">fileComment</span><span class="p">,</span> <span class="n">prependNumber</span><span class="p">,</span> <span class="n">groupDrive</span><span class="p">,</span>
+               <span class="n">manualFile</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the information associated with the data file.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">rootDirectory</span> <span class="o">=</span> <span class="n">rootDirectory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampleName</span> <span class="o">=</span> <span class="n">sampleName</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cooldownDate</span> <span class="o">=</span> <span class="n">cooldownDate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fieldConfiguration</span> <span class="o">=</span> <span class="n">fieldConfiguration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="n">dimensions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="n">options</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">directoryComment</span> <span class="o">=</span> <span class="n">directoryComment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fileComment</span> <span class="o">=</span> <span class="n">fileComment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prependNumber</span> <span class="o">=</span> <span class="n">prependNumber</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">groupDrive</span> <span class="o">=</span> <span class="n">groupDrive</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">manualFile</span> <span class="o">=</span> <span class="n">manualFile</span>
+</div>
+<div class="viewcode-block" id="FileData.save"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.FileData.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save the file data to the configuration file.&quot;&quot;&quot;</span>
+        <span class="n">conf</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;config&#39;</span><span class="p">,</span> <span class="s">&#39;premades.conf&#39;</span><span class="p">),</span>
+                               <span class="n">cp</span><span class="o">.</span><span class="n">FORMAT_REPR</span><span class="p">)</span>
+        <span class="n">section</span> <span class="o">=</span> <span class="s">&#39;last_filename_vals&#39;</span>
+
+        <span class="n">fieldDirections</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">fieldDirection</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fieldNames</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fieldCodes</span><span class="p">):</span>
+            <span class="n">fieldDirections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fieldDirection</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;general&#39;</span><span class="p">,</span> <span class="s">&#39;field_directions&#39;</span><span class="p">,</span> <span class="n">fieldDirections</span><span class="p">)</span>
+
+        <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;rootDirectory&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootDirectory</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;sampleName&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampleName</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;cooldownDate&#39;</span><span class="p">,</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">cooldownDate</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">FileData</span><span class="o">.</span><span class="n">dateFormatConfig</span><span class="p">))</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;fieldConfiguration&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fieldConfiguration</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;dimensions&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;options&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;directoryComment&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">directoryComment</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;fileComment&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fileComment</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;prependNumber&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prependNumber</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;groupDrive&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">groupDrive</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s">&#39;manualFile&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">manualFile</span><span class="p">)</span>
+
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="FileData.fromFile"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.FileData.fromFile">[docs]</a>    <span class="k">def</span> <span class="nf">fromFile</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">measurementType</span><span class="p">,</span> <span class="n">extension</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Construct an object from a configuration file.&quot;&quot;&quot;</span>
+        <span class="n">conf</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">unrel</span><span class="p">(</span><span class="s">&#39;etc&#39;</span><span class="p">,</span> <span class="s">&#39;premades.conf&#39;</span><span class="p">),</span>
+                               <span class="n">cp</span><span class="o">.</span><span class="n">FORMAT_REPR</span><span class="p">)</span>
+        <span class="n">section</span> <span class="o">=</span> <span class="s">&#39;last_filename_vals&#39;</span>
+
+        <span class="n">fieldDirections</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;general&#39;</span><span class="p">,</span> <span class="s">&#39;field_directions&#39;</span><span class="p">)</span>
+        <span class="n">fieldNames</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">fieldCodes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">fieldName</span><span class="p">,</span> <span class="n">fieldCode</span> <span class="ow">in</span> <span class="n">fieldDirections</span><span class="p">:</span>
+            <span class="n">fieldNames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fieldName</span><span class="p">)</span>
+            <span class="n">fieldCodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fieldCode</span><span class="p">)</span>
+<span class="c">#         data = dict.fromkeys(conf.getOptions(section))</span>
+<span class="c">#         for key in data:</span>
+<span class="c">#             data[key] = conf.get(section, key)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getOptionsDict</span><span class="p">(</span><span class="n">section</span><span class="p">)</span>
+        <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">year</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;cooldownDate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;cooldownDate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">year</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">month</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">day</span><span class="p">))</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;system&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">system</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;measurementType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">measurementType</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;extension&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">extension</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;fieldNames&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fieldNames</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;fieldCodes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fieldCodes</span>
+
+        <span class="k">return</span> <span class="n">FileData</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">__constructPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the full path name of the file.&quot;&quot;&quot;</span>
+        <span class="n">base</span><span class="p">,</span> <span class="n">main</span><span class="p">,</span> <span class="n">sub</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__constructPathList</span><span class="p">()</span>
+        <span class="n">main</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">main</span><span class="p">)</span>
+        <span class="n">sub</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">main</span><span class="p">,</span> <span class="n">sub</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__constructPathList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a filename from supplied data.&quot;&quot;&quot;</span>
+        <span class="n">sampleName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampleName</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">fileComps</span> <span class="o">=</span> <span class="p">[</span><span class="n">sampleName</span><span class="p">]</span>
+        <span class="n">fileComment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fileComment</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fileComment</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">fileComps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fileComment</span><span class="p">)</span>
+
+        <span class="n">dirComps</span> <span class="o">=</span> <span class="p">[</span><span class="n">sampleName</span><span class="p">]</span>
+        <span class="n">subdirComps</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cooldownDate</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">FileData</span><span class="o">.</span><span class="n">dateFormatLocal</span><span class="p">)]</span>
+        <span class="n">folderComment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directoryComment</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">folderComment</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">subdirComps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">folderComment</span><span class="p">)</span>
+            <span class="n">dirComps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">folderComment</span><span class="p">)</span>
+        <span class="n">subdirComps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">measurementType</span><span class="p">)</span>
+        <span class="n">dimensions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">subdirComps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span>
+        <span class="n">subdirComps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span>
+        <span class="n">fieldConfig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fieldConfiguration</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">fieldConfig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fieldNames</span><span class="p">:</span>
+            <span class="n">fieldConfig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fieldCodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">fieldNames</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">fieldConfig</span><span class="p">)]</span>
+        <span class="n">subdirComps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fieldConfig</span><span class="p">)</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">options</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">subdirComps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+
+        <span class="n">basedir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootDirectory</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">sampledir</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirComps</span><span class="p">)</span>
+        <span class="n">subdir</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">subdirComps</span><span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fileComps</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">extension</span>
+
+        <span class="n">basepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="n">sampledir</span><span class="p">,</span> <span class="n">subdir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">basepath</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">prependNumber</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">getNextScan</span><span class="p">(</span><span class="n">basepath</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">filename</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">prependNumber</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;s000_&#39;</span> <span class="o">+</span> <span class="n">filename</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">basedir</span><span class="p">,</span> <span class="n">dirComps</span><span class="p">,</span> <span class="n">subdirComps</span><span class="p">,</span> <span class="n">filename</span><span class="p">]</span>
+
+<div class="viewcode-block" id="FileData.getPath"><a class="viewcode-back" href="../../../../api_gui_main_base_premade.html#src.gui.main.base_premade.FileData.getPath">[docs]</a>    <span class="k">def</span> <span class="nf">getPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the actual intended path for the data file.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">manualFile</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">manualFile</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__constructPath</span><span class="p">()</span>
+
+
+
+<span class="c">#-------------------------------------------------------------- Helper functions</span>
+</div></div>
+<span class="k">def</span> <span class="nf">_addLabeledText</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">sizer</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">alignCenter</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">startValue</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+                    <span class="n">editable</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add a labeled text control and return the control.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">alignCenter</span><span class="p">:</span>
+        <span class="n">flag</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">flag</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_TOP</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span>
+    <span class="n">newLabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+    <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">newLabel</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">flag</span><span class="o">=</span><span class="n">flag</span><span class="p">)</span>
+    <span class="n">newControl</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">newControl</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="n">enabled</span><span class="p">)</span>
+    <span class="n">newControl</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">startValue</span><span class="p">)</span>
+    <span class="n">newControl</span><span class="o">.</span><span class="n">SetEditable</span><span class="p">(</span><span class="n">editable</span><span class="p">)</span>
+    <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">newControl</span><span class="p">,</span> <span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">colspan</span><span class="p">),</span> <span class="n">flag</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">newControl</span>
+
+
+<span class="k">def</span> <span class="nf">_addLabel</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">sizer</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add a label to the specified sizer.&quot;&quot;&quot;</span>
+    <span class="n">newLabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+    <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">newLabel</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+              <span class="n">flag</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_RIGHT</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_addCheck</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">sizer</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add a check box control to the specified sizer.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent : wxWindow</span>
+<span class="sd">        The parent for the check box control.</span>
+<span class="sd">    sizer : wxSizer</span>
+<span class="sd">        The sizer to which the control should be added.</span>
+<span class="sd">    label : str</span>
+<span class="sd">        The label for the control.</span>
+<span class="sd">    value : bool</span>
+<span class="sd">        The starting value for the control.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    wxCheckBox</span>
+<span class="sd">        The newly created control.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">checkbox</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">CheckBox</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+    <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">checkbox</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">checkbox</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">checkbox</span>
+
+<span class="c"># def _addLabeledText(parent, sizer, row, col, colspan, label, value=&#39;&#39;,</span>
+<span class="c">#                     labelOptions=None, controlOptions=None):</span>
+<span class="c">#     &quot;&quot;&quot;Add a label and text control to a grid bag sizer.</span>
+<span class="c">#</span>
+<span class="c">#     Parameters</span>
+<span class="c">#     ----------</span>
+<span class="c">#     parent : wxWindow</span>
+<span class="c">#         The parent for the controls.</span>
+<span class="c">#     sizer : wxGridBagSizer</span>
+<span class="c">#         The sizer to which the controls should be added.</span>
+<span class="c">#     row : int</span>
+<span class="c">#         The row to which the controls should be added.</span>
+<span class="c">#     col : int</span>
+<span class="c">#         The first column to use for the controls.</span>
+<span class="c">#     colspan : int</span>
+<span class="c">#         The number of columns which the text control should span.</span>
+<span class="c">#     label : str</span>
+<span class="c">#         The text of the label.</span>
+<span class="c">#     value : str</span>
+<span class="c">#         The initial value of the text control.</span>
+<span class="c">#     labelOptions : int</span>
+<span class="c">#         The options to use when adding the label to the sizer. If `None`, the</span>
+<span class="c">#         default value (wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL) will</span>
+<span class="c">#         be used.</span>
+<span class="c">#     controlOptions : int</span>
+<span class="c">#         The options to use when adding the text control to the sizer. If</span>
+<span class="c">#         `None`, the default value (wx.EXPAND|wx.ALL) will be used.</span>
+<span class="c">#</span>
+<span class="c">#     Returns</span>
+<span class="c">#     -------</span>
+<span class="c">#     wxTextCtrl</span>
+<span class="c">#         The newly created control.</span>
+<span class="c">#     &quot;&quot;&quot;</span>
+<span class="c">#     if labelOptions is None:</span>
+<span class="c">#         labelOptions = wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.ALL</span>
+<span class="c">#     if controlOptions is None:</span>
+<span class="c">#         controlOptions = wx.EXPAND | wx.ALL</span>
+<span class="c">#     statictext = wx.StaticText(parent, label=label)</span>
+<span class="c">#     textctrl = wx.TextCtrl(parent, wx.ID_ANY, value)</span>
+<span class="c">#     sizer.Add(statictext, (row, col), (1, 1), labelOptions)</span>
+<span class="c">#     sizer.Add(textctrl, (row, col + 1), (1, colspan), controlOptions)</span>
+<span class="c">#     return textctrl</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

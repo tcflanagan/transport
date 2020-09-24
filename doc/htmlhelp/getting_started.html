@@ -1,0 +1,120 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>2. Getting Started</title>
+
+
+
+
+
+</head>
+<body>
+<table><tr><td width="50%"><p><a href="index.html">Docs</a> &raquo;</p></td><td width="50%" align="right"><p>
+<a href="introduction.html" title="1. Introduction" accesskey="P">previous</a> |
+<a href="project_organization.html" title="3. Project organization" accesskey="N">next</a> |
+<a href="genindex.html" title="General Index" accesskey="I">index</a></p></td></tr></table>
+<a name="getting-started">
+<h1>2. Getting Started</h1>
+<a name="running-from-source"></a>
+<h2>2.1. Running from source</h2>
+<a name="the-python-interpreter"></a>
+<h3>2.1.1. The Python Interpreter</h3>
+<p>The primary dependency for the system is the Python interpreter. The
+code was written using <strong>verson 2.7.5</strong>. Note that any version greater
+or equal to than 3 will <strong>not</strong> work, mostly because the dependencies in
+the following sections have not all been updated to reflect changes in
+going from 2.x to 3.x. The most significant of these (and the most
+important in the context of this program) is PyVISA.</p>
+
+<a name="dependencies"></a>
+<h3>2.1.2. Dependencies</h3>
+<p>The following packages must be installed in order to run the
+program:</p>
+<dl class="docutils">
+<dt><strong>wxPython</strong> (2.8.12.1)</dt>
+<dd><a class="reference external" href="http://www.wxpython.org">wxPython</a> is the graphical engine for the software. It was chosen for a number of reasons, some of which are listed below.
+#. It is fast, since it is merely a wrapper for the C-based wxWidgets library.
+#. Its API is relatively intuitive.
+#. It is popular, so it can be found in most (Debian-based) Linux repositories.</dd>
+<dt><strong>PyVISA</strong> (1.4)</dt>
+<dd><a class="reference external" href="https://pyvisa.readthedocs.org/en/latest/">PyVISA</a> is a library for interacting with GPIB and serial instruments.</dd>
+<dt><strong>numpy</strong> (1.7.1) and <strong>scipy</strong> (0.12.0)</dt>
+<dd><a class="reference external" href="http://www.numpy.org/">numpy</a> and scipy are libraries for performing mathematical calculations. They are closely linked so <a class="reference external" href="http://new.scipy.org/download.html">downloads</a> and <a class="reference external" href="http://docs.scipy.org/doc/">documentation</a> can usually be found together.</dd>
+<dt><strong>matplotlib</strong> (1.2.1)</dt>
+<dd><a class="reference external" href="http://matplotlib.org/">matplotlib</a> is a plotting library which duplicates MATLAB in many ways.</dd>
+</dl>
+<p>The numbers in parentheses are, of course, versions. They are
+the versions under which the software was written and, therefore, the
+most likely to work as expected. This does not necessarily mean that
+other versions will not work. However, you <em>must</em> install versions
+which are compatible with Python 2.7.</p>
+
+<a name="tools-for-managing-documentation"></a>
+<h3>2.1.3. Tools for managing documentation</h3>
+<p>As with any piece of software which multiple people may use and edit, it is essential to keep the documentation up to date and accurate. There are a number of tools which have been used to produce the documentation for this code in a clear and consistent way, and these are outlined in this section.</p>
+<a name="python-libraries"></a>
+<h4>2.1.3.1. Python libraries</h4>
+<dl class="docutils">
+<dt><strong>Pygments</strong></dt>
+<dd><a class="reference external" href="http://pygments.org/">Pygments</a> is a package for syntax highlighting which is used by Sphinx.</dd>
+</dl>
+<dl class="docutils">
+<dt><strong>Sphinx</strong></dt>
+<dd>This documentation starts out as a set of plain-text documents in the markup language <a class="reference external" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a>, or reST. It is compiled into HTML, PDF, and HTML Help files using a package called <a class="reference external" href="http://sphinx-doc.org/">Sphinx</a>.</dd>
+</dl>
+<dl class="docutils">
+<dt><strong>sphinx_wxoptimize</strong></dt>
+<dd>sphinx_wxoptimize is a set of scripts for fixing the HTML Help packages produced by Sphinx so that it can be read in a reasonably decent manner by wxPython. You can find it at <a class="reference external" href="https://pypi.python.org/pypi/sphinx_wxoptimize/">PyPI</a>.</dd>
+</dl>
+<p>It should be noted that the first two of the above, Pygments and Sphinx, can be installed using <tt class="docutils literal"><span class="pre">pip</span></tt>, while the third, the script <tt class="docutils literal"><span class="pre">sphinx_wxoptimize</span></tt>, is already included in the <tt class="docutils literal"><span class="pre">src/tools/docgen/manual</span></tt> folder, so it should not need to be installed.</p>
+<dl class="docutils">
+<dt><strong>numpydoc</strong></dt>
+<dd>The in-code documentation uses an extension to the standard Sphinx library called <a class="reference external" href="https://pypi.python.org/pypi/numpydoc">numpydoc</a>, which allows for a cleaner-looking in-code syntax. Regenerating the API will crash Sphinx if this is not installed.</dd>
+</dl>
+
+<a name="external-applications"></a>
+<h4>2.1.3.2. External applications</h4>
+<dl class="docutils">
+<dt><strong>LaTeX</strong></dt>
+<dd>The PDF manual is, of course, generated using <tt class="docutils literal"><span class="pre">pdflatex</span></tt>, so LaTeX must be installed.</dd>
+<dt><strong>Subversion</strong></dt>
+<dd>Keeping the most recent version of the software available to everybody using it is a good idea, and for this project it is facilitated by Subversion. Download it. The most popular graphical client for Windows is <a class="reference external" href="http://tortoisesvn.net/">TortoiseSVN</a>. To use this software&#8217;s automatic updater requires the command-line SVN tools. For Windows, the most common version is Slik Subversion, which can be downloaded <a class="reference external" href="http://www.sliksvn.com/en/download">here</a>.</dd>
+</dl>
+
+
+<a name="tools"></a>
+<h3>2.1.4. Tools</h3>
+<p>The most useful tool for this project is Eclipse, with the PyDev extension.</p>
+<p>Instructions for installing this are coming soon.</p>
+
+
+<a name="testing-some-code"></a>
+<h2>2.2. Testing some code</h2>
+<p>Now let&#8217;s test some junk.</p>
+<pre><font color="#204a87"><b>def</b></font> <font color="#000000">some_function</font><font color="#000000"><b>(</b></font><font color="#000000">input_parameter</font><font color="#000000"><b>):</b></font>
+    <font color="#8f5902"><i>&#39;&#39;&#39;Print `input_parameter`, then attempt to convert it</i></font>
+<font color="#8f5902"><i>    to a dictionary.</i></font>
+<font color="#8f5902"><i>    &#39;&#39;&#39;</i></font>
+    <font color="#204a87"><b>print</b></font> <font color="#000000">input_parameter</font>
+    <font color="#204a87"><b>try</b></font><font color="#000000"><b>:</b></font>
+        <font color="#204a87"><b>return</b></font> <font color="#204a87">dict</font><font color="#000000"><b>(</b></font><font color="#000000">input_parameter</font><font color="#000000"><b>)</b></font>
+    <font color="#204a87"><b>except</b></font> <font color="#cc0000"><b>TypeError</b></font><font color="#000000"><b>:</b></font>
+        <font color="#204a87"><b>print</b></font> <font color="#4e9a06">&#39;Cannot do that&#39;</font>
+        <font color="#204a87"><b>return</b></font> <font color="#3465a4">None</font>
+</pre>
+
+
+
+</a>
+<table><tr><td width="50%"><p><a href="index.html">Docs</a> &raquo;</p></td><td width="50%" align="right"><p>
+<a href="introduction.html" title="1. Introduction">previous</a> |
+<a href="project_organization.html" title="3. Project organization">next</a> |
+<a href="genindex.html" title="General Index">index</a></p></td></tr></table>
+<div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+    </div>
+</body>
+</html>

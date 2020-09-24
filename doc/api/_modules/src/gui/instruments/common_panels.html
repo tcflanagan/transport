@@ -1,0 +1,629 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.gui.instruments.common_panels &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.gui.instruments.common_panels</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;Panels for use in various custom experiments.</span>
+
+<span class="sd">See Also</span>
+<span class="sd">--------</span>
+<span class="sd">src.gui.panels.scanpanel</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span> <span class="nn">wx</span>
+
+<span class="kn">from</span> <span class="nn">src.core</span> <span class="kn">import</span> <span class="n">instrument</span>
+<span class="kn">from</span> <span class="nn">src.gui</span> <span class="kn">import</span> <span class="n">gui_helpers</span> <span class="k">as</span> <span class="n">gh</span>
+
+<span class="n">V_MODES</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Set&#39;</span><span class="p">,</span> <span class="s">&#39;Read&#39;</span><span class="p">,</span> <span class="s">&#39;Neither&#39;</span><span class="p">]</span>
+
+<span class="c"># pylint: disable=R0904</span>
+    
+<div class="viewcode-block" id="VisaPanel"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.VisaPanel">[docs]</a><span class="k">class</span> <span class="nc">VisaPanel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A panel to gather a VISA address for an instrument.&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">VisaPanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+        <span class="n">staticsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBoxSizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">visapanel</span> <span class="o">=</span> <span class="n">BaseVisaPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        
+        <span class="n">staticsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visapanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizerAndFit</span><span class="p">(</span><span class="n">staticsizer</span><span class="p">)</span>
+        
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the panel&#39;s label.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="o">.</span><span class="n">GetLabel</span><span class="p">()</span>
+    <span class="nd">@label.setter</span>
+<div class="viewcode-block" id="VisaPanel.label"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.VisaPanel.label">[docs]</a>    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newLabel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the panel&#39;s label.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="o">.</span><span class="n">SetLabel</span><span class="p">(</span><span class="n">newLabel</span><span class="p">)</span>
+        </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="VisaPanel.address"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.VisaPanel.address">[docs]</a>    <span class="k">def</span> <span class="nf">address</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the VISA resource address.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">visapanel</span><span class="o">.</span><span class="n">value</span>
+    
+    </div></div>
+<div class="viewcode-block" id="LockinPanel"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanel">[docs]</a><span class="k">class</span> <span class="nc">LockinPanel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A panel for configuring an SRS 830 lock-in amplifier.&quot;&quot;&quot;</span>
+        
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">LockinPanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+         
+        <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+        <span class="n">staticsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBoxSizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+         
+        <span class="bp">self</span><span class="o">.</span><span class="n">visapanel</span> <span class="o">=</span> <span class="n">BaseVisaPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+         
+        <span class="n">otherpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">othersizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">FlexGridSizer</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">otherpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">othersizer</span><span class="p">)</span>
+ 
+        <span class="n">controlStyle</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TE_RIGHT</span>
+        <span class="n">myCtrl</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">gh</span><span class="o">.</span><span class="n">createLabeledTextControl</span><span class="p">,</span> <span class="n">otherpanel</span><span class="p">,</span> <span class="n">othersizer</span><span class="p">,</span> 
+                         <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">controlStyle</span><span class="p">,</span> 
+                         <span class="n">defocusHandler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_onDefocusText</span><span class="p">)</span>
+         
+        <span class="bp">self</span><span class="o">.</span><span class="n">voltageBox</span> <span class="o">=</span> <span class="n">myCtrl</span><span class="p">(</span><span class="s">&#39;Ref. Voltage (V):&#39;</span><span class="p">,</span> <span class="s">&#39;1.000&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">voltageBox</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+         
+        <span class="bp">self</span><span class="o">.</span><span class="n">voltageMode</span> <span class="o">=</span> <span class="n">gh</span><span class="o">.</span><span class="n">createLabeledComboBox</span><span class="p">(</span><span class="n">otherpanel</span><span class="p">,</span> <span class="n">othersizer</span><span class="p">,</span>
+                                                 <span class="n">label</span><span class="o">=</span><span class="s">&#39;Voltage Action:&#39;</span><span class="p">,</span>
+                                                 <span class="n">choices</span><span class="o">=</span><span class="n">V_MODES</span><span class="p">,</span>
+                                                 <span class="n">initialValue</span><span class="o">=</span><span class="s">&#39;Read&#39;</span><span class="p">,</span>
+                                                 <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">CB_READONLY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">voltageMode</span><span class="o">.</span><span class="n">SetMinSize</span><span class="p">((</span><span class="mi">125</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">voltageMode</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_COMBOBOX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onChangeVoltageMode</span><span class="p">)</span>
+         
+        <span class="bp">self</span><span class="o">.</span><span class="n">ballastBox</span> <span class="o">=</span> <span class="n">myCtrl</span><span class="p">(</span><span class="s">&#39;Ballast (Ω):&#39;</span><span class="p">,</span> <span class="s">&#39;1.000e+06&#39;</span><span class="p">)</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">offsetBox</span> <span class="o">=</span> <span class="n">myCtrl</span><span class="p">(</span><span class="s">&#39;Offset (V):&#39;</span><span class="p">,</span> <span class="s">&#39;0.000000e+00&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">averageBox</span> <span class="o">=</span> <span class="n">myCtrl</span><span class="p">(</span><span class="s">&#39;Averages:&#39;</span><span class="p">,</span> <span class="s">&#39;20&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pretimeBox</span> <span class="o">=</span> <span class="n">myCtrl</span><span class="p">(</span><span class="s">&#39;Pre-time (s):&#39;</span><span class="p">,</span> <span class="s">&#39;1.000&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intertimeBox</span> <span class="o">=</span> <span class="n">myCtrl</span><span class="p">(</span><span class="s">&#39;Inter-time (s):&#39;</span><span class="p">,</span> <span class="s">&#39;0.050&#39;</span><span class="p">)</span>
+         
+        <span class="n">othersizer</span><span class="o">.</span><span class="n">AddGrowableCol</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+         
+        <span class="n">staticsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visapanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">staticsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">otherpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizerAndFit</span><span class="p">(</span><span class="n">staticsizer</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_onChangeVoltageMode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the enabled state of the reference voltage based on mode.&quot;&quot;&quot;</span>
+        <span class="n">newMode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">voltageMode</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">newMode</span> <span class="o">==</span> <span class="s">&#39;Read&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">voltageBox</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">voltageBox</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_onDefocusText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Format a value when its control loses focus.&quot;&quot;&quot;</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">GetEventObject</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fval</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">fval</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">voltageBox</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fval</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">ballastBox</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%.3e</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fval</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">offsetBox</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%.6e</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fval</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">averageBox</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fval</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">pretimeBox</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fval</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">intertimeBox</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fval</span><span class="p">)</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the panel&#39;s label.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="o">.</span><span class="n">GetLabel</span><span class="p">()</span>
+    <span class="nd">@label.setter</span>
+<div class="viewcode-block" id="LockinPanel.label"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanel.label">[docs]</a>    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newLabel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the panel&#39;s label.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="o">.</span><span class="n">SetLabel</span><span class="p">(</span><span class="n">newLabel</span><span class="p">)</span>
+        </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LockinPanel.address"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanel.address">[docs]</a>    <span class="k">def</span> <span class="nf">address</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the VISA resource address.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">visapanel</span><span class="o">.</span><span class="n">value</span>
+    </div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">outputVoltage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the output voltage.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">voltageBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+    <span class="nd">@outputVoltage.setter</span>
+<div class="viewcode-block" id="LockinPanel.outputVoltage"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanel.outputVoltage">[docs]</a>    <span class="k">def</span> <span class="nf">outputVoltage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newVoltage</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the output voltage.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">voltageBox</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">newVoltage</span><span class="p">)</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LockinPanel.outputAction"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanel.outputAction">[docs]</a>    <span class="k">def</span> <span class="nf">outputAction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the output voltage action.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">voltageMode</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LockinPanel.ballastResistance"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanel.ballastResistance">[docs]</a>    <span class="k">def</span> <span class="nf">ballastResistance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the ballast resistance in ohms.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ballastBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LockinPanel.offsetVoltage"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanel.offsetVoltage">[docs]</a>    <span class="k">def</span> <span class="nf">offsetVoltage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the offset voltage in volts.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">offsetBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LockinPanel.averages"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanel.averages">[docs]</a>    <span class="k">def</span> <span class="nf">averages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the number of averages.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">averageBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LockinPanel.intertime"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanel.intertime">[docs]</a>    <span class="k">def</span> <span class="nf">intertime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the time between averages.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intertimeBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LockinPanel.pretime"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanel.pretime">[docs]</a>    <span class="k">def</span> <span class="nf">pretime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the time before averaging begins in seconds.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pretimeBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+</div></div>
+<div class="viewcode-block" id="BaseVisaPanel"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.BaseVisaPanel">[docs]</a><span class="k">class</span> <span class="nc">BaseVisaPanel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A simple VISA panel (without a border).&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">wxId</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">controlWxId</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BaseVisaPanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">wxId</span><span class="p">)</span>
+
+        
+        <span class="n">visaLabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Visa Address:&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visaControl</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ComboBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">controlWxId</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">CB_DROPDOWN</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateValues</span><span class="p">()</span>
+        
+        <span class="n">sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">visaLabel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">BOTTOM</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visaControl</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">sizer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="BaseVisaPanel.value"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.BaseVisaPanel.value">[docs]</a>    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the selected value of the VISA control.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The selected VISA resource address.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">visaControl</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="BaseVisaPanel.updateValues"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.BaseVisaPanel.updateValues">[docs]</a>    <span class="k">def</span> <span class="nf">updateValues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the available resource addresses.&quot;&quot;&quot;</span>
+        <span class="n">currentValue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visaControl</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">instrument</span><span class="o">.</span><span class="n">getVisaAddresses</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visaControl</span><span class="o">.</span><span class="n">SetItems</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">currentValue</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visaControl</span><span class="o">.</span><span class="n">SetStringSelection</span><span class="p">(</span><span class="n">currentValue</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visaControl</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    </div></div>
+<div class="viewcode-block" id="DcVoltmeterPanel"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.DcVoltmeterPanel">[docs]</a><span class="k">class</span> <span class="nc">DcVoltmeterPanel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A panel for configuring DC Voltmeter.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DcVoltmeterPanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+        <span class="n">staticsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBoxSizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">visapanel</span> <span class="o">=</span> <span class="n">BaseVisaPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        
+        <span class="n">otherpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">othersizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">FlexGridSizer</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">otherpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">othersizer</span><span class="p">)</span>
+
+        <span class="n">controlStyle</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TE_RIGHT</span>
+        <span class="n">myCtrl</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">gh</span><span class="o">.</span><span class="n">createLabeledTextControl</span><span class="p">,</span> <span class="n">otherpanel</span><span class="p">,</span> <span class="n">othersizer</span><span class="p">,</span> 
+                         <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">controlStyle</span><span class="p">,</span> 
+                         <span class="n">defocusHandler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_onDefocusText</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">averageBox</span> <span class="o">=</span> <span class="n">myCtrl</span><span class="p">(</span><span class="s">&#39;Averages:&#39;</span><span class="p">,</span> <span class="s">&#39;3&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pretimeBox</span> <span class="o">=</span> <span class="n">myCtrl</span><span class="p">(</span><span class="s">&#39;Pre-time (s):&#39;</span><span class="p">,</span> <span class="s">&#39;1.000&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intertimeBox</span> <span class="o">=</span> <span class="n">myCtrl</span><span class="p">(</span><span class="s">&#39;Inter-time (s):&#39;</span><span class="p">,</span> <span class="s">&#39;0.100&#39;</span><span class="p">)</span>
+        
+        <span class="n">othersizer</span><span class="o">.</span><span class="n">AddGrowableCol</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        
+        <span class="n">staticsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visapanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">staticsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">otherpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizerAndFit</span><span class="p">(</span><span class="n">staticsizer</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_onDefocusText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Format a value when its control loses focus.&quot;&quot;&quot;</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">GetEventObject</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fval</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">fval</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">averageBox</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fval</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">pretimeBox</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fval</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">intertimeBox</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fval</span><span class="p">)</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the panel&#39;s label.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="o">.</span><span class="n">GetLabel</span><span class="p">()</span>
+    <span class="nd">@label.setter</span>
+<div class="viewcode-block" id="DcVoltmeterPanel.label"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.DcVoltmeterPanel.label">[docs]</a>    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newLabel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the panel&#39;s label.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="o">.</span><span class="n">SetLabel</span><span class="p">(</span><span class="n">newLabel</span><span class="p">)</span>
+        </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="DcVoltmeterPanel.address"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.DcVoltmeterPanel.address">[docs]</a>    <span class="k">def</span> <span class="nf">address</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the VISA resource address.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">visapanel</span><span class="o">.</span><span class="n">value</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="DcVoltmeterPanel.averages"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.DcVoltmeterPanel.averages">[docs]</a>    <span class="k">def</span> <span class="nf">averages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the number of averages.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">averageBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="DcVoltmeterPanel.intertime"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.DcVoltmeterPanel.intertime">[docs]</a>    <span class="k">def</span> <span class="nf">intertime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the time between averages.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intertimeBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="DcVoltmeterPanel.pretime"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.DcVoltmeterPanel.pretime">[docs]</a>    <span class="k">def</span> <span class="nf">pretime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the time before averaging begins in seconds.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pretimeBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+    </div></div>
+<div class="viewcode-block" id="LockinPanelMaster"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanelMaster">[docs]</a><span class="k">class</span> <span class="nc">LockinPanelMaster</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A panel for configuring an SRS 830 lock-in as a current source.</span>
+<span class="sd">    </span>
+<span class="sd">    This class differs from the plain `LockinPanel` in that averaging</span>
+<span class="sd">    information is left out, since if the `LockinPanelMaster` is used, there</span>
+<span class="sd">    is probably another lock-in involved, in which case both would typically</span>
+<span class="sd">    use the same averaging parameters, so it does not make sense to have the</span>
+<span class="sd">    user enter it all twice.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">LockinPanelMaster</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+        <span class="n">staticsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBoxSizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">visapanel</span> <span class="o">=</span> <span class="n">BaseVisaPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        
+        <span class="n">otherpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">othersizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">FlexGridSizer</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">otherpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">othersizer</span><span class="p">)</span>
+
+        <span class="n">controlStyle</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TE_RIGHT</span>
+        <span class="n">myCtrl</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">gh</span><span class="o">.</span><span class="n">createLabeledTextControl</span><span class="p">,</span> <span class="n">otherpanel</span><span class="p">,</span> <span class="n">othersizer</span><span class="p">,</span> 
+                         <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">controlStyle</span><span class="p">,</span> 
+                         <span class="n">defocusHandler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_onDefocusText</span><span class="p">)</span>
+        
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">voltageBox</span> <span class="o">=</span> <span class="n">myCtrl</span><span class="p">(</span><span class="s">&#39;Ref. Voltage (V):&#39;</span><span class="p">,</span> <span class="s">&#39;1.000&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">voltageBox</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">voltageMode</span> <span class="o">=</span> <span class="n">gh</span><span class="o">.</span><span class="n">createLabeledComboBox</span><span class="p">(</span><span class="n">otherpanel</span><span class="p">,</span> <span class="n">othersizer</span><span class="p">,</span>
+                                                 <span class="n">label</span><span class="o">=</span><span class="s">&#39;Voltage Action:&#39;</span><span class="p">,</span>
+                                                 <span class="n">choices</span><span class="o">=</span><span class="n">V_MODES</span><span class="p">,</span>
+                                                 <span class="n">initialValue</span><span class="o">=</span><span class="s">&#39;Read&#39;</span><span class="p">,</span>
+                                                 <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">CB_READONLY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">voltageMode</span><span class="o">.</span><span class="n">SetMinSize</span><span class="p">((</span><span class="mi">125</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">voltageMode</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_COMBOBOX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onChangeVoltageMode</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">ballastBox</span> <span class="o">=</span> <span class="n">myCtrl</span><span class="p">(</span><span class="s">&#39;Ballast (Ω):&#39;</span><span class="p">,</span> <span class="s">&#39;1.000e+06&#39;</span><span class="p">)</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">offsetBox</span> <span class="o">=</span> <span class="n">myCtrl</span><span class="p">(</span><span class="s">&#39;Offset (V):&#39;</span><span class="p">,</span> <span class="s">&#39;0.000000e+00&#39;</span><span class="p">)</span>
+        
+        <span class="n">othersizer</span><span class="o">.</span><span class="n">AddGrowableCol</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        
+        <span class="n">staticsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visapanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">staticsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">otherpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizerAndFit</span><span class="p">(</span><span class="n">staticsizer</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_onChangeVoltageMode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the enabled state of the reference voltage based on mode.&quot;&quot;&quot;</span>
+        <span class="n">newMode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">voltageMode</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">newMode</span> <span class="o">==</span> <span class="s">&#39;Read&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">voltageBox</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">voltageBox</span><span class="o">.</span><span class="n">Enable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_onDefocusText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Format a value when its control loses focus.&quot;&quot;&quot;</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">GetEventObject</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fval</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">fval</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">voltageBox</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fval</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">ballastBox</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%.3e</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fval</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">offsetBox</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%.6e</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fval</span><span class="p">)</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the panel&#39;s label.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="o">.</span><span class="n">GetLabel</span><span class="p">()</span>
+    <span class="nd">@label.setter</span>
+<div class="viewcode-block" id="LockinPanelMaster.label"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanelMaster.label">[docs]</a>    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newLabel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the panel&#39;s label.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="o">.</span><span class="n">SetLabel</span><span class="p">(</span><span class="n">newLabel</span><span class="p">)</span>
+        </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LockinPanelMaster.address"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanelMaster.address">[docs]</a>    <span class="k">def</span> <span class="nf">address</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the VISA resource address.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">visapanel</span><span class="o">.</span><span class="n">value</span>
+    </div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">outputVoltage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the output voltage.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">voltageBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+    <span class="nd">@outputVoltage.setter</span>
+<div class="viewcode-block" id="LockinPanelMaster.outputVoltage"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanelMaster.outputVoltage">[docs]</a>    <span class="k">def</span> <span class="nf">outputVoltage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newVoltage</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the output voltage.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">voltageBox</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">newVoltage</span><span class="p">)</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LockinPanelMaster.outputAction"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanelMaster.outputAction">[docs]</a>    <span class="k">def</span> <span class="nf">outputAction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the output voltage action.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">voltageMode</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LockinPanelMaster.ballastResistance"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanelMaster.ballastResistance">[docs]</a>    <span class="k">def</span> <span class="nf">ballastResistance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the ballast resistance in ohms.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ballastBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LockinPanelMaster.offsetVoltage"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanelMaster.offsetVoltage">[docs]</a>    <span class="k">def</span> <span class="nf">offsetVoltage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the offset voltage in volts.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">offsetBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+    </div></div>
+<div class="viewcode-block" id="LockinPanelSlave"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanelSlave">[docs]</a><span class="k">class</span> <span class="nc">LockinPanelSlave</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A panel for configuring an SRS 830 lock-in amplifier as a slave.</span>
+<span class="sd">    </span>
+<span class="sd">    The `LockinPanelSlave` panel differs from the full `LockinPanel` in the</span>
+<span class="sd">    following ways.</span>
+<span class="sd">    </span>
+<span class="sd">    1. Since the voltage and current are sourced by a &quot;master&quot; lock-in, the</span>
+<span class="sd">       reference voltage, the voltage mode, and the ballast resistance are</span>
+<span class="sd">       unnecessary.</span>
+<span class="sd">    2. Since there is another lock-in, which will typically use the same</span>
+<span class="sd">       averaging parameters, including averaging here is unnecessary.</span>
+<span class="sd">       </span>
+<span class="sd">    This leaves only the resource address and the offset voltage.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">LockinPanelSlave</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+        <span class="n">staticsizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBoxSizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">visapanel</span> <span class="o">=</span> <span class="n">BaseVisaPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        
+        <span class="n">otherpanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">othersizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">FlexGridSizer</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">otherpanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span><span class="n">othersizer</span><span class="p">)</span>
+
+        <span class="n">controlStyle</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TE_RIGHT</span>
+        <span class="n">myCtrl</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">gh</span><span class="o">.</span><span class="n">createLabeledTextControl</span><span class="p">,</span> <span class="n">otherpanel</span><span class="p">,</span> <span class="n">othersizer</span><span class="p">,</span> 
+                         <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">controlStyle</span><span class="p">,</span> 
+                         <span class="n">defocusHandler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_onDefocusText</span><span class="p">)</span>
+        
+          
+        <span class="bp">self</span><span class="o">.</span><span class="n">offsetBox</span> <span class="o">=</span> <span class="n">myCtrl</span><span class="p">(</span><span class="s">&#39;Offset (V):&#39;</span><span class="p">,</span> <span class="s">&#39;0.000000e+00&#39;</span><span class="p">)</span>
+        <span class="n">othersizer</span><span class="o">.</span><span class="n">AddGrowableCol</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        
+        <span class="n">staticsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visapanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">staticsizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">otherpanel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizerAndFit</span><span class="p">(</span><span class="n">staticsizer</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_onDefocusText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Format a value when its control loses focus.&quot;&quot;&quot;</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">GetEventObject</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fval</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">fval</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">offsetBox</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%.6e</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fval</span><span class="p">)</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the panel&#39;s label.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="o">.</span><span class="n">GetLabel</span><span class="p">()</span>
+    <span class="nd">@label.setter</span>
+<div class="viewcode-block" id="LockinPanelSlave.label"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanelSlave.label">[docs]</a>    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newLabel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the panel&#39;s label.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="o">.</span><span class="n">SetLabel</span><span class="p">(</span><span class="n">newLabel</span><span class="p">)</span>
+        </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LockinPanelSlave.address"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanelSlave.address">[docs]</a>    <span class="k">def</span> <span class="nf">address</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the VISA resource address.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">visapanel</span><span class="o">.</span><span class="n">value</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LockinPanelSlave.offsetVoltage"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.LockinPanelSlave.offsetVoltage">[docs]</a>    <span class="k">def</span> <span class="nf">offsetVoltage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the offset voltage in volts.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">offsetBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+    </div></div>
+<div class="viewcode-block" id="AveragingPanel"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.AveragingPanel">[docs]</a><span class="k">class</span> <span class="nc">AveragingPanel</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A panel for configuring the averaging parameters for some instrument.&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Averaging&#39;</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AveragingPanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        
+        <span class="n">controlStyle</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TE_RIGHT</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span> <span class="o">=</span> <span class="n">gh</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;flex_grid&#39;</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="o">.</span><span class="n">addGrowableColumn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">myCtrl</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="o">.</span><span class="n">addLabeledText</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">controlStyle</span><span class="p">,</span>
+                         <span class="n">border</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">defocusHandler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_onDefocusText</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">averageBox</span> <span class="o">=</span> <span class="n">myCtrl</span><span class="p">(</span><span class="s">&#39;Averages:&#39;</span><span class="p">,</span> <span class="s">&#39;20&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pretimeBox</span> <span class="o">=</span> <span class="n">myCtrl</span><span class="p">(</span><span class="s">&#39;Pre-time (s):&#39;</span><span class="p">,</span> <span class="s">&#39;1.000&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intertimeBox</span> <span class="o">=</span> <span class="n">myCtrl</span><span class="p">(</span><span class="s">&#39;Inter-time (s):&#39;</span><span class="p">,</span> <span class="s">&#39;1.000&#39;</span><span class="p">)</span>
+
+        <span class="n">sizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+        <span class="n">sizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizerAndFit</span><span class="p">(</span><span class="n">sizer</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_onDefocusText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Format a value when its control loses focus.&quot;&quot;&quot;</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">GetEventObject</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fval</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">fval</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">averageBox</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fval</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">pretimeBox</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fval</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">source</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">intertimeBox</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fval</span><span class="p">)</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the panel&#39;s label.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="o">.</span><span class="n">GetLabel</span><span class="p">()</span>
+    <span class="nd">@label.setter</span>
+<div class="viewcode-block" id="AveragingPanel.label"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.AveragingPanel.label">[docs]</a>    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newLabel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the panel&#39;s label.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">staticpanel</span><span class="o">.</span><span class="n">SetLabel</span><span class="p">(</span><span class="n">newLabel</span><span class="p">)</span>
+            </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="AveragingPanel.averages"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.AveragingPanel.averages">[docs]</a>    <span class="k">def</span> <span class="nf">averages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the number of averages.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">averageBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="AveragingPanel.intertime"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.AveragingPanel.intertime">[docs]</a>    <span class="k">def</span> <span class="nf">intertime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the time between averages.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intertimeBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="AveragingPanel.pretime"><a class="viewcode-back" href="../../../../api_gui_instruments_common_panels.html#src.gui.instruments.common_panels.AveragingPanel.pretime">[docs]</a>    <span class="k">def</span> <span class="nf">pretime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the time before averaging begins in seconds.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pretimeBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

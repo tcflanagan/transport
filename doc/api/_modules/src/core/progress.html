@@ -1,0 +1,263 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>src.core.progress &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for src.core.progress</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;A tool for processing information about an experiment&#39;s status.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">strftime</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;transport&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="StatusMonitor"><a class="viewcode-back" href="../../../api_core_progress.html#src.core.progress.StatusMonitor">[docs]</a><span class="k">class</span> <span class="nc">StatusMonitor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A class for monitoring and displaying information to the user.</span>
+<span class="sd">    </span>
+<span class="sd">    Many actions performed by instruments can take a significant amount of</span>
+<span class="sd">    execution time, and the user will typically want some information</span>
+<span class="sd">    about what is happening at a given moment.</span>
+<span class="sd">    </span>
+<span class="sd">    This class allows information to be passed from the instruments (and the</span>
+<span class="sd">    experiment or actions) and processed via `Command` objects, allowing the</span>
+<span class="sd">    information to be redirected according to the program in question.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">timestampUpdate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">timestampPost</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_past</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_timestampUpdate</span> <span class="o">=</span> <span class="n">timestampUpdate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_timestampPost</span> <span class="o">=</span> <span class="n">timestampPost</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updateCommands</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_postCommands</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="StatusMonitor.setName"><a class="viewcode-back" href="../../../api_core_progress.html#src.core.progress.StatusMonitor.setName">[docs]</a>    <span class="k">def</span> <span class="nf">setName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the name of the status monitor.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            The new name for the status monitor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+</div>
+<div class="viewcode-block" id="StatusMonitor.getName"><a class="viewcode-back" href="../../../api_core_progress.html#src.core.progress.StatusMonitor.getName">[docs]</a>    <span class="k">def</span> <span class="nf">getName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the name of the status monitor.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The name of the status monitor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+</div>
+<div class="viewcode-block" id="StatusMonitor.setCommands"><a class="viewcode-back" href="../../../api_core_progress.html#src.core.progress.StatusMonitor.setCommands">[docs]</a>    <span class="k">def</span> <span class="nf">setCommands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">updateCommands</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">postCommands</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the commands which will be executed upon updates.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        updateCommands : list of Command</span>
+<span class="sd">            A list of `Command` objects to be executed when the `update`</span>
+<span class="sd">            method is executed. `currentMessage`, a string, will be passed as</span>
+<span class="sd">            a keyword argument to each `Command`.</span>
+<span class="sd">        postCommands : list of Command</span>
+<span class="sd">            A list of `Command` objects to be executed when the `post` method</span>
+<span class="sd">            is executed. `postedMessage`, a string indicating the last completed</span>
+<span class="sd">            action, will be passed as a keyword argument to each `Command`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">updateCommands</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_updateCommands</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_updateCommands</span> <span class="o">=</span> <span class="n">updateCommands</span>
+        <span class="k">if</span> <span class="n">postCommands</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_postCommands</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_postCommands</span> <span class="o">=</span> <span class="n">postCommands</span>
+</div>
+<div class="viewcode-block" id="StatusMonitor.update"><a class="viewcode-back" href="../../../api_core_progress.html#src.core.progress.StatusMonitor.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the message indicating the experiment&#39;s current state.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        message : str</span>
+<span class="sd">            A string indicating the experiment&#39;s current status.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current</span> <span class="o">=</span> <span class="n">message</span>
+
+        <span class="k">for</span> <span class="n">command</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_updateCommands</span><span class="p">:</span>
+            <span class="n">command</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">currentMessage</span><span class="o">=</span><span class="n">message</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="StatusMonitor.post"><a class="viewcode-back" href="../../../api_core_progress.html#src.core.progress.StatusMonitor.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the list of messages detailing the experiment&#39;s past actions.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        message : str</span>
+<span class="sd">            A string which should be tacked onto the list of past actions. If</span>
+<span class="sd">            `None`, the last update will be sent to the past message list.</span>
+<span class="sd">            Regardless, the current status message will be cleared.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">message</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_past</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M:%S - &#39;</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_past</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M:%S - &#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+        <span class="n">notice</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_past</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">command</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_postCommands</span><span class="p">:</span>
+            <span class="n">command</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">postedMessage</span><span class="o">=</span><span class="n">notice</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="StatusMonitor.clear"><a class="viewcode-back" href="../../../api_core_progress.html#src.core.progress.StatusMonitor.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clear the status monitor&#39;s information.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_past</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updateCommands</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_postCommands</span> <span class="o">=</span> <span class="p">[]</span>
+</div></div>
+<div class="viewcode-block" id="TextPrompter"><a class="viewcode-back" href="../../../api_core_progress.html#src.core.progress.TextPrompter">[docs]</a><span class="k">class</span> <span class="nc">TextPrompter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An object for prompting for user input from the command line.&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">70</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_width</span> <span class="o">=</span> <span class="n">width</span>
+        
+<div class="viewcode-block" id="TextPrompter.prompt"><a class="viewcode-back" href="../../../api_core_progress.html#src.core.progress.TextPrompter.prompt">[docs]</a>    <span class="k">def</span> <span class="nf">prompt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prompt the user for input.&quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="k">print</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_width</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_printOptions</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">raw_input</span><span class="p">(</span><span class="s">&#39;Enter a selection: &#39;</span><span class="p">))</span>
+                <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">response</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">response</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">print</span> <span class="s">&#39;Choice </span><span class="si">%d</span><span class="s"> is out of range. Try again.&#39;</span> <span class="o">%</span> <span class="n">response</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+                <span class="k">print</span> <span class="s">&#39;Invalid response. Try again.&#39;</span>
+        </div>
+    <span class="k">def</span> <span class="nf">_printOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Print the available options.&quot;&quot;&quot;</span>
+        <span class="n">formatString</span> <span class="o">=</span> <span class="s">&#39;%&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">options</span><span class="p">)))</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;d : </span><span class="si">%s</span><span class="s">&#39;</span> 
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+            <span class="k">print</span> <span class="n">formatString</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+
+</div>
+<span class="n">_STATUS_MONITORS</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="getStatusMonitor"><a class="viewcode-back" href="../../../api_core_progress.html#src.core.progress.getStatusMonitor">[docs]</a><span class="k">def</span> <span class="nf">getStatusMonitor</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a status monitor, creating it if it does not exist.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        The name of the status monitor to get.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    StatusMonitor</span>
+<span class="sd">        The `StatusMonitor` object with the specified name.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_STATUS_MONITORS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_STATUS_MONITORS</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    <span class="n">newMonitor</span> <span class="o">=</span> <span class="n">StatusMonitor</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">_STATUS_MONITORS</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">newMonitor</span>
+    <span class="k">return</span> <span class="n">newMonitor</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

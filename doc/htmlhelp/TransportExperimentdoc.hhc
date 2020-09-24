@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<HEAD>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<!-- Sitemap 1.0 -->
+</HEAD><BODY>
+<OBJECT type="text/site properties">
+        <param name="Window Styles" value="0x801227">
+        <param name="ImageType" value="Folder">
+</OBJECT>
+<UL>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Docs">
+    <param name="Local" value="index.html">
+</OBJECT>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Introduction">
+    <param name="Local" value="introduction.html">
+</OBJECT>
+<UL>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="About the software">
+    <param name="Local" value="introduction.html#about-the-software">
+</OBJECT>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Acknowledgements">
+    <param name="Local" value="introduction.html#acknowledgements">
+</OBJECT>
+</UL>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Getting Started">
+    <param name="Local" value="getting_started.html">
+</OBJECT>
+<UL>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Running from source">
+    <param name="Local" value="getting_started.html#running-from-source">
+</OBJECT>
+<UL>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="The Python Interpreter">
+    <param name="Local" value="getting_started.html#the-python-interpreter">
+</OBJECT>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Dependencies">
+    <param name="Local" value="getting_started.html#dependencies">
+</OBJECT>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Tools for managing documentation">
+    <param name="Local" value="getting_started.html#tools-for-managing-documentation">
+</OBJECT>
+<UL>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Python libraries">
+    <param name="Local" value="getting_started.html#python-libraries">
+</OBJECT>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="External applications">
+    <param name="Local" value="getting_started.html#external-applications">
+</OBJECT>
+</UL>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Tools">
+    <param name="Local" value="getting_started.html#tools">
+</OBJECT>
+</UL>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Testing some code">
+    <param name="Local" value="getting_started.html#testing-some-code">
+</OBJECT>
+</UL>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Project organization">
+    <param name="Local" value="project_organization.html">
+</OBJECT>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Extending the Code: Instruments">
+    <param name="Local" value="extending_code.html">
+</OBJECT>
+<UL>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Introduction">
+    <param name="Local" value="extending_code.html#introduction">
+</OBJECT>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Module and class creation">
+    <param name="Local" value="extending_code.html#module-and-class-creation">
+</OBJECT>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="The instrument specification">
+    <param name="Local" value="extending_code.html#the-instrument-specification">
+</OBJECT>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Initialization and finalization">
+    <param name="Local" value="extending_code.html#initialization-and-finalization">
+</OBJECT>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Actions">
+    <param name="Local" value="extending_code.html#actions">
+</OBJECT>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Parameters">
+    <param name="Local" value="extending_code.html#parameters">
+</OBJECT>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="The action syntax">
+    <param name="Local" value="extending_code.html#the-action-syntax">
+</OBJECT>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Defining the methods">
+    <param name="Local" value="extending_code.html#defining-the-methods">
+</OBJECT>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Format string syntax">
+    <param name="Local" value="extending_code.html#format-string-syntax">
+</OBJECT>
+<LI> <OBJECT type="text/sitemap">
+    <param name="Name" value="Summary of potential problems">
+    <param name="Local" value="extending_code.html#summary-of-potential-problems">
+</OBJECT>
+</UL>
+</UL></BODY></HTML>

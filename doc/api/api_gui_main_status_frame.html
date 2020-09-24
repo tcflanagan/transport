@@ -1,0 +1,182 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The status_frame module &mdash; Transport Experiment 1.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Transport Experiment 1.5.0 documentation" href="index.html" />
+    <link rel="up" title="The main package" href="api_gui_main.html" />
+    <link rel="next" title="The panels package" href="api_gui_panels.html" />
+    <link rel="prev" title="The base_experiment module" href="api_gui_main_base_experiment.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_panels.html" title="The panels package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_main_base_experiment.html" title="The base_experiment module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li>
+          <li><a href="api_gui_main.html" accesskey="U">The <cite>main</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-src.gui.main.status_frame">
+<span id="the-status-frame-module"></span><h1>The <cite>status_frame</cite> module<a class="headerlink" href="#module-src.gui.main.status_frame" title="Permalink to this headline">¶</a></h1>
+<p>A frame for displaying experiment status information.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="statusmonitorframe">
+<h3>StatusMonitorFrame<a class="headerlink" href="#statusmonitorframe" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.main.status_frame.StatusMonitorFrame">
+<em class="property">class </em><tt class="descclassname">src.gui.main.status_frame.</tt><tt class="descname">StatusMonitorFrame</tt><big>(</big><em>parent</em>, <em>monitor</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/status_frame.html#StatusMonitorFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.status_frame.StatusMonitorFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>A frame for monitoring the experiment&#8217;s status in real time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>parent</strong> : wxFrame</p>
+<blockquote>
+<div><p>The frame which is the parent of this frame.</p>
+</div></blockquote>
+<p><strong>monitor</strong> : StatusMonitor</p>
+<blockquote class="last">
+<div><p>The <cite>StatusMonitor</cite> object whose information is displayed in this 
+frame.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+</dd></dl>
+
+</div>
+<div class="section" id="updatecommand">
+<h3>UpdateCommand<a class="headerlink" href="#updatecommand" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="src.gui.main.status_frame.UpdateCommand">
+<em class="property">class </em><tt class="descclassname">src.gui.main.status_frame.</tt><tt class="descname">UpdateCommand</tt><big>(</big><em>eventClass</em>, <em>window</em><big>)</big><a class="reference internal" href="_modules/src/gui/main/status_frame.html#UpdateCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gui.main.status_frame.UpdateCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Command subclass for updating the status monitor data.</p>
+<p class="rubric">Methods</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <cite>status_frame</cite> module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#statusmonitorframe">StatusMonitorFrame</a></li>
+<li><a class="reference internal" href="#updatecommand">UpdateCommand</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_gui_main_base_experiment.html"
+                        title="previous chapter">The <cite>base_experiment</cite> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_gui_panels.html"
+                        title="next chapter">The <cite>panels</cite> package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api_gui_main_status_frame.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="np-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_gui_panels.html" title="The panels package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_gui_main_base_experiment.html" title="The base_experiment module"
+             >previous</a> |</li>
+        <li><a href="index.html">Transport Experiment 1.5.0 documentation</a> &raquo;</li>
+          <li><a href="api_gui.html" >The <cite>gui</cite> package</a> &raquo;</li>
+          <li><a href="api_gui_main.html" >The <cite>main</cite> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Thomas C. Flanagan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
